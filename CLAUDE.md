@@ -6,7 +6,9 @@ Komunikuj česky. Úplný návrh je v [docs/navrh.md](docs/navrh.md).
 
 ## Stav
 
-K 2026-11-02 existuje jen návrh, žádný kód. Návrh čeká na Matějovo schválení. Po schválení následuje etapa 1 (test OCR).
+K 2026-11-02 proběhlo první kolo testu OCR (skripty v `ocr_test/`, výsledky v návrhu). Doporučení: vyrovnání osvětlení, Tesseract a PaddleOCR sloučené přes český slovník, dávkové zpracování přes noc. Program bude v C# ve Visual Studiu. Návrh čeká na Matějovo schválení.
+
+Test běžel na fotkách z Matějova vlastního archivu stavebního úřadu, které dal výslovně k dispozici. Nejsou to spisy advokátky a do repozitáře nepatří ani ony, ani jejich přepisy.
 
 ## Pevná pravidla
 
@@ -25,7 +27,7 @@ Cílový systém je Windows. V cloudové relaci (Linux) nejde otestovat Windows 
 
 Odpovědi od advokátky zatím chybí:
 
-1. Jaký má počítač (paměť, verze Windows)?
+1. Jaký má počítač (paměť, verze Windows)? Víme jen, že není silný.
 2. Jsou spisy převážně tištěné, nebo i psané rukou?
 3. Znamená „přeložit“ jen převod fotky na text, nebo i překlad z cizího jazyka? Zatím se počítá jen s převodem na text.
 4. Jaký má Claude Code tarif a nastavení uchovávání dat?

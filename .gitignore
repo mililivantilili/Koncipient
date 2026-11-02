@@ -11,6 +11,10 @@ spisy/
 *.tif
 *.tiff
 *.pdf
+# Data testu OCR patří mimo repozitář, tohle je jen pojistka
+ocr-data/
+vystup/
+reference/
 # Vymyšlené vzory jsou výjimka
 !vzory/**
 

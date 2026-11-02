@@ -1,0 +1,10 @@
+# Test OCR (etapa 1). Tesseract s češtinou se instaluje zvlášť jako program.
+opencv-python-headless
+numpy
+pytesseract
+paddlepaddle==3.3.1
+paddleocr==3.7.0
+spylls
+# Volitelné, jen pro srovnání:
+# python-doctr
+# torch transformers jinja2
