@@ -1,0 +1,25 @@
+# Data programu nikdy do repozitáře
+Trezor/
+ProClaude/
+spisy/
+*.db
+*.sqlite
+*.jpg
+*.jpeg
+*.png
+*.heic
+*.tif
+*.tiff
+*.pdf
+# Vymyšlené vzory jsou výjimka
+!vzory/**
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+build/
+dist/
+
+# Lokální nastavení
+.claude/settings.local.json
