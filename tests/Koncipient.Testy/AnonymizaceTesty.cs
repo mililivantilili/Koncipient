@@ -95,6 +95,7 @@ public class DetektorTesty
     [InlineData("žalobce: Vymyšlené stavby spol. s r.o., IČO 12345678", TypUdaje.Firma, "Vymyšlené stavby spol. s r.o.,")]
     [InlineData("žalobce: Zemědělské družstvo Smyšlenov, se sídlem", TypUdaje.Firma, "Zemědělské družstvo Smyšlenov,")]
     [InlineData("Číslo pojistné smlouvy: 9988776655 platí", TypUdaje.Jiny, "9988776655")]
+    [InlineData("svědkem byl pan Tomáš Vymyšlený, 17. 3. 1957, který uvedl", TypUdaje.DatumNarozeni, "17. 3. 1957,")]
     [InlineData("Sídlo: Třída Vymyšlených hrdinů 2750, 999 01 Lhota u Nikde", TypUdaje.Adresa, "Třída Vymyšlených hrdinů 2750, 999 01 Lhota u Nikde")]
     public void NovaPravidla(string text, TypUdaje typ, string ocekavany) =>
         Assert.Contains((typ, ocekavany), Najdi(text));

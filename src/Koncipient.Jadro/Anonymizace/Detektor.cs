@@ -232,6 +232,7 @@ public static class Detektor
 
         NajdiOsoby(slova, radky, nalezy);
         NajdiFirmy(slova, radky, nalezy);
+        NajdiDatumZaJmenem(slova, nalezy);
         return Sluc(nalezy);
     }
 
@@ -264,6 +265,23 @@ public static class Detektor
                     nalezy.Add(new Nalez(i - 1, i, TypUdaje.Osoba));
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// Datum hned za jménem osoby („Jan Novák, 17. 3. 1957“) je v podáních datum narození,
+    /// pokud rok není příliš nedávný (dítě do 14 let se v takovém zápisu objevuje výjimečně).
+    /// </summary>
+    private static void NajdiDatumZaJmenem(IReadOnlyList<string> slova, List<Nalez> nalezy)
+    {
+        foreach (var o in nalezy.Where(n => n.Typ == TypUdaje.Osoba).ToList())
+        {
+            int i = o.Do + 1;
+            if (i + 2 >= slova.Count || !slova[o.Do].EndsWith(',')) continue;
+            var den = slova[i]; var mesic = slova[i + 1]; var rok = Text.Ocisti(slova[i + 2]);
+            if (Regex.IsMatch(den, @"^\d{1,2}\.$") && Regex.IsMatch(mesic, @"^(\d{1,2}\.|" + Mesice + ")$")
+                && int.TryParse(rok, out var r) && r >= 1900 && r <= DateTime.Today.Year - 14)
+                nalezy.Add(new Nalez(i, i + 2, TypUdaje.DatumNarozeni));
         }
     }
 
