@@ -129,7 +129,8 @@ foreach (var vytvor in motory)
                 File.WriteAllText(Path.Combine(cil, jmeno + ".txt"), text, new UTF8Encoding(false));
                 File.WriteAllText(Path.Combine(cil, jmeno + ".json"), JsonSerializer.Serialize(vysledek, Json), new UTF8Encoding(false));
                 if (nahled) Nahled.Uloz(fotka, vysledek, Path.Combine(cil, jmeno + ".nahled.jpg"));
-                var radek = $"{motor.Nazev} {Path.GetFileName(fotka)}: {text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length} slov, {stopky.Elapsed.TotalSeconds:F1} s";
+                var radek = $"{motor.Nazev} {Path.GetFileName(fotka)}: {text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length} slov, {stopky.Elapsed.TotalSeconds:F1} s"
+                    + (motor is PaddleMotor { NaGrafice: false } p && p.PouziteZarizeni.Contains("selhala") ? $" [{p.PouziteZarizeni}]" : "");
                 Console.WriteLine(radek);
                 protokol.AppendLine(radek);
             }

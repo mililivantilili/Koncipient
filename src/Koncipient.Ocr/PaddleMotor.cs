@@ -35,8 +35,9 @@ public sealed class PaddleMotor : IOcrMotor, IUrceniOtoceni
     private static readonly float[] Prumer = { 0.485f, 0.456f, 0.406f };
     private static readonly float[] Odchylka = { 0.229f, 0.224f, 0.225f };
 
-    private readonly InferenceSession _detekce;
-    private readonly InferenceSession _rozpoznani;
+    private InferenceSession _detekce;
+    private InferenceSession _rozpoznani;
+    private readonly string _slozkaModelu;
     private readonly string[] _znaky;
 
     /// <param name="slozkaModelu">
@@ -50,6 +51,7 @@ public sealed class PaddleMotor : IOcrMotor, IUrceniOtoceni
     public PaddleMotor(string slozkaModelu, ZarizeniOcr zarizeni = ZarizeniOcr.Automaticky)
     {
         if (zarizeni == ZarizeniOcr.Automaticky) zarizeni = ZarizeniZProstredi();
+        _slozkaModelu = slozkaModelu;
         _detekce = VytvorSezeni(Path.Combine(slozkaModelu, "det.onnx"), zarizeni, out var popis);
         _rozpoznani = VytvorSezeni(Path.Combine(slozkaModelu, "rec.onnx"), zarizeni, out _);
         PouziteZarizeni = popis;
@@ -58,10 +60,33 @@ public sealed class PaddleMotor : IOcrMotor, IUrceniOtoceni
     }
 
     /// <summary>Popis zařízení, na kterém motor skutečně počítá (pro protokol a stavový řádek).</summary>
-    public string PouziteZarizeni { get; }
+    public string PouziteZarizeni { get; private set; }
 
     /// <summary>Motor počítá na grafické kartě.</summary>
-    public bool NaGrafice { get; }
+    public bool NaGrafice { get; private set; }
+
+    /// <summary>
+    /// Spustí výpočet, a když grafická karta selže (typicky jí dojde paměť), přepne motor
+    /// natrvalo na procesor a výpočet zopakuje. Grafika slabého počítače tak nezastaví přepis.
+    /// </summary>
+    private T SGrafikouNeboBez<T>(Func<T> vypocet)
+    {
+        try
+        {
+            return vypocet();
+        }
+        catch (OnnxRuntimeException e) when (NaGrafice)
+        {
+            _detekce.Dispose();
+            _rozpoznani.Dispose();
+            _detekce = VytvorSezeni(Path.Combine(_slozkaModelu, "det.onnx"), ZarizeniOcr.Procesor, out _);
+            _rozpoznani = VytvorSezeni(Path.Combine(_slozkaModelu, "rec.onnx"), ZarizeniOcr.Procesor, out _);
+            NaGrafice = false;
+            var duvod = e.Message.Split('\n')[0];
+            PouziteZarizeni = $"procesor (grafická karta selhala: {duvod[(duvod.LastIndexOf(')') + 1)..].Trim()})";
+            return vypocet();
+        }
+    }
 
     /// <summary>Zaokrouhlovat šířku řádků v dávce (na grafice zapnuto, pro srovnání jde vynutit proměnnou KONCIPIENT_ZAOKROUHLIT=1).</summary>
     private bool ZaokrouhlitSirku => NaGrafice || Environment.GetEnvironmentVariable("KONCIPIENT_ZAOKROUHLIT") == "1";
@@ -140,7 +165,9 @@ public sealed class PaddleMotor : IOcrMotor, IUrceniOtoceni
     public string Nazev { get; init; } = "paddle-cs";
     public bool ChceUpravenouFotku => true;
 
-    public VysledekOcr Rozpoznej(string cestaKFotce)
+    public VysledekOcr Rozpoznej(string cestaKFotce) => SGrafikouNeboBez(() => RozpoznejJednou(cestaKFotce));
+
+    private VysledekOcr RozpoznejJednou(string cestaKFotce)
     {
         using var obrazek = Cv2.ImRead(cestaKFotce, ImreadModes.Color);
         if (obrazek.Empty())
@@ -171,7 +198,9 @@ public sealed class PaddleMotor : IOcrMotor, IUrceniOtoceni
     /// podle tvaru řádků pozná, jestli text běží vodorovně nebo svisle, a nejdelší
     /// řádky zkusí přečíst normálně i vzhůru nohama. Vyhraje směr s vyšší jistotou.
     /// </summary>
-    public int ZjistiOtoceni(string cestaKFotce)
+    public int ZjistiOtoceni(string cestaKFotce) => SGrafikouNeboBez(() => ZjistiOtoceniJednou(cestaKFotce));
+
+    private int ZjistiOtoceniJednou(string cestaKFotce)
     {
         using var puvodni = Cv2.ImRead(cestaKFotce, ImreadModes.Color);
         if (puvodni.Empty())

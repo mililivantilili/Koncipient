@@ -11,7 +11,7 @@ Návod pro Matěje. V cloudové relaci jde program jen přeložit a otestovat j�
 | Příprava | ✅ hotovo |
 | Test 0: automatické testy | ✅ hotovo, vše prošlo |
 | Test 1: OCR a rychlost | ✅ hotovo, výsledky v [návrhu](navrh.md) |
-| Test 1b: grafická karta | ⬜ čeká |
+| Test 1b: grafická karta | ✅ hotovo, grafika asi 2× rychlejší než procesor |
 | Test 2: prohlížeč | ✅ hotovo, vše funguje, PaddleOCR na grafice znatelně rychlejší |
 | Test 3: fotky bez otočení | ⬜ čeká |
 | Test 4: anonymizace a export | ⬜ čeká |
@@ -61,7 +61,10 @@ Když sestavení selže, otevři Zobrazit → Seznam chyb.
 
 </details>
 
-## Test 1b: grafická karta (10 minut)
+## ✅ Test 1b: grafická karta: hotovo 2026-11-03
+
+<details>
+<summary>Postup (pro případné zopakování)</summary>
 
 PaddleOCR umí počítat na grafické kartě (DirectML). Notebook má dvě, Intel UHD 630 a NVIDIA GTX 1050, a test zjistí, která je rychlejší.
 
@@ -70,6 +73,8 @@ PaddleOCR umí počítat na grafické kartě (DirectML). Notebook má dvě, Inte
 3. První fotka na grafice bývá pomalejší (grafika se „zahřívá“), rozhodují další.
 
 **Poslat:** nový `vysledky-ocr.zip`. Jestli program napíše „grafická karta nejde použít“, opiš i text chyby.
+
+</details>
 
 ## ✅ Test 2: prohlížeč: hotovo 2026-11-03
 

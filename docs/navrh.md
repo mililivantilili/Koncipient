@@ -111,7 +111,7 @@ Citlivé údaje jsou jména, adresy, čísla parcel, telefon, e-mail, data a č�
 - PaddleOCR zůstává kontrolním motorem: nejlépe čte čísla a jména a jeho odlišné čtení označí sporná místa. Údaje se hledají ve výstupech obou motorů.
 - PaddleOCR byl na fotkách z telefonu pomalý kvůli hledání řádků v plném rozlišení. Hledání řádků teď běží na kopii zmenšené na 2000 bodů: v cloudu dvakrát rychlejší při stejné přesnosti.
 - Tesseract je jen záloha pro počítač, kde Windows OCR nemá češtinu.
-- PaddleOCR umí na Windows počítat na grafické kartě přes DirectML (funguje i s integrovanou grafikou). Program zkusí nejvýkonnější kartu a jinak počítá na procesoru. Zrychlení se teprve změří na Matějově notebooku (GTX 1050 a Intel UHD 630).
+- PaddleOCR umí na Windows počítat na grafické kartě přes DirectML (funguje i s integrovanou grafikou). Program zkusí nejvýkonnější kartu a jinak počítá na procesoru. Na Matějově notebooku (GTX 1050 a Intel UHD 630) trvala strana na procesoru 13–22 s, na grafice 6–11 s, text se od procesoru lišil v 0,7 % slov. Jedna z grafik selhala pro nedostatek paměti až během výpočtu, proto se motor při chybě grafiky přepne na procesor a stranu zopakuje.
 - Test neotáčí fotky, takže strana vyfocená vzhůru nohama vyšla nečitelná. Prohlížeč ji před přepisem otočí.
 
 ## Struktura složek a formát dat
