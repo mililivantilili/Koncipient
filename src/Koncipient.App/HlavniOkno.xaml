@@ -46,7 +46,7 @@
                     <Run Background="#E1BEE7" Text=" údaj " />
                     <Run Text="  " /><Run Background="#FFE0B2" Text=" sporné čtení " />
                     <Run Text="  " /><Run Background="#C8E6C9" Text=" opraveno " />
-                    <Run Text="   klik = místo na fotce, Shift+klik = více slov, pravé tlačítko = anonymizace, dvojklik = oprava" Foreground="Gray" />
+                    <Run Text="   klik = místo na fotce, Shift+klik = více slov, dvojklik = oprava, pravé tlačítko = úpravy a anonymizace, Ctrl+tažení na fotce = doplnit vynechaný text" Foreground="Gray" />
                 </TextBlock>
             </StatusBarItem>
         </StatusBar>
@@ -90,6 +90,13 @@
                                 <MenuItem Header="Není citlivé" Click="Necitlive_Click" />
                                 <Separator />
                                 <MenuItem Header="Opravit slovo…" Click="OpravitSlovo_Click" />
+                                <MenuItem Header="Doplnit vynechaný text za toto slovo…" Click="DoplnitZa_Click" />
+                                <MenuItem Header="Smazat vybraná slova" Click="SmazatSlova_Click" />
+                                <Separator />
+                                <MenuItem Header="Zalomit řádek před tímto slovem" Click="Zalomit_Click" />
+                                <MenuItem Header="Spojit řádek s dalším" Click="Spojit_Click" />
+                                <MenuItem Header="Posunout řádek nahoru" Tag="-1" Click="PosunoutRadek_Click" />
+                                <MenuItem Header="Posunout řádek dolů" Tag="1" Click="PosunoutRadek_Click" />
                             </ContextMenu>
                         </FlowDocumentScrollViewer.ContextMenu>
                         <FlowDocument FontFamily="Segoe UI" FontSize="15" PagePadding="16" />
@@ -141,7 +148,9 @@
                     <Grid.LayoutTransform>
                         <ScaleTransform x:Name="Meritko" ScaleX="0.5" ScaleY="0.5" />
                     </Grid.LayoutTransform>
-                    <Image x:Name="Fotka" Stretch="Fill" MouseLeftButtonDown="Fotka_MouseLeftButtonDown" Cursor="Hand" />
+                    <Image x:Name="Fotka" Stretch="Fill" Cursor="Hand"
+                           MouseLeftButtonDown="Fotka_MouseLeftButtonDown" MouseMove="Fotka_MouseMove"
+                           MouseLeftButtonUp="Fotka_MouseLeftButtonUp" />
                     <Canvas x:Name="Vrstva" IsHitTestVisible="False" />
                 </Grid>
             </ScrollViewer>

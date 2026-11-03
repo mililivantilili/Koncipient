@@ -18,7 +18,7 @@ public static class Porovnani
     {
         var a = hlavni.Slova.ToList();
         var b = druhy.Slova.Select(s => Klic(s.Text)).ToList();
-        var ka = a.Select(s => Klic(s.Text)).ToList();
+        var ka = a.Select(s => Klic(s.Platny)).ToList(); // ručně opravená a doplněná slova podle opravy
         int n = a.Count, m = b.Count;
 
         // délky LCS od konce, ushort stačí do 65 535 slov na stranu

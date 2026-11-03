@@ -339,7 +339,7 @@ public partial class HlavniOkno : Window
             : null;
         var popis = new List<string>();
         if (udaj is not null) popis.Add($"{udaj.TextNahrady}  ({Nazvy.Typ(udaj.Typ)}{(udaj.Role is null ? "" : ", " + udaj.Role)})");
-        if (slovo.Oprava is not null) popis.Add($"Opraveno, OCR četlo: {slovo.Text}");
+        if (slovo.Oprava is not null) popis.Add(slovo.Text.Length == 0 ? "Doplněno ručně" : $"Opraveno, OCR četlo: {slovo.Text}");
         if (slovo.Sporne) popis.Add("Druhý motor zde četl něco jiného.");
         if (slovo.Jistota is float j) popis.Add($"Jistota OCR {j:P0}");
         beh.ToolTip = popis.Count > 0 ? string.Join("\n", popis) : null;
@@ -391,14 +391,107 @@ public partial class HlavniOkno : Window
         if (sender is Run { Tag: int i } && !JeVybrane(i)) { _kotva = i; Vyber(i, i, false); }
     }
 
+    // Ctrl + tažení na fotce označí oblast s textem, který OCR vynechalo
+    private Point? _tahOd;
+    private Rectangle? _tahRamecek;
+
     private void Fotka_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
+        if (_vysledek is null && _strana is null) return;
+        if (Keyboard.Modifiers == ModifierKeys.Control && _strana is not null)
+        {
+            _tahOd = e.GetPosition(Fotka);
+            _tahRamecek = new Rectangle { Stroke = Brushes.SeaGreen, StrokeThickness = 4, Fill = new SolidColorBrush(Color.FromArgb(0x30, 0x2E, 0x8B, 0x57)) };
+            Vrstva.Children.Add(_tahRamecek);
+            Fotka.CaptureMouse();
+            e.Handled = true;
+            return;
+        }
         if (_vysledek is null) return;
         var bod = e.GetPosition(Fotka); // v pixelech fotky, protože Fotka má rozměry v pixelech
         var slovo = _vysledek.SlovoNa(bod.X, bod.Y);
         if (slovo is null || !_indexy.TryGetValue(slovo, out var i)) return;
         if (Keyboard.Modifiers == ModifierKeys.Shift && _kotva >= 0) Vyber(_kotva, i, true);
         else { _kotva = i; Vyber(i, i, true); }
+    }
+
+    private void Fotka_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (_tahOd is not Point od || _tahRamecek is null) return;
+        var bod = e.GetPosition(Fotka);
+        Canvas.SetLeft(_tahRamecek, Math.Min(od.X, bod.X));
+        Canvas.SetTop(_tahRamecek, Math.Min(od.Y, bod.Y));
+        _tahRamecek.Width = Math.Abs(bod.X - od.X);
+        _tahRamecek.Height = Math.Abs(bod.Y - od.Y);
+    }
+
+    private void Fotka_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_tahOd is not Point od) return;
+        Fotka.ReleaseMouseCapture();
+        var bod = e.GetPosition(Fotka);
+        _tahOd = null;
+        if (_tahRamecek is not null) Vrstva.Children.Remove(_tahRamecek);
+        _tahRamecek = null;
+        var oblast = new Obdelnik((int)Math.Min(od.X, bod.X), (int)Math.Min(od.Y, bod.Y),
+            (int)Math.Abs(bod.X - od.X), (int)Math.Abs(bod.Y - od.Y));
+        if (oblast.Sirka < 5 || oblast.Vyska < 5) return;
+        var text = VstupDialog.Zeptej(this, "Doplnit vynechaný text", "Text v označené oblasti fotky:", "");
+        if (string.IsNullOrWhiteSpace(text) || _spis is null || _strana is null) return;
+        _vysledek ??= new VysledekOcr { Motor = Spis.Opraveno };
+        int prvni = UpravyStrany.VlozRadek(_vysledek, oblast, text);
+        UlozUpravu(prvni);
+    }
+
+    // ---------- Úpravy textu ----------
+
+    /// <summary>Uloží upravený přepis jako ruční opravu strany a zobrazí ho znovu.</summary>
+    private void UlozUpravu(int vybrat = -1)
+    {
+        if (_spis is null || _strana is null || _vysledek is null) return;
+        _spis.UlozOcr(_strana, _vysledek, Spis.Opraveno);
+        ZobrazStranu();
+        if (vybrat >= 0 && vybrat < _slova.Count) Vyber(vybrat, vybrat, true);
+    }
+
+    private void DoplnitZa_Click(object sender, RoutedEventArgs e)
+    {
+        if (_vysledek is null || _vyberOd < 0) return;
+        var text = VstupDialog.Zeptej(this, "Doplnit vynechaný text", $"Text, který chybí za slovem „{_slova[_vyberDo].Platny}“:", "");
+        if (string.IsNullOrWhiteSpace(text)) return;
+        UpravyStrany.VlozZa(_vysledek, _vyberDo, text);
+        UlozUpravu(_vyberDo + 1);
+    }
+
+    private void SmazatSlova_Click(object sender, RoutedEventArgs e)
+    {
+        if (_vysledek is null || _vyberOd < 0) return;
+        UpravyStrany.Smaz(_vysledek, _vyberOd, _vyberDo);
+        UlozUpravu();
+    }
+
+    private void Zalomit_Click(object sender, RoutedEventArgs e)
+    {
+        if (_vysledek is null || _vyberOd < 0) return;
+        int i = _vyberOd;
+        UpravyStrany.Zalom(_vysledek, i);
+        UlozUpravu(i);
+    }
+
+    private void Spojit_Click(object sender, RoutedEventArgs e)
+    {
+        if (_vysledek is null || _vyberOd < 0) return;
+        int i = _vyberOd;
+        UpravyStrany.SpojSDalsim(_vysledek, i);
+        UlozUpravu(i);
+    }
+
+    private void PosunoutRadek_Click(object sender, RoutedEventArgs e)
+    {
+        if (_vysledek is null || _vyberOd < 0 || sender is not MenuItem { Tag: string tag }) return;
+        var slovo = _slova[_vyberOd];
+        UpravyStrany.Posun(_vysledek, _vyberOd, int.Parse(tag));
+        UlozUpravu(_vysledek.Slova.ToList().IndexOf(slovo));
     }
 
     // ---------- Oprava slova ----------
@@ -415,10 +508,16 @@ public partial class HlavniOkno : Window
         var novy = VstupDialog.Zeptej(this, "Oprava slova", $"OCR přečetlo: {slovo.Text}", slovo.Platny);
         if (novy is null) return;
         novy = novy.Trim();
-        slovo.Oprava = novy == slovo.Text ? null : novy;
-        _spis.UlozOcr(_strana, _vysledek, Spis.Opraveno);
-        ZobrazStranu();
-        Vyber(i, i, false);
+        if (novy.Contains(' '))
+        {
+            // víc slov: první nahradí opravované slovo, ostatní se doplní za něj
+            var casti = novy.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+            slovo.Oprava = casti[0] == slovo.Text ? null : casti[0];
+            if (casti.Length > 1) UpravyStrany.VlozZa(_vysledek, i, casti[1]);
+        }
+        else if (novy.Length == 0) UpravyStrany.Smaz(_vysledek, i, i);
+        else slovo.Oprava = novy == slovo.Text ? null : novy;
+        UlozUpravu(Math.Min(i, _vysledek.Slova.Count() - 1));
     }
 
     // ---------- Anonymizace ----------
@@ -602,8 +701,14 @@ public partial class HlavniOkno : Window
     private void FotkaScroll_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
         if (Keyboard.Modifiers != ModifierKeys.Control) return;
-        Zvetseni.Value = Math.Clamp(Zvetseni.Value * (e.Delta > 0 ? 1.15 : 1 / 1.15), Zvetseni.Minimum, Zvetseni.Maximum);
         e.Handled = true;
+        // bod pod myší zůstane po zvětšení na stejném místě
+        var naFotce = e.GetPosition(Platno);       // v pixelech fotky (před zvětšením)
+        var veVyrezu = e.GetPosition(FotkaScroll); // poloha myši v okně
+        Zvetseni.Value = Math.Clamp(Zvetseni.Value * (e.Delta > 0 ? 1.15 : 1 / 1.15), Zvetseni.Minimum, Zvetseni.Maximum);
+        FotkaScroll.UpdateLayout();
+        FotkaScroll.ScrollToHorizontalOffset(naFotce.X * Meritko.ScaleX - veVyrezu.X);
+        FotkaScroll.ScrollToVerticalOffset(naFotce.Y * Meritko.ScaleY - veVyrezu.Y);
     }
 
     // ---------- Dávkový přepis ----------

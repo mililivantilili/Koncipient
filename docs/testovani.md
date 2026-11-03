@@ -52,7 +52,10 @@ PaddleOCR umí počítat na grafické kartě (DirectML). Notebook má dvě, Inte
    - [ ] Klik na slovo v textu zvýrazní správné místo na fotce a fotka se k němu posune.
    - [ ] Klik do fotky na slovo zvýrazní slovo v textu.
    - [ ] Oranžová slova (sporná) jsou opravdu místa, kde je text těžko čitelný nebo chybný.
-   - [ ] Dvojklik na slovo otevře opravu, po uložení je slovo zelené a oprava zůstane i po zavření programu.
+   - [ ] Dvojklik na slovo otevře opravu, po uložení je slovo zelené a oprava zůstane i po zavření programu. Napsáním více slov se doplní další slova, smazáním textu se slovo odstraní.
+   - [ ] Ctrl + kolečko zvětšuje fotku kolem místa, kde je myš.
+   - [ ] Pravé tlačítko na slově: **Doplnit vynechaný text za toto slovo…**, **Smazat vybraná slova**, **Zalomit řádek před tímto slovem**, **Spojit řádek s dalším**, **Posunout řádek nahoru/dolů** dělají, co mají.
+   - [ ] Ctrl + tažení myší na fotce označí oblast s textem, který OCR úplně vynechalo. Po napsání textu se objeví jako nový řádek na správném místě a kliknutím do oblasti se najde.
 6. Během přepisu by počítač neměl usnout ani po delší době.
 
 **Poslat:** co nefungovalo nebo bylo nepohodlné, ideálně se snímkem obrazovky. Zajímá nás i to, jestli je text dobře čitelný a jestli by šlo něco udělat jednodušeji.
