@@ -4,25 +4,53 @@ Návod pro Matěje. V cloudové relaci jde program jen přeložit a otestovat j�
 
 **Používej jen svůj archiv ze stavebního úřadu nebo vymyšlené dokumenty, nikdy spisy advokátky.** Fotky do vývojové relace s Claudem neposílej, stačí texty, čísla a snímky obrazovky bez citlivých údajů.
 
-## Příprava (jednou)
+## Přehled
+
+| Test | Stav |
+| --- | --- |
+| Příprava | ✅ hotovo |
+| Test 0: automatické testy | ✅ hotovo, vše prošlo |
+| Test 1: OCR a rychlost | ✅ hotovo, výsledky v [návrhu](navrh.md) |
+| Test 1b: grafická karta | ⬜ čeká |
+| Test 2: prohlížeč | 🟨 rozpracováno, dokončit v nové verzi |
+| Test 3: fotky bez otočení | ⬜ čeká |
+| Test 4: anonymizace a export | ⬜ čeká |
+| Test 5: vrácení jmen a Word | ⬜ čeká |
+
+Hotové testy (✅) přeskoč, jejich postup je sbalený.
+
+## ✅ Příprava: hotovo 2026-11-03
+
+<details>
+<summary>Postup (pro případné zopakování)</summary>
 
 1. Visual Studio 2026 se sadou **Vývoj desktopových aplikací .NET**, která obsahuje .NET 10 SDK. Sadu doplníš přes Visual Studio Installer, tlačítko Upravit. Ve VS 2026 je obvykle už nainstalovaná.
 2. Stáhni větev `claude/friendly-franklin-k4ma6l` (ve Visual Studiu Git, Spravovat větve, nebo `git pull`).
 3. Otevři `Koncipient.sln`. Při prvním sestavení si Visual Studio stáhne balíčky NuGet, chvíli to trvá.
 4. Připrav si složku s 5–10 fotkami z archivu, ideálně různorodými: tištěný text, tabulka, razítko, šikmá nebo tmavá fotka a pokud máš, i ručně psaný text.
 
-## Test 0: automatické testy (5 minut)
+</details>
+
+## ✅ Test 0: automatické testy: hotovo 2026-11-03
+
+<details>
+<summary>Postup (pro případné zopakování)</summary>
 
 1. Otevři **řešení**, ne jen složku: Soubor → Otevřít → Projekt/řešení… → `Koncipient.sln`. Bez toho se nabídka Test ani testy neukážou.
 2. Počkej, až se stáhnou balíčky (vlevo dole), a sestav řešení: Sestavení → Sestavit řešení (Ctrl+Shift+B).
 3. Otevři Test → Průzkumník testů (Ctrl+E, T), anglicky *Test Explorer*.
-4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 354, všechny zelené.
+4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 358, všechny zelené.
 
 Když sestavení selže, otevři Zobrazit → Seznam chyb.
 
 **Poslat:** kolik testů prošlo, případně název a text chyby u neúspěšného testu nebo první chybu ze Seznamu chyb.
 
-## Test 1: OCR a rychlost (etapa 1, 10 minut)
+</details>
+
+## ✅ Test 1: OCR a rychlost: hotovo 2026-11-03
+
+<details>
+<summary>Postup (pro případné zopakování)</summary>
 
 1. V Průzkumníku řešení klikni pravým na `Koncipient.OcrTest`, Nastavit jako spouštěný projekt, a stiskni F5.
 2. Přetáhni do okna složku s fotkami a stiskni Enter. Poprvé se stáhnou modely (asi 140 MB).
@@ -31,17 +59,21 @@ Když sestavení selže, otevři Zobrazit → Seznam chyb.
 
 **Poslat:** soubor `vysledky-ocr.zip` (jen texty a časy, žádné fotky). Do zprávy napiš, kolik má notebook paměti a jaký procesor.
 
+</details>
+
 ## Test 1b: grafická karta (10 minut)
 
 PaddleOCR umí počítat na grafické kartě (DirectML). Notebook má dvě, Intel UHD 630 a NVIDIA GTX 1050, a test zjistí, která je rychlejší.
 
-1. Spusť `Koncipient.OcrTest` (F5), přetáhni složku s fotkami a na otázku „Co spustit?“ napiš **2**.
+1. Nastav `Koncipient.OcrTest` jako spouštěný projekt (pravým tlačítkem v Průzkumníku řešení), stiskni F5, přetáhni složku s fotkami a na otázku „Co spustit?“ napiš **2**.
 2. Program přepíše prvních 5 fotek PaddleOCR čtyřikrát: na procesoru, na nejvýkonnější grafice, na grafice 0 a na grafice 1. U každého vypíše, kde skutečně počítal.
 3. První fotka na grafice bývá pomalejší (grafika se „zahřívá“), rozhodují další.
 
 **Poslat:** nový `vysledky-ocr.zip`. Jestli program napíše „grafická karta nejde použít“, opiš i text chyby.
 
-## Test 2: prohlížeč (etapa 2, 15 minut)
+## 🟨 Test 2: prohlížeč (etapa 2, 15 minut)
+
+Rozpracováno: první připomínky (zvětšování k myši, doplňování a přeskládání textu) jsou zapracované. Dokonči v nové verzi po Git → Pull.
 
 1. Nastav `Koncipient.App` jako spouštěný projekt a stiskni F5.
 2. **Nový spis**, pojmenuj ho třeba „test archiv“.
