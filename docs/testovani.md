@@ -16,10 +16,10 @@ Testy může dělat i agent (Claude Code), postup pro něj je v [agent.md](agent
 | Test 1b: grafická karta | ✅ hotovo, grafika asi 2× rychlejší než procesor |
 | Test 2: prohlížeč | ✅ hotovo, vše funguje, PaddleOCR na grafice znatelně rychlejší |
 | Test 3: fotky bez otočení | ✅ hotovo, otočení funguje (zbývá jedna drobná kontrola, viz níže) |
-| Test 4: anonymizace a export | ⬜ čeká |
-| Test 5: vrácení jmen a Word | ⬜ čeká |
-| Test 6: měření anonymizace s Windows OCR | ⬜ čeká, nepovinný, 5 minut |
-| Test 7: dokumenty, složky a černé fotky | ⬜ čeká, 15 minut |
+| Test 4: anonymizace a export | 🔶 proběhl automaticky, chyby ve [výsledcích](vysledky-testu-windows.md), čeká na opravy |
+| Test 5: vrácení jmen a Word | 🔶 proběhl automaticky, barvy v okně a otevření ve Wordu zbývá ověřit |
+| Test 6: měření anonymizace s Windows OCR | ✅ hotovo, 1 únik z 87 |
+| Test 7: dokumenty, složky a černé fotky | 🔶 proběhl automaticky, zbývá černá fotka z mobilu |
 
 Hotové testy (✅) přeskoč, jejich postup je sbalený.
 
