@@ -105,7 +105,17 @@ public static class Anonymizator
                 var usek = slova.Skip(n.Od).Take(n.Do - n.Od + 1).ToList();
                 if (usek.All(s => klic.Vyjimky.Contains(Text.Normalizuj(s)))) continue;
                 var e = NajdiEntitu(klic, n.Typ, slova, n.Od, n.Do);
-                if (e is null) { e = klic.Nova(n.Typ, usek); nove++; }
+                if (e is null)
+                {
+                    e = klic.Nova(n.Typ, usek);
+                    nove++;
+                    if (n.Typ == TypUdaje.SpisovaZnacka && Detektor.JeJudikatura(string.Join(" ", usek)))
+                    {
+                        // citované rozhodnutí Nejvyššího, Nejvyššího správního nebo Ústavního soudu je veřejné
+                        e.Akce = Akce.Ponechat;
+                        e.Role = "judikatura (veřejná)";
+                    }
+                }
                 else if (!e.Tvary.Any(t => t.Count == usek.Count && t.Zip(usek).All(p => p.First == Text.Ocisti(p.Second))))
                     e.Tvary.Add(usek.Select(Text.Ocisti).ToList());
 

@@ -20,7 +20,8 @@ public static class Detektor
         "ing", "mgr", "judr", "mudr", "mvdr", "bc", "phdr", "rndr", "paeddr", "doc", "prof", "ph.d", "csc", "dis",
         "pan", "paní", "pana", "panu", "panem", "slečna", "p", "sp",
         "npor", "por", "kpt", "prap", "pprap", "mjr", "pplk", "plk", "nstržm", "stržm", "ppor", "šstržm",
-        "rozená", "rozený", "roz",
+        "rozená", "rozený", "roz", "rozené", "rozenou", "rozeného",
+        "doktor", "doktore", "doktorka", "doktorko", "inženýr", "inženýre", "magistr", "magistře", "magistro", "kolega", "kolego", "kolegyně",
     };
 
     private static readonly HashSet<string> PravniFormy = new(StringComparer.OrdinalIgnoreCase)
@@ -83,7 +84,7 @@ public static class Detektor
     /// <summary>Rod osoby podle slova těsně před jménem (paní, rozená, svědkyně…), jinak null.</summary>
     public static Rod? RodZOkoli(string slovo) => Text.Normalizuj(slovo).TrimEnd(':') switch
     {
-        "pani" or "rozena" or "svedkyne" or "zalovana" or "zalobkyne" or "navrhovatelka" or "odpurkyne" or "dluznice"
+        "pani" or "rozena" or "rozene" or "rozenou" or "doktorko" or "doktorka" or "svedkyne" or "zalovana" or "zalobkyne" or "navrhovatelka" or "odpurkyne" or "dluznice"
             or "veritelka" or "obvinena" or "poskozena" or "opravnena" or "povinna" or "zadatelka" or "jednatelka"
             or "spolecnice" or "zmocnenkyne" or "advokatka" or "manzelka" or "dcera" or "matka" => Rod.Zena,
         "pan" or "pana" or "panu" or "panem" or "rozeny" or "svedek" or "zalovany" or "zalobce" or "navrhovatel"
@@ -116,36 +117,72 @@ public static class Detektor
 
     // ---------- Pravidla nad celým textem strany ----------
 
+    /// <summary>Slova, kterými začínají víceslovné názvy obcí (pro obec rozdělenou koncem řádku).</summary>
+    private static readonly HashSet<string> PrvniSlovaObci = new(StringComparer.Ordinal)
+    {
+        "České", "Český", "Česká", "Hradec", "Nové", "Nový", "Nová", "Ústí", "Frýdek", "Valašské", "Valašský", "Rožnov", "Kostelec",
+        "Brandýs", "Mladá", "Dvůr", "Karlovy", "Mariánské", "Kutná", "Velké", "Velký", "Velká", "Horní", "Dolní", "Staré", "Starý",
+        "Stará", "Uherské", "Uherský", "Havlíčkův", "Jindřichův", "Králův", "Moravské", "Moravský", "Moravská", "Bystřice", "Lhota",
+        "Kamenice", "Žďár", "Dobrá", "Hořovice", "Sušice", "Vysoké", "Malé", "Bílé", "Červený", "Lázně", "Praha", "Brno",
+    };
+
     private const string Mesice = "ledna|února|března|dubna|května|června|července|srpna|září|října|listopadu|prosince";
 
     private static readonly (Regex Vzor, TypUdaje Typ)[] Pravidla =
     {
         (new Regex(@"\b\d{2}[0156]\d[0-3]\d\s?/\s?\d{3,4}\b"), TypUdaje.RodneCislo),
-        (new Regex(@"(?:nar\.|narozen[aáý]?|datum narození:?)\s*(?<u>\d{1,2}\.\s?(?:\d{1,2}\.|" + Mesice + @")\s?\d{4})", RegexOptions.IgnoreCase), TypUdaje.DatumNarozeni),
+        (new Regex(@"(?:nar\.|narozen\w*|datum narození:?|dat\. ?nar\.:?)\s*(?:dne\s*)?(?<u>\d{1,2}\.\s?(?:\d{1,2}\.|" + Mesice + @")\s?\d{4})", RegexOptions.IgnoreCase), TypUdaje.DatumNarozeni),
         (new Regex(@"\b(?:IČO?|DIČ)\s*:?\s*(?<u>(?:CZ)?\d{8,10})\b"), TypUdaje.Ico),
         (new Regex(@"\b(?:\d{1,6}-)?\d{6,10}/\d{4}\b"), TypUdaje.Ucet),
         (new Regex(@"(?:\+420 ?)?\b[1-9]\d{2} ?\d{3} ?\d{3}\b"), TypUdaje.Telefon),
         (new Regex(@"[\w.+-]+@[\w-]+\.[\w.-]*\w"), TypUdaje.Email),
         (new Regex(@"\b\d{1,3}\s?[A-Z][A-Za-z]{0,3}\s?\d{1,6}/\d{4}\b"), TypUdaje.SpisovaZnacka),
-        (new Regex(@"(?:č\.\s?j\.|čj\.|sp\.\s?zn\.|spis\.\s?zn\.|spisová značka|značka)\s*:?\s*(?<u>(?:\p{Lu}[\p{Lu}-]* )?[\w/-]*\d[\w/-]*(?: [\w/-]*\d[\w/-]*)?)", RegexOptions.IgnoreCase), TypUdaje.SpisovaZnacka),
+        (new Regex(@"(?:č\.\s?j\.|čj\.|sp\.\s?zn\.|spis\.\s?zn\.|spisová značka|značka)\s*:?\s*(?<u>(?-i:(?:\p{Lu}[\p{Lu}-]* )?)[\w/-]*\d[\w/-]*(?: [\w/-]*\d[\w/-]*)?)", RegexOptions.IgnoreCase), TypUdaje.SpisovaZnacka),
         (new Regex(@"\bvložka\s*(?<u>\d+)", RegexOptions.IgnoreCase), TypUdaje.SpisovaZnacka),
         (new Regex(@"\bev\.\s?č\.(?:\s?ČAK)?\s*(?<u>\d+)", RegexOptions.IgnoreCase), TypUdaje.Jiny),
         (new Regex(@"\b(?:RZ|SPZ)\s*:?\s*(?<u>\d[A-Z][A-Z0-9] ?\d{4})\b"), TypUdaje.Jiny),
+        (new Regex(@"\b\d[A-Z][A-Z0-9] ?\d{4}\b"), TypUdaje.Jiny),                          // SPZ i bez označení (1AB 2345)
+        (new Regex(@"\b(?=[A-HJ-NPR-Z0-9]*\d)(?=[A-HJ-NPR-Z0-9]*[A-Z])[A-HJ-NPR-Z0-9]{17}\b"), TypUdaje.Jiny), // VIN
+        (new Regex(@"\bCZ\d{2}(?:[ ]?\d{4}){5}\b"), TypUdaje.Ucet),                          // IBAN
+        (new Regex(@"(?:se sídlem|sídlem|bytem|bydlištěm)\s+v\s+(?<u>\p{Lu}\p{Ll}+(?:[ -]\p{Lu}\p{Ll}+){0,2})(?=[,.;\s]|$)"), TypUdaje.Adresa),
+        (new Regex(@"(?:číslo|č\.)\s+(?:pojistné\s+smlouvy|pojistné\s+události|smlouvy|dokladu|klienta|zákazníka|karty|pojištěnce)\s*:?\s*(?<u>[\w/-]*\d[\w/-]*)", RegexOptions.IgnoreCase), TypUdaje.Jiny),
+        // osmimístné číslo hned za firmou je IČO, i když chybí slovo „IČO“ (… a.s., 12345678)
+        (new Regex(@"(?:s\.\s?r\.\s?o\.|a\.\s?s\.|spol\. s r\.\s?o\.|v\.\s?o\.\s?s\.|k\.\s?s\.|družstvo(?: \p{Lu}\p{L}+)?)\.?,?\s+\(?(?:IČO?:?\s*)?(?<u>\d{8})\b"), TypUdaje.Ico),
+        (new Regex(@"(?:variabilní(?:m|ho)? symbol(?:em|u)?|var\.\s?symb(?:ol)?\.?|\bVS)\s*:?\s*(?<u>\d{2,10})\b", RegexOptions.IgnoreCase), TypUdaje.Jiny),
+        (new Regex(@"(?<u>(?:\p{Lu}\p{Ll}+ )+(?:družstvo|spolek|nadace|ústav)(?: \p{Lu}[\p{L}-]+)*)"), TypUdaje.Firma),
         (new Regex(@"(?:občansk\w+ průkaz\w*|\bOP|cestovní\w* pas\w*)\s*(?:č\.)?\s*(?<u>\d{6,10})\b", RegexOptions.IgnoreCase), TypUdaje.Jiny),
         (new Regex(@"parc\.?\s*č\.?\s*(?<u>\d+(?:/\d+)?)", RegexOptions.IgnoreCase), TypUdaje.Nemovitost),
         (new Regex(@"\bLV\s*č\.?\s*(?<u>\d+)"), TypUdaje.Nemovitost),
         // U adres se smí přejít přes konec řádku tam, kde je to jednoznačné:
         // mezi PSČ a obcí, za „k. ú.“ a mezi ulicí a číslem domu (zalomení na fotce).
         (new Regex(@"\bk\. ?ú\.[ \n]*(?<u>\p{Lu}[\p{L}-]*(?: (?:u|nad|pod|v|na)? ?\p{Lu}[\p{L}-]*){0,3})"), TypUdaje.Adresa),
-        (new Regex(@"(?<u>\b\d{3} ?\d{2}[ \n](?<obec>\p{Lu}[\p{L}]+)(?:(?: (?:u|nad|pod|v|na))?[ -]\p{Lu}[\p{L}]+){0,3})"), TypUdaje.Adresa),
+        (new Regex(@"(?<u>\b\d{3}[ \n]?\d{2}[ \n](?<obec>\p{Lu}[\p{L}]+)(?: \d{1,2})?(?:(?: (?:u|nad|pod|v|na))?[ -]\p{Lu}[\p{L}]+){0,3}(?: ?[-–] ?\p{Lu}\p{L}+(?: \p{Lu}\p{L}+)?)?)"), TypUdaje.Adresa),
         // ulice s číslem a za ní PSČ (Lipová 9, 999 04 Smyšlov), nebo ulice s typickou koncovkou
-        (new Regex(@"(?<u>\b(?<obec>\p{Lu}\p{Ll}+(?: \p{Ll}+)?)[ \n]\d{1,5}(?:/\d{1,5})?[a-z]?,[ \n]?\d{3} ?\d{2}[ \n]\p{Lu}\p{L}+(?:(?: (?:u|nad|pod|v|na))?[ -]\p{Lu}\p{L}+){0,3})"), TypUdaje.Adresa),
+        (new Regex(@"(?<u>\b(?<obec>(?:(?:Na|U|V|Pod|Nad|K) )?(?:\p{Lu}\p{Ll}+ ){0,2}\p{Lu}\p{Ll}+(?: \p{Ll}+)?)[ \n]\d{1,5}(?:/\d{1,5})?[a-z]?,[ \n]?\d{3}[ \n]?\d{2}[ \n]\p{Lu}\p{L}+(?: \d{1,2})?(?:(?: (?:u|nad|pod|v|na))?[ -]\p{Lu}\p{L}+){0,3}(?: ?[-–] ?\p{Lu}\p{L}+(?: \p{Lu}\p{L}+)?)?)"), TypUdaje.Adresa),
         (new Regex(@"(?<u>\b(?<obec>\p{Lu}\p{Ll}+(?:ská|cká|ová|ova|ovo|ní|ící|ého|ká|ná))[ \n]\d{1,5}(?:/\d{1,5})?[a-z]?\b)"), TypUdaje.Adresa),
         // za slovy bytem, sídlem apod. až do čárky před dalším údajem
-        (new Regex(@"(?:bytem|sídlem|bydlištěm|bydliště:|trvale bytem|trvalý pobyt:?)\s+(?<u>\p{Lu}[^\n,]{0,40}?[ \n]\d{1,5}(?:/\d{1,5})?[a-z]?(?:,[ \n]?\d{3} ?\d{2}[ \n][^\n,]+)?)(?=,|\n|$)", RegexOptions.IgnoreCase), TypUdaje.Adresa),
+        (new Regex(@"(?:bytem|sídlem|bydlištěm|bydliště:|trvale bytem|trvalý pobyt:?|se sídlem|místem podnikání)\s+(?:v\s+)?(?<u>(?-i:\p{Lu}[^\n,]{0,30}?[ \n]\d{1,5}(?:/\d{1,5})?[a-z]?(?:,[ \n]?\d{3}[ \n]?\d{2}[ \n]\p{Lu}\p{L}+(?: \d{1,2})?(?:(?: (?:u|nad|pod|v|na))?[ -]\p{Lu}\p{L}+){0,3}(?: ?[-–] ?\p{Lu}\p{L}+(?: \p{Lu}\p{L}+)?)?)?))", RegexOptions.IgnoreCase), TypUdaje.Adresa),
     };
 
     /// <param name="radky">Číslo řádku každého slova. Jména a adresy nepřecházejí přes konec řádku.</param>
+    /// <summary>
+    /// Spisová značka Nejvyššího soudu, Nejvyššího správního soudu nebo Ústavního soudu
+    /// (citovaná judikatura, veřejná): agendy Cdo, Odo, Tdo, ICdo, NSČR, Cul, As, Ads, Afs, Azs, Ars, ÚS, Pl. ÚS.
+    /// </summary>
+    public static bool JeJudikatura(string znacka) =>
+        Regex.IsMatch(znacka, @"\b(?:I?C(?:do|don)|Odo|Tdo|Tz|NSČR|Cul|Ncu|Nd|A(?:s|ds|fs|zs|rs|o)|Pl\.?\s?ÚS|[IV]+\.?\s?ÚS|ÚS)\b");
+
+    /// <summary>Kontrolní součet IČO (vážený součet prvních sedmi číslic mod 11).</summary>
+    public static bool PlatneIco(string ico)
+    {
+        if (ico.Length != 8 || !ico.All(char.IsDigit)) return false;
+        int soucet = 0;
+        for (int i = 0; i < 7; i++) soucet += (ico[i] - '0') * (8 - i);
+        int zbytek = soucet % 11;
+        int kontrola = zbytek == 0 ? 1 : zbytek == 1 ? 0 : 11 - zbytek;
+        return ico[7] - '0' == kontrola;
+    }
+
     public static List<Nalez> Najdi(IReadOnlyList<string> slova, IReadOnlyList<int>? radky = null)
     {
         var nalezy = new List<Nalez>();
@@ -168,6 +205,10 @@ public static class Detektor
             return idx >= 0 ? idx : ~idx - 1;
         }
 
+        // osmimístné číslo s platným kontrolním součtem IČO je IČO i bez slova „IČO“
+        foreach (Match m in Regex.Matches(s, @"(?<![\d/.-])\d{8}(?![\d/])"))
+            if (PlatneIco(m.Value)) nalezy.Add(new Nalez(SlovoNa(m.Index), SlovoNa(m.Index + m.Length - 1), TypUdaje.Ico));
+
         foreach (var (vzor, typ) in Pravidla)
             foreach (Match m in vzor.Matches(s))
             {
@@ -176,6 +217,18 @@ public static class Detektor
                 if (m.Groups["obec"].Success && NeJmena.Contains(m.Groups["obec"].Value)) continue;
                 nalezy.Add(new Nalez(SlovoNa(g.Index), SlovoNa(g.Index + g.Length - 1), typ));
             }
+
+        // obec z více slov rozdělená koncem řádku (České / Budějovice, Hradec / Králové)
+        for (int k = 0; k < nalezy.Count; k++)
+        {
+            var n = nalezy[k];
+            if (n.Typ != TypUdaje.Adresa) continue;
+            int konec = n.Do;
+            while (konec + 1 < slova.Count && radky[konec + 1] != radky[konec]
+                   && PrvniSlovaObci.Contains(Text.Ocisti(slova[konec])) && Text.ZacinaVelkym(slova[konec + 1]))
+                konec++;
+            if (konec != n.Do) nalezy[k] = n with { Do = konec };
+        }
 
         NajdiOsoby(slova, radky, nalezy);
         NajdiFirmy(slova, radky, nalezy);
@@ -228,6 +281,11 @@ public static class Detektor
                 konec = i + 2;
             }
             if (!PravniFormy.Contains(forma)) continue;
+            // „spol. s r.o.“: k firmě patří i následující „s r.o.“
+            if (forma.Equals("spol", StringComparison.OrdinalIgnoreCase))
+                while (konec + 1 < slova.Count && radky[konec + 1] == radky[i] && konec - i < 3
+                       && Regex.IsMatch(Text.Ocisti(slova[konec + 1]), @"^(s|r\.?o|r\.o\.?|s\.r\.o)$", RegexOptions.IgnoreCase))
+                    konec++;
             // Název firmy: až čtyři slova před právní formou, začíná velkým písmenem
             // („Smyšlené stavby s.r.o.“), končí na dvojtečce nebo čárce před ním.
             int od = i;
@@ -236,7 +294,7 @@ public static class Detektor
                 var w = slova[j];
                 if (w.EndsWith(':') || w.EndsWith(';') || (w.EndsWith(',') && j < i - 1) || JeTitul(w)) break;
                 if (Text.ZacinaVelkym(w) && !NeJmena.Contains(Text.Ocisti(w))) od = j;
-                if (w.EndsWith(',')) break;
+                // čárka těsně před právní formou patří k názvu (Elektro-Servis Zlín, s.r.o.)
             }
             if (od < i) nalezy.Add(new Nalez(od, konec, TypUdaje.Firma));
         }

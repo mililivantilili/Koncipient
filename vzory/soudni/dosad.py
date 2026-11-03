@@ -87,7 +87,10 @@ class Generator:
         if "účt" in p or "účet" in p:
             return f"{n.randint(100000, 9999999999)}/{n.choice(['0100', '0300', '0800', '2010', '5500'])}", "ucet"
         if "ičo" in p:
-            return f"{n.randint(10000000, 99999999)}", "ico"
+            while True:  # platný kontrolní součet jako u skutečných IČO
+                zaklad = [n.randint(0, 9) for _ in range(7)]
+                zb = sum(c * (8 - i) for i, c in enumerate(zaklad)) % 11
+                return "".join(map(str, zaklad)) + str(1 if zb == 0 else 0 if zb == 1 else 11 - zb), "ico"
         if "spz" in p or "registrační" in p:
             return f"{n.randint(1, 9)}{n.choice('ABCEHJKLMPSTUZ')}{n.randint(1, 9)} {n.randint(1000, 9999)}", "jiny"
         if "vin" in p:
@@ -147,6 +150,9 @@ def preved(dok, semeno, max_znaku):
                 else:
                     nasleduje = texty[i + 1]["text"] if i + 1 < len(texty) else ""
                     hodnota, typ = g.hodnota(re.sub(r"\s+", " ", t["text"]).strip(), nasleduje)
+                    # dva anonymizované údaje těsně za sebou (jméno a datum) oddělit čárkou jako v podání
+                    if i > 0 and texty[i - 1].get("anonStyle") != "NONE":
+                        vysledek += ", "
                     vysledek += oznac(hodnota, typ)
             vysledek = re.sub(r"[ \t]+", " ", vysledek).strip()
             if vysledek:

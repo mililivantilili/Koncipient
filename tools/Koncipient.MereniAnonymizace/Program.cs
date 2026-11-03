@@ -81,7 +81,8 @@ Anonymizator.UlozKlic(spis, klic);
 
 // Slova, která se nevyznačují (titulky, předložky) a čísla, která jsou i ve veřejném textu.
 var nevyznamna = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-    { "ing", "judr", "mgr", "bc", "parc", "č", "k", "ú", "lv", "r", "u", "v", "nad", "pod", "na", "nar", "c", "s.r.o", "s", "ve" };
+    { "ing", "judr", "mgr", "bc", "mudr", "phdr", "rndr", "doc", "prof", "ph.d", "parc", "č", "k", "ú", "lv", "r", "u", "v", "nad", "pod", "na",
+      "nar", "c", "s.r.o", "a.s", "s", "ve", "pan", "paní", "pana", "panu", "panem", "slečna" };
 
 var vypis = new StringBuilder();
 var souhrn = new Dictionary<string, (int Celkem, int Uniklo)>();
@@ -123,7 +124,7 @@ foreach (var (strana, r) in reference.Select(r => (spis.Strany.Single(s => s.Puv
 var vyznacena = reference.SelectMany(r => r.Data.Udaje).SelectMany(u => u.Hodnota.Split((char[]?)null)).Select(Text.Ocisti).Where(s => s.Length > 0).ToList();
 var vyznacenaCisla = reference.SelectMany(r => r.Data.Udaje).Select(u => new string(u.Hodnota.Where(char.IsDigit).ToArray())).Where(s => s.Length > 0).ToList();
 vypis.AppendLine("\n=== Nahrazeno navíc (v klíči, ale nevyznačeno)");
-foreach (var e in klic.Entity)
+foreach (var e in klic.Entity.Where(e => e.Akce != Akce.Ponechat)) // ponechané (judikatura) se nenahrazují
 {
     var tvary = e.Tvary.SelectMany(t => t).ToList();
     bool odpovida = tvary.Any(t => vyznacena.Any(z => Text.StejneSlovo(z, t)))

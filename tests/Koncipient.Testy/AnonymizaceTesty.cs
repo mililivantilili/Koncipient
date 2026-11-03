@@ -85,6 +85,49 @@ public class DetektorTesty
         Ma(TypUdaje.RodneCislo, "855101/0000");
     }
 
+    [Theory]
+    [InlineData("žalovanému: Jan Vymyšlený, narozenému dne 3. 4. 1971, bytem", TypUdaje.DatumNarozeni, "3. 4. 1971,")]
+    [InlineData("platba na účet CZ65 0800 0000 1920 0014 5399 dne", TypUdaje.Ucet, "CZ65 0800 0000 1920 0014 5399")]
+    [InlineData("vozidlo registrační značky 1AB 2345 zaparkované", TypUdaje.Jiny, "1AB 2345")]
+    [InlineData("VIN TMBJF7NE5J0123456 bylo", TypUdaje.Jiny, "TMBJF7NE5J0123456")]
+    [InlineData("pod variabilním symbolem 2025041201 uhradil", TypUdaje.Jiny, "2025041201")]
+    [InlineData("společností Smyšlená pojišťovna a.s., 99998881, uzavřel", TypUdaje.Ico, "99998881,")]
+    [InlineData("žalobce: Vymyšlené stavby spol. s r.o., IČO 12345678", TypUdaje.Firma, "Vymyšlené stavby spol. s r.o.,")]
+    [InlineData("žalobce: Zemědělské družstvo Smyšlenov, se sídlem", TypUdaje.Firma, "Zemědělské družstvo Smyšlenov,")]
+    [InlineData("Číslo pojistné smlouvy: 9988776655 platí", TypUdaje.Jiny, "9988776655")]
+    [InlineData("Sídlo: Třída Vymyšlených hrdinů 2750, 999 01 Lhota u Nikde", TypUdaje.Adresa, "Třída Vymyšlených hrdinů 2750, 999 01 Lhota u Nikde")]
+    public void NovaPravidla(string text, TypUdaje typ, string ocekavany) =>
+        Assert.Contains((typ, ocekavany), Najdi(text));
+
+    [Fact]
+    public void IcoPodleKontrolnihoSouctu()
+    {
+        Assert.True(Detektor.PlatneIco("25596641"));
+        Assert.False(Detektor.PlatneIco("25596642"));
+        Assert.Contains((TypUdaje.Ico, "25596641"), Najdi("dodavatel 25596641 dodal zboží"));
+        Assert.DoesNotContain(Najdi("smlouva číslo 25596642 ze dne"), x => x.Typ == TypUdaje.Ico);
+    }
+
+    [Fact]
+    public void AdresaZaBytemNepohltiDalsiSlova()
+    {
+        var n = Najdi("bytem Fiktivní 12, 999 01 Lhota zastoupená advokátem Ladislav Vymyšlený sídlem Smyšlená 3");
+        Assert.Contains((TypUdaje.Adresa, "Fiktivní 12, 999 01 Lhota"), n);
+        Assert.Contains((TypUdaje.Osoba, "Ladislav Vymyšlený"), n);
+    }
+
+    [Fact]
+    public void ObecPresKonecRadku() =>
+        Assert.Contains((TypUdaje.Adresa, "Smyšlená 5, 999 01 České Vymyšlenice"), Najdi("sídlem Smyšlená 5, 999 01 České\nVymyšlenice"));
+
+    [Fact]
+    public void JudikaturaSeNeanonymizuje()
+    {
+        Assert.True(Detektor.JeJudikatura("32 Cdo 2528/2010"));
+        Assert.True(Detektor.JeJudikatura("II. ÚS 123/2020"));
+        Assert.False(Detektor.JeJudikatura("12 C 345/2026"));
+    }
+
     [Fact]
     public void JmenoNepretekaPresKonecRadku()
     {
