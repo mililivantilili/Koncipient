@@ -22,6 +22,8 @@ Záložka **Osoby a údaje** ukazuje osoby a k nim jejich údaje, vlevo skutečn
 
 Anonymizace: **Najít údaje** (po přepisu proběhne samo) označí fialově jména, adresy, telefony, e-maily, účty, IČO, spisové značky a parcely. Pravým tlačítkem na slově se údaj doplní nebo označí jako necitlivý, v seznamu vlevo dole jde u údaje změnit akci a roli. Po zaškrtnutí **Strana zkontrolována** u všech stran zapíše **Exportovat pro Clauda…** text do `Dokumenty\Koncipient\ProClaude`. Postup testování je v [docs/testovani.md](../docs/testovani.md).
 
+**Přidat složku…** udělá z podsložek dokumenty, černá fotka (zakrytý objektiv) mezi fotkami začne další dokument. Strany jsou v seznamu seskupené podle dokumentů, pravé tlačítko je přesouvá a dokumenty dělí, spojuje a přejmenovává (`SpisDokumenty.cs`).
+
 Spisy leží v `Dokumenty\Koncipient\Spisy`. Každý spis má `spis.json`, fotky v `fotky/`, přepisy v `ocr/<motor>/0001.json`, ruční opravy v `ocr/opraveno/` a klíč pseudonymů v `klic.json`. Nic se nešifruje, ochranu dává oddělený počítač bez Claude Code.
 
 ## Test OCR na Matějově notebooku

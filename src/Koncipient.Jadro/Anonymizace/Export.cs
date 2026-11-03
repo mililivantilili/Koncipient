@@ -29,16 +29,27 @@ public static class Export
     {
         var koren = slozkaProClaude ?? VychoziSlozka;
         var problemy = new List<string>();
-        var strany = new List<(Strana Strana, string Text)>();
+        var dokumenty = new List<(int Poradi, string Nazev, string Soubor, List<(int Strana, string Text)> Strany)>();
 
-        foreach (var strana in spis.Strany)
+        int k = 0;
+        foreach (var (dokument, strany) in spis.StranyPoDokumentech())
         {
-            var v = Motory.ProZobrazeni(spis, strana);
-            if (v is null) { problemy.Add($"Strana {strana.Cislo} nemá přepis."); continue; }
-            if (!strana.Zkontrolovano) problemy.Add($"Strana {strana.Cislo} není označená jako zkontrolovaná.");
-            var text = Anonymizator.AnonymizovanyText(v, klic);
-            problemy.AddRange(Kontrola(text, klic).Select(p => $"Strana {strana.Cislo}: {p}"));
-            strany.Add((strana, text));
+            k++;
+            // název dokumentu (ze složky nebo od advokátky) může obsahovat jméno, anonymizuje se taky
+            var nazev = Anonymizator.AnonymizujText(dokument.Nazev, klic);
+            problemy.AddRange(Kontrola(nazev, klic).Select(p => $"Název dokumentu {k}: {p}"));
+            var obsah = new List<(int, string)>();
+            foreach (var strana in strany)
+            {
+                int poradi = spis.Poradi(strana);
+                var v = Motory.ProZobrazeni(spis, strana);
+                if (v is null) { problemy.Add($"Strana {poradi} nemá přepis."); continue; }
+                if (!strana.Zkontrolovano) problemy.Add($"Strana {poradi} není označená jako zkontrolovaná.");
+                var text = Anonymizator.AnonymizovanyText(v, klic);
+                problemy.AddRange(Kontrola(text, klic).Select(p => $"Strana {poradi}: {p}"));
+                obsah.Add((poradi, text));
+            }
+            dokumenty.Add((k, nazev, $"dokumenty/{k:D2}-{Slug(nazev)}.md", obsah));
         }
         if (problemy.Count > 0) return new VysledekExportu(false, koren, problemy);
 
@@ -47,11 +58,16 @@ public static class Export
         // výstupy od Clauda z minula zůstanou
         var vystupy = Path.Combine(cil, "vystup");
         if (Directory.Exists(docasna)) Directory.Delete(docasna, recursive: true);
-        Directory.CreateDirectory(Path.Combine(docasna, "strany"));
+        Directory.CreateDirectory(Path.Combine(docasna, "dokumenty"));
 
-        foreach (var (strana, text) in strany)
-            File.WriteAllText(Path.Combine(docasna, "strany", $"{strana.Cislo:D4}.md"),
-                $"# {spis.Id}, strana {strana.Cislo}\n\n{text}", new UTF8Encoding(false));
+        foreach (var d in dokumenty)
+        {
+            var sb = new StringBuilder();
+            var rozsah = d.Strany.Count == 0 ? "" : d.Strany.Count == 1 ? $", strana {d.Strany[0].Strana}" : $", strany {d.Strany[0].Strana}–{d.Strany[^1].Strana}";
+            sb.Append($"# {d.Nazev}\n\n_{spis.Id}, dokument {d.Poradi}{rozsah}_\n");
+            foreach (var (strana, text) in d.Strany) sb.Append($"\n## Strana {strana}\n\n{text}");
+            File.WriteAllText(Path.Combine(docasna, d.Soubor), sb.ToString(), new UTF8Encoding(false));
+        }
 
         // jen náhrady a role, nikdy skutečné hodnoty (kromě údajů, které advokátka ponechala)
         var entity = klic.Entity.Where(e => e.Akce != Akce.Odstranit)
@@ -71,7 +87,7 @@ public static class Export
             {
                 spis = spis.Id,
                 exportovano = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
-                strany = strany.Select(s => new { cislo = s.Strana.Cislo, soubor = $"strany/{s.Strana.Cislo:D4}.md" }),
+                dokumenty = dokumenty.Select(d => new { poradi = d.Poradi, nazev = d.Nazev, soubor = d.Soubor, strany = d.Strany.Select(s => s.Strana) }),
             }, Json), new UTF8Encoding(false));
 
         // celý spis se vymění najednou, aby v ProClaude nezůstaly staré strany
@@ -81,6 +97,14 @@ public static class Export
         Directory.Move(docasna, cil);
         ZapisPravidla(koren);
         return new VysledekExportu(true, cil, Array.Empty<string>());
+    }
+
+    /// <summary>Název souboru z názvu dokumentu: malá písmena bez diakritiky, pomlčky místo mezer.</summary>
+    public static string Slug(string nazev)
+    {
+        var s = System.Text.RegularExpressions.Regex.Replace(Anonymizace.Text.Normalizuj(nazev.Replace("/", " ")), @"[^a-z0-9]+", "-").Trim('-');
+        if (s.Length > 50) s = s[..50].TrimEnd('-');
+        return s.Length == 0 ? "dokument" : s;
     }
 
     /// <summary>
@@ -152,9 +176,12 @@ public static class Export
         ## Kde co je
 
         - Každá podsložka `S-0001`, `S-0002`… je jeden spis. Číslo spisu je pseudonym.
-        - `strany/0001.md` je text jedné strany spisu, přepsaný z fotky automaticky (OCR).
-          Může obsahovat překlepy a chybějící diakritiku. Když je místo nečitelné nebo
-          nejasné, napiš to, nedomýšlej si ho.
+        - `dokumenty/01-nazev.md` je jeden dokument spisu (smlouva, rozsudek…), strany jsou
+          oddíly „## Strana N“ číslované v rámci celého spisu. Text je přepsaný z fotek
+          automaticky (OCR), může obsahovat překlepy a chybějící diakritiku. Když je místo
+          nečitelné nebo nejasné, napiš to, nedomýšlej si ho. Názvy dokumentů jsou navržené
+          programem nebo advokátkou a jsou také anonymizované.
+        - `manifest.json` vyjmenovává dokumenty a jejich strany.
         - `entity.json` vyjmenovává náhrady použité ve spisu, jejich typ, rod a roli ve věci
           (žalobce, svědek…) a ke komu patří adresy a další údaje.
         - Výstupy ukládej do `vystup/` v příslušném spisu jako Markdown (`.md`). Odtud si je

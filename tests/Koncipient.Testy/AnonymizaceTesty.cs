@@ -207,7 +207,7 @@ public class AnonymizatorTesty
 
         var soubory = Directory.GetFiles(proClaude, "*", SearchOption.AllDirectories)
             .Select(f => Path.GetRelativePath(proClaude, f).Replace('\\', '/')).OrderBy(f => f).ToList();
-        Assert.Equal(new[] { "CLAUDE.md", "PRAVIDLA-KONCIPIENT.md", "S-0001/entity.json", "S-0001/manifest.json", "S-0001/strany/0001.md" }, soubory);
+        Assert.Equal(new[] { "CLAUDE.md", "PRAVIDLA-KONCIPIENT.md", "S-0001/dokumenty/01-dokument-1.md", "S-0001/entity.json", "S-0001/manifest.json" }, soubory);
         Assert.True(Directory.Exists(Path.Combine(proClaude, "S-0001", "vystup")));
         var vse = string.Concat(Directory.GetFiles(Path.Combine(proClaude, "S-0001"), "*", SearchOption.AllDirectories).Select(File.ReadAllText));
         Assert.DoesNotContain("Vymyšlen", vse);

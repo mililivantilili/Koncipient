@@ -7,7 +7,10 @@
         <ToolBarTray DockPanel.Dock="Top" IsLocked="True">
             <ToolBar>
                 <Button Content="Nový spis" Click="NovySpis_Click" Padding="8,4" />
-                <Button x:Name="PridatFotky" Content="Přidat fotky…" Click="PridatFotky_Click" Padding="8,4" IsEnabled="False" />
+                <Button x:Name="PridatFotky" Content="Přidat fotky…" Click="PridatFotky_Click" Padding="8,4" IsEnabled="False"
+                        ToolTip="Vybrané fotky. Černá fotka (zakrytý objektiv) mezi nimi odděluje dokumenty." />
+                <Button x:Name="PridatSlozku" Content="Přidat složku…" Click="PridatSlozku_Click" Padding="8,4" IsEnabled="False"
+                        ToolTip="Celá složka: každá podsložka je jeden dokument pojmenovaný podle ní. Černá fotka dokument dál dělí." />
                 <Separator />
                 <Button x:Name="SpustitPrepis" Content="Spustit přepis" Click="SpustitPrepis_Click" Padding="8,4"
                         ToolTip="Narovná a přepíše všechny strany bez přepisu a najde v nich údaje. Může běžet přes noc, počítač mezitím neusne." />
@@ -69,8 +72,31 @@
                 </Grid.RowDefinitions>
                 <TextBlock Text="Spisy" FontWeight="SemiBold" Margin="6,6,6,2" />
                 <ListBox x:Name="SeznamSpisu" Grid.Row="1" SelectionChanged="SeznamSpisu_SelectionChanged" />
-                <TextBlock Grid.Row="2" Text="Strany   (✓ přepsáno, ✎ opraveno, ☑ zkontrolováno)" FontWeight="SemiBold" Margin="6,8,6,2" TextWrapping="Wrap" />
-                <ListBox x:Name="SeznamStran" Grid.Row="3" SelectionChanged="SeznamStran_SelectionChanged" />
+                <TextBlock Grid.Row="2" Text="Dokumenty a strany   (✓ přepsáno, ✎ opraveno, ☑ zkontrolováno, pravé tlačítko = přesuny)" FontWeight="SemiBold" Margin="6,8,6,2" TextWrapping="Wrap" />
+                <ListBox x:Name="SeznamStran" Grid.Row="3" SelectionChanged="SeznamStran_SelectionChanged">
+                    <ListBox.GroupStyle>
+                        <GroupStyle>
+                            <GroupStyle.HeaderTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Margin="2,6,2,2" TextWrapping="Wrap" Foreground="#1F4E79" />
+                                </DataTemplate>
+                            </GroupStyle.HeaderTemplate>
+                        </GroupStyle>
+                    </ListBox.GroupStyle>
+                    <ListBox.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Posunout stranu nahoru" Tag="-1" Click="PosunoutStranu_Click" />
+                            <MenuItem Header="Posunout stranu dolů" Tag="1" Click="PosunoutStranu_Click" />
+                            <MenuItem Header="Přesunout stranu do dokumentu…" Click="PresunoutDoDokumentu_Click" />
+                            <Separator />
+                            <MenuItem Header="Začít od této strany nový dokument" Click="ZacitDokument_Click" />
+                            <MenuItem Header="Spojit dokument s předchozím" Click="SpojitDokument_Click" />
+                            <Separator />
+                            <MenuItem Header="Přejmenovat dokument…" Click="PrejmenovatDokument_Click" />
+                            <MenuItem Header="Navrhnout název dokumentu z textu" Click="NavrhnoutNazev_Click" />
+                        </ContextMenu>
+                    </ListBox.ContextMenu>
+                </ListBox>
             </Grid>
 
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" />

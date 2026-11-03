@@ -17,6 +17,7 @@ Návod pro Matěje. V cloudové relaci jde program jen přeložit a otestovat j�
 | Test 4: anonymizace a export | ⬜ čeká |
 | Test 5: vrácení jmen a Word | ⬜ čeká |
 | Test 6: měření anonymizace s Windows OCR | ⬜ čeká, nepovinný, 5 minut |
+| Test 7: dokumenty, složky a černé fotky | ⬜ čeká, 15 minut |
 
 Hotové testy (✅) přeskoč, jejich postup je sbalený.
 
@@ -170,6 +171,24 @@ V repozitáři je vymyšlená sada šesti dokumentů vyfocených jako z telefonu
 2. Po dokončení vypíše tabulku podle typů údajů a seznam úniků. Výsledky uloží do `%TEMP%\koncipient-mereni`.
 
 **Poslat:** soubor `%TEMP%\koncipient-mereni\vysledek-ocr.txt` a tabulku z okna. Data jsou vymyšlená, takže poslat jde všechno, i anonymizované texty `anonymizovano-ocr-*.md`.
+
+## Test 7: dokumenty, složky a černé fotky (15 minut)
+
+Spis se teď skládá z dokumentů (smlouva, rozsudek…). Strany jsou v seznamu vlevo seskupené pod jejich názvy.
+
+1. Připrav složku s podsložkami, třeba `Archiv/1 Smlouva` a `Archiv/2 Rozhodnutí`, v každé pár fotek.
+2. Nový spis, **Přidat složku…**, vyber `Archiv`. [ ] Každá podsložka je jeden dokument pojmenovaný podle ní, fotky jsou v pořadí podle názvu (IMG_2 před IMG_10).
+3. Nafoť mobilem 2–3 stránky, pak jednu fotku se zakrytým objektivem (černou), pak další 2 stránky. Přidej je přes **Přidat fotky…**.
+   - [ ] Černá fotka se neuložila a fotky se rozdělily do dvou dokumentů.
+   - [ ] Po **Spustit přepis** dostaly oba dokumenty název navržený z prvního textu (třeba „Kupní smlouva“). Když ne, napiš, co na první stránce bylo.
+4. Pravé tlačítko na straně v seznamu:
+   - [ ] **Posunout stranu nahoru/dolů** mění pořadí, na hranici přejde strana do sousedního dokumentu.
+   - [ ] **Přesunout stranu do dokumentu…** i do nového dokumentu.
+   - [ ] **Začít od této strany nový dokument** a **Spojit dokument s předchozím**.
+   - [ ] **Přejmenovat dokument…** a **Navrhnout název dokumentu z textu**.
+5. Exportuj (strany označ jako zkontrolované). [ ] V `ProClaude\S-…\dokumenty` je jeden soubor na dokument se stranami jako oddíly a jméno osoby v názvu dokumentu nebo složky je nahrazené.
+
+**Poslat:** co nefungovalo, hlavně jestli se černá fotka poznala (případně při jakém světle) a jaké názvy program navrhl.
 
 ## Kde jsou data
 

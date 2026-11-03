@@ -76,5 +76,8 @@ public static class Davka
                 spis.UlozOcr(strana, slouceni.Sluc(spis.NactiOcr(strana, Motory.Windows)!, spis.NactiOcr(strana, Motory.Paddle)!));
             }
         }
+
+        // dokumenty bez názvu (oddělené černou fotkou) dostanou název z prvního textu
+        foreach (var spis in spisy) spis.NavrhniNazvy();
     }
 }

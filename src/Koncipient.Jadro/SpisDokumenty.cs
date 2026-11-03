@@ -1,0 +1,218 @@
+using System.Text.RegularExpressions;
+using Koncipient.Ocr;
+using OpenCvSharp;
+
+namespace Koncipient.Jadro;
+
+/// <summary>Dokument ve spisu: skupina po sobě jdoucích stran (smlouva, rozsudek…).</summary>
+public sealed class Dokument
+{
+    public required string Id { get; set; }
+
+    /// <summary>Název od advokátky, ze složky, nebo navržený z textu. Do exportu jde anonymizovaný.</summary>
+    public string Nazev { get; set; } = "";
+
+    /// <summary>Název zatím nikdo nezadal, program ho po přepisu navrhne z prvního textu.</summary>
+    public bool NavrhnoutNazev { get; set; }
+}
+
+/// <summary>Řazení názvů souborů s čísly: IMG_2 před IMG_10.</summary>
+public sealed class PrirozeneRazeni : IComparer<string?>
+{
+    public static readonly PrirozeneRazeni Instance = new();
+    private static readonly Regex Casti = new(@"\d+|\D+");
+
+    public int Compare(string? x, string? y)
+    {
+        var a = Casti.Matches(x ?? ""); var b = Casti.Matches(y ?? "");
+        for (int i = 0; i < Math.Min(a.Count, b.Count); i++)
+        {
+            int c = char.IsDigit(a[i].Value[0]) && char.IsDigit(b[i].Value[0])
+                ? decimal.Parse(a[i].Value).CompareTo(decimal.Parse(b[i].Value))
+                : string.Compare(a[i].Value, b[i].Value, StringComparison.CurrentCultureIgnoreCase);
+            if (c != 0) return c;
+        }
+        return a.Count.CompareTo(b.Count);
+    }
+}
+
+public sealed partial class Spis
+{
+    public List<Dokument> Dokumenty { get; set; } = new();
+
+    private static readonly string[] PriponyFotek = { ".jpg", ".jpeg", ".png", ".tif", ".tiff" };
+
+    /// <summary>
+    /// Černá fotka (zakrytý objektiv) slouží jako oddělovač dokumentů: velmi tmavá
+    /// a téměř bez kresby.
+    /// </summary>
+    public static bool JeCerna(Mat obrazek)
+    {
+        using var seda = new Mat();
+        Cv2.CvtColor(obrazek, seda, ColorConversionCodes.BGR2GRAY);
+        Cv2.MeanStdDev(seda, out var prumer, out var odchylka);
+        // telefon ve tmě obraz zesvětlí a přidá šum, stránka papíru je ale vždy světlejší a má kontrast textu
+        return prumer.Val0 < 50 && odchylka.Val0 < 25;
+    }
+
+    private Dokument NovyDokument(string? nazev)
+    {
+        int n = 1;
+        while (Dokumenty.Any(d => d.Id == $"D{n:D3}")) n++;
+        var d = new Dokument
+        {
+            Id = $"D{n:D3}",
+            Nazev = string.IsNullOrWhiteSpace(nazev) ? $"Dokument {Dokumenty.Count + 1}" : nazev.Trim(),
+            NavrhnoutNazev = string.IsNullOrWhiteSpace(nazev),
+        };
+        Dokumenty.Add(d);
+        return d;
+    }
+
+    /// <summary>
+    /// Přidá složku s fotkami. Fotky přímo ve složce tvoří dokument pojmenovaný podle
+    /// složky, každá podsložka (i vnořená) další dokument pojmenovaný podle své cesty.
+    /// Černé fotky uvnitř dokument dál rozdělují.
+    /// </summary>
+    public IReadOnlyList<Strana> PridejSlozku(string slozka)
+    {
+        var nove = new List<Strana>();
+        void Projdi(string adresar, string nazev)
+        {
+            var fotky = Directory.GetFiles(adresar).Where(f => PriponyFotek.Contains(Path.GetExtension(f).ToLowerInvariant())).ToList();
+            if (fotky.Count > 0) nove.AddRange(PridejFotky(fotky, nazev));
+            foreach (var pod in Directory.GetDirectories(adresar).OrderBy(Path.GetFileName, PrirozeneRazeni.Instance))
+                Projdi(pod, $"{nazev} / {Path.GetFileName(pod)}".TrimStart(' ', '/'));
+        }
+        // fotky přímo ve vybrané složce nesou její název, podsložky jen vlastní cestu
+        var koren = Path.GetFileName(Path.TrimEndingDirectorySeparator(slozka));
+        var primo = Directory.GetFiles(slozka).Where(f => PriponyFotek.Contains(Path.GetExtension(f).ToLowerInvariant())).ToList();
+        if (primo.Count > 0) nove.AddRange(PridejFotky(primo, koren));
+        foreach (var pod in Directory.GetDirectories(slozka).OrderBy(Path.GetFileName, PrirozeneRazeni.Instance))
+            Projdi(pod, Path.GetFileName(pod));
+        return nove;
+    }
+
+    public Dokument? DokumentStrany(Strana s) => Dokumenty.FirstOrDefault(d => d.Id == s.Dokument);
+
+    /// <summary>
+    /// Dokumenty v pořadí stran. Strany bez dokumentu (spisy ze starší verze) dostanou
+    /// jeden společný dokument „Spis“.
+    /// </summary>
+    public IReadOnlyList<(Dokument Dokument, List<Strana> Strany)> StranyPoDokumentech()
+    {
+        if (Strany.Any(s => DokumentStrany(s) is null))
+        {
+            var spolecny = NovyDokument("Spis");
+            foreach (var s in Strany.Where(s => DokumentStrany(s) is null)) s.Dokument = spolecny.Id;
+        }
+        return Strany.GroupBy(s => s.Dokument!).Select(g => (DokumentStrany(g.First())!, g.ToList())).ToList();
+    }
+
+    /// <summary>Pořadí strany ve spisu od 1 (co vidí advokátka a na co odkazuje Claude).</summary>
+    public int Poradi(Strana s) => Strany.IndexOf(s) + 1;
+
+    /// <summary>Posune stranu o jedno místo; přes hranici dokumentu přejde do sousedního dokumentu.</summary>
+    public void PosunStranu(Strana s, int smer)
+    {
+        int i = Strany.IndexOf(s), j = i + Math.Sign(smer);
+        if (j < 0 || j >= Strany.Count) return;
+        var soused = Strany[j];
+        if (soused.Dokument != s.Dokument) s.Dokument = soused.Dokument; // nejdřív do sousedního dokumentu
+        else (Strany[i], Strany[j]) = (Strany[j], Strany[i]);
+        Uklid();
+    }
+
+    /// <summary>Přesune stranu na konec jiného (nebo nového, když null) dokumentu.</summary>
+    public void PresunDoDokumentu(Strana s, string? idDokumentu, string? nazevNoveho = null)
+    {
+        var cil = idDokumentu is null ? NovyDokument(nazevNoveho) : Dokumenty.First(d => d.Id == idDokumentu);
+        Strany.Remove(s);
+        s.Dokument = cil.Id;
+        int posledni = Strany.FindLastIndex(x => x.Dokument == cil.Id);
+        Strany.Insert(posledni < 0 ? Strany.Count : posledni + 1, s);
+        Uklid();
+    }
+
+    /// <summary>Od této strany dál (do konce jejího dokumentu) začne nový dokument.</summary>
+    public Dokument ZacniDokument(Strana s, string? nazev = null)
+    {
+        var puvodni = s.Dokument;
+        var novy = NovyDokument(nazev);
+        foreach (var x in Strany.Skip(Strany.IndexOf(s)).TakeWhile(x => x.Dokument == puvodni)) x.Dokument = novy.Id;
+        Uklid();
+        return novy;
+    }
+
+    /// <summary>Připojí dokument strany k předchozímu dokumentu.</summary>
+    public void SpojSPredchozim(Strana s)
+    {
+        int prvni = Strany.FindIndex(x => x.Dokument == s.Dokument);
+        if (prvni <= 0) return;
+        var predchozi = Strany[prvni - 1].Dokument;
+        foreach (var x in Strany.Where(x => x.Dokument == s.Dokument).ToList()) x.Dokument = predchozi;
+        Uklid();
+    }
+
+    /// <summary>Dokumenty bez stran zmizí a strany téhož dokumentu jdou za sebou.</summary>
+    private void Uklid()
+    {
+        var poradi = Strany.Select(s => s.Dokument).Distinct().ToList();
+        var serazene = poradi.SelectMany(d => Strany.Where(s => s.Dokument == d)).ToList();
+        Strany.Clear();
+        Strany.AddRange(serazene);
+        Dokumenty.RemoveAll(d => !Strany.Any(s => s.Dokument == d.Id));
+        Dokumenty.Sort((a, b) => poradi.IndexOf(a.Id).CompareTo(poradi.IndexOf(b.Id)));
+        Uloz();
+    }
+
+    // ---------- Návrh názvu ----------
+
+    private static readonly string[] TypyDokumentu =
+    {
+        "rozsudek", "usnesení", "platební rozkaz", "žaloba", "odvolání", "dovolání", "návrh", "vyjádření", "replika",
+        "smlouva", "dohoda", "plná moc", "předvolání", "výzva", "upomínka", "rozhodnutí", "výpis", "protokol",
+        "záznam", "posudek", "zpráva", "faktura", "potvrzení", "oznámení", "sdělení", "žádost", "stížnost",
+        "námitky", "příkaz", "obžaloba", "svědecká výpověď", "prohlášení", "čestné prohlášení", "dopis", "list vlastnictví",
+        "kupní smlouva", "nájemní smlouva", "smlouva o dílo", "darovací smlouva", "závěť", "osvědčení",
+    };
+
+    /// <summary>
+    /// Navrhne název dokumentu z prvního textu první strany: řádek, který obsahuje typ
+    /// dokumentu (Kupní smlouva, Rozsudek…), jinak první řádek s alespoň třemi slovy.
+    /// </summary>
+    public static string? NavrhniNazev(VysledekOcr? prvniStrana)
+    {
+        if (prvniStrana is null) return null;
+        var radky = prvniStrana.Radky.Take(25).Select(r => r.Text.Trim()).Where(r => r.Count(char.IsLetter) >= 4).ToList();
+        string Uprav(string r)
+        {
+            r = Regex.Replace(r, @"\s+", " ").Trim(' ', '-', ':', '.', ',');
+            if (r.Length > 60) r = r[..60].TrimEnd() + "…";
+            // NADPIS VELKÝMI PÍSMENY → Nadpis velkými písmeny
+            return r.Count(char.IsUpper) > r.Count(char.IsLower) ? char.ToUpper(r[0]) + r[1..].ToLower() : r;
+        }
+        var typ = radky.FirstOrDefault(r => TypyDokumentu.Any(t => r.Contains(t, StringComparison.CurrentCultureIgnoreCase))
+                                             && r.Split(' ').Length <= 8);
+        if (typ is not null) return Uprav(typ);
+        var prvni = radky.FirstOrDefault(r => r.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length >= 3);
+        return prvni is null ? null : Uprav(prvni);
+    }
+
+    /// <summary>Doplní navržené názvy u dokumentů, které je ještě nemají. Vrátí počet pojmenovaných.</summary>
+    public int NavrhniNazvy()
+    {
+        int n = 0;
+        foreach (var (d, strany) in StranyPoDokumentech())
+        {
+            if (!d.NavrhnoutNazev) continue;
+            var nazev = NavrhniNazev(Motory.ProZobrazeni(this, strany[0]));
+            if (nazev is null) continue;
+            d.Nazev = nazev;
+            d.NavrhnoutNazev = false;
+            n++;
+        }
+        if (n > 0) Uloz();
+        return n;
+    }
+}

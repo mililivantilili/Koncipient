@@ -25,6 +25,9 @@ public sealed class Strana
     /// </summary>
     public int Otoceni { get; set; }
 
+    /// <summary>Dokument, ke kterému strana patří (Id z <see cref="Spis.Dokumenty"/>).</summary>
+    public string? Dokument { get; set; }
+
     /// <summary>Advokátka stranu zkontrolovala pro export. Změna údajů ve spisu kontrolu nezruší, export ji ale ověří znovu.</summary>
     public bool Zkontrolovano { get; set; }
 }
@@ -34,7 +37,7 @@ public sealed class Strana
 /// výsledky OCR po motorech a ruční opravy. Nic z toho se nešifruje, ochranu dává
 /// oddělený počítač bez Claude Code (viz docs/navrh.md).
 /// </summary>
-public sealed class Spis
+public sealed partial class Spis
 {
     internal static readonly JsonSerializerOptions Json = new()
     {
@@ -99,10 +102,17 @@ public sealed class Spis
     /// EXIF a uloží bez metadat (poloha GPS, model telefonu), aby polohy slov
     /// seděly v OCR i v zobrazení.
     /// </summary>
-    public IReadOnlyList<Strana> PridejFotky(IEnumerable<string> cesty)
+    /// <param name="nazevDokumentu">
+    /// Název dokumentu pro přidané fotky (třeba název složky). Null = nový dokument
+    /// s názvem, který program navrhne po přepisu z prvního textu.
+    /// </param>
+    /// <param name="cerneOddeluji">Černá fotka (zakrytý objektiv) se neuloží a začne další dokument.</param>
+    public IReadOnlyList<Strana> PridejFotky(IEnumerable<string> cesty, string? nazevDokumentu = null, bool cerneOddeluji = true)
     {
         var nove = new List<Strana>();
-        foreach (var cesta in cesty.OrderBy(c => Path.GetFileName(c), StringComparer.CurrentCultureIgnoreCase))
+        var dokument = NovyDokument(nazevDokumentu);
+        bool prazdny = true;
+        foreach (var cesta in cesty.OrderBy(c => Path.GetFileName(c), PrirozeneRazeni.Instance))
         {
             int cislo = Strany.Count == 0 ? 1 : Strany.Max(s => s.Cislo) + 1;
             var relativni = Path.Combine("fotky", $"{cislo:D4}.jpg");
@@ -110,12 +120,20 @@ public sealed class Spis
             {
                 if (obrazek.Empty())
                     throw new InvalidDataException($"Soubor {cesta} není fotka, kterou jde načíst.");
+                if (cerneOddeluji && JeCerna(obrazek))
+                {
+                    // oddělovač: další fotky patří do nového dokumentu (prázdný dokument se nezakládá)
+                    if (!prazdny) { dokument = NovyDokument(null); prazdny = true; }
+                    continue;
+                }
                 Cv2.ImWrite(Path.Combine(Slozka, relativni), obrazek, new ImageEncodingParam(ImwriteFlags.JpegQuality, 95));
             }
-            var strana = new Strana { Cislo = cislo, Fotka = relativni.Replace('\\', '/'), PuvodniNazev = Path.GetFileName(cesta) };
+            var strana = new Strana { Cislo = cislo, Fotka = relativni.Replace('\\', '/'), PuvodniNazev = Path.GetFileName(cesta), Dokument = dokument.Id };
             Strany.Add(strana);
             nove.Add(strana);
+            prazdny = false;
         }
+        Dokumenty.RemoveAll(d => !Strany.Any(s => s.Dokument == d.Id));
         Uloz();
         return nove;
     }

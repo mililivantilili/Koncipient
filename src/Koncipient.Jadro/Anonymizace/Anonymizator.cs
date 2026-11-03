@@ -145,6 +145,15 @@ public static class Anonymizator
                 }
             }
         }
+        foreach (var d in spis.Dokumenty)
+        {
+            var ns = d.Nazev.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
+            foreach (var n in Detektor.Najdi(ns))
+            {
+                var usek = ns.Skip(n.Od).Take(n.Do - n.Od + 1).ToList();
+                if (NajdiEntitu(klic, n.Typ, ns, n.Od, n.Do) is null) { klic.Nova(n.Typ, usek); nove++; }
+            }
+        }
         DoplnOsoby(klic, vsechnaSlova);
         return nove;
     }
@@ -347,6 +356,18 @@ public static class Anonymizator
             if (e.Akce == Akce.Ponechat && e.Tvary.Any(t => t.Any(s => Text.StejneSlovo(s, c)))) return true;
         }
         return false;
+    }
+
+    /// <summary>Anonymizuje libovolný krátký text (název dokumentu, složky) podle klíče.</summary>
+    public static string AnonymizujText(string text, Klic klic)
+    {
+        var v = new VysledekOcr { Motor = "text" };
+        foreach (var radek in text.Split('\n'))
+        {
+            var slova = radek.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(s => new SlovoOcr { Text = s }).ToList();
+            if (slova.Count > 0) v.Radky.Add(new RadekOcr { Slova = slova });
+        }
+        return AnonymizovanyText(v, klic).TrimEnd('\n', '\r');
     }
 
     /// <summary>Anonymizovaný text strany, řádky zůstávají zachované.</summary>

@@ -130,6 +130,16 @@ Citlivé údaje jsou jména, adresy, čísla parcel, telefon, e-mail, data a č�
 - Nahrazená navíc jsou jen jména soudkyně a úřednice. Program jim dá roli „veřejná osoba“, advokátka je nechá neanonymizované.
 - Dokumenty i pravidla psal stejný autor, výsledek je proto spíš horní odhad. Automatický test hlídá, že se detektor na sadě nezhorší. Měření s Windows OCR musí proběhnout na Windows.
 
+## Dokumenty ve spisu
+
+Spis se skládá z dokumentů, každá strana patří k jednomu. Dokumenty vznikají:
+
+- **ze složek:** „Přidat složku…“ udělá z každé podsložky dokument pojmenovaný podle ní, fotky přímo ve složce tvoří dokument pojmenovaný podle složky;
+- **z černých fotek:** fotka se zakrytým objektivem (velmi tmavá, bez kresby) se neuloží a začne další dokument; takový dokument dostane po přepisu název navržený z prvního textu (řádek s typem dokumentu jako „Kupní smlouva“, jinak první smysluplný řádek);
+- **ručně:** posunout stranu, přesunout do jiného dokumentu, začít nový dokument, spojit s předchozím, přejmenovat.
+
+Fotky se řadí přirozeně (IMG_2 před IMG_10). Strany se číslují v pořadí spisu a na toto číslo odkazuje i Claude. Export obsahuje jeden soubor na dokument (`dokumenty/01-kupni-smlouva.md`) se stranami jako oddíly. Názvy dokumentů a složek můžou obsahovat jména, proto se anonymizují stejně jako text a projdou závěrečnou kontrolou. Automatické rozpoznání hranic dokumentů bez černé fotky (podle hlavičky nebo číslování stran) zatím není, je nespolehlivé.
+
 ## Struktura složek a formát dat
 
 Spisy a export jsou dvě oddělené složky. Na počítač s Claude Code se přenáší jen export, Claude Code se spouští v něm. Každá strana je samostatný Markdown.

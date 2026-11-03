@@ -47,6 +47,12 @@ public partial class HlavniOkno : Window
     public HlavniOkno()
     {
         InitializeComponent();
+        // pravé tlačítko v seznamu stran nejdřív vybere stranu, na kterou se kliklo
+        SeznamStran.PreviewMouseRightButtonDown += (_, e) =>
+        {
+            if (ItemsControl.ContainerFromElement(SeznamStran, (DependencyObject)e.OriginalSource) is ListBoxItem polozka)
+                polozka.IsSelected = true;
+        };
         NactiSpisy();
         Stav.Text = $"Spisy jsou ve složce {_uloziste.Slozka}";
     }
@@ -59,14 +65,14 @@ public partial class HlavniOkno : Window
             string.IsNullOrWhiteSpace(Spis.Nazev) ? Spis.Id : $"{Spis.Id}  {Spis.Nazev}";
     }
 
-    private sealed record PolozkaStrany(Spis Spis, Strana Strana)
+    private sealed record PolozkaStrany(Spis Spis, Strana Strana, string Skupina)
     {
         public override string ToString()
         {
             var znacka = Spis.MaOcr(Strana, Spis.Opraveno) ? "✎"
-                : Spis.MaOcr(Strana, Motory.Paddle) || Spis.MaOcr(Strana, Motory.Tesseract) ? "✓" : "…";
+                : Motory.PoradiZobrazeni.Any(m => Spis.MaOcr(Strana, m)) ? "✓" : "…";
             var kontrola = Strana.Zkontrolovano ? " ☑" : "";
-            return $"{znacka}{kontrola}  Strana {Strana.Cislo}   {Strana.PuvodniNazev}";
+            return $"{znacka}{kontrola}  Strana {Spis.Poradi(Strana)}   {Strana.PuvodniNazev}";
         }
     }
 
@@ -80,7 +86,14 @@ public partial class HlavniOkno : Window
     private void NactiStrany()
     {
         var cislo = _strana?.Cislo;
-        SeznamStran.ItemsSource = _spis?.Strany.Select(s => new PolozkaStrany(_spis, s)).ToList();
+        if (_spis is null) { SeznamStran.ItemsSource = null; return; }
+        // strany seskupené pod nadpisy dokumentů
+        var polozky = _spis.StranyPoDokumentech()
+            .SelectMany((x, k) => x.Strany.Select(s => new PolozkaStrany(_spis, s, $"{k + 1}. {x.Dokument.Nazev}  ({x.Strany.Count} str.)")))
+            .ToList();
+        var pohled = new System.Windows.Data.ListCollectionView(polozky);
+        pohled.GroupDescriptions.Add(new System.Windows.Data.PropertyGroupDescription(nameof(PolozkaStrany.Skupina)));
+        SeznamStran.ItemsSource = pohled;
         SeznamStran.SelectedItem = SeznamStran.Items.Cast<PolozkaStrany>().FirstOrDefault(p => p.Strana.Cislo == cislo)
             ?? SeznamStran.Items.Cast<PolozkaStrany>().FirstOrDefault();
     }
@@ -195,7 +208,7 @@ public partial class HlavniOkno : Window
         _spis = (SeznamSpisu.SelectedItem as PolozkaSpisu)?.Spis;
         _klic = _spis is null ? new Klic() : Anonymizator.NactiKlic(_spis);
         _strana = null;
-        PridatFotky.IsEnabled = NajitUdaje.IsEnabled = Exportovat.IsEnabled = VratitJmena.IsEnabled = _spis is not null;
+        PridatFotky.IsEnabled = PridatSlozku.IsEnabled = NajitUdaje.IsEnabled = Exportovat.IsEnabled = VratitJmena.IsEnabled = _spis is not null;
         NactiUdaje();
         NactiStrany();
     }
@@ -241,6 +254,102 @@ public partial class HlavniOkno : Window
             IsEnabled = true;
         }
         NactiStrany();
+    }
+
+    private async void PridatSlozku_Click(object sender, RoutedEventArgs e)
+    {
+        if (_spis is null) return;
+        var dialog = new OpenFolderDialog { Title = "Vyber složku s fotkami (podsložky = dokumenty)" };
+        if (dialog.ShowDialog(this) != true) return;
+        var spis = _spis;
+        int pred = spis.Dokumenty.Count;
+        Stav.Text = "Přidávám složku…";
+        IsEnabled = false;
+        try
+        {
+            var nove = await Task.Run(() => spis.PridejSlozku(dialog.FolderName));
+            Stav.Text = $"Přidáno {nove.Count} stran v {spis.Dokumenty.Count - pred} dokumentech. Přepis spustíš tlačítkem Spustit přepis.";
+        }
+        finally
+        {
+            IsEnabled = true;
+        }
+        NactiStrany();
+    }
+
+    // ---------- Dokumenty a pořadí stran ----------
+
+    private void PoUpraveDokumentu()
+    {
+        NactiStrany();
+        if (_strana is not null)
+            SeznamStran.SelectedItem = SeznamStran.Items.Cast<PolozkaStrany>().FirstOrDefault(p => p.Strana == _strana);
+    }
+
+    private void PosunoutStranu_Click(object sender, RoutedEventArgs e)
+    {
+        if (_spis is null || _strana is null || sender is not MenuItem { Tag: string tag }) return;
+        _spis.PosunStranu(_strana, int.Parse(tag));
+        PoUpraveDokumentu();
+    }
+
+    private void PresunoutDoDokumentu_Click(object sender, RoutedEventArgs e)
+    {
+        if (_spis is null || _strana is null) return;
+        var moznosti = _spis.StranyPoDokumentech().Select(x => x.Dokument)
+            .Where(d => d.Id != _strana.Dokument).Append(new Dokument { Id = "", Nazev = "(nový dokument)" }).ToList();
+        var cil = VyberDialog.Vyber(this, "Přesunout stranu", "Do kterého dokumentu stranu přesunout (zařadí se na jeho konec):",
+            moznosti, d => d.Nazev);
+        if (cil is null) return;
+        string? nazev = null;
+        if (cil.Id == "")
+        {
+            nazev = VstupDialog.Zeptej(this, "Nový dokument", "Název nového dokumentu (prázdný = navrhne se z textu):", "");
+            if (nazev is null) return;
+        }
+        _spis.PresunDoDokumentu(_strana, cil.Id == "" ? null : cil.Id, nazev);
+        PoUpraveDokumentu();
+    }
+
+    private void ZacitDokument_Click(object sender, RoutedEventArgs e)
+    {
+        if (_spis is null || _strana is null) return;
+        var nazev = VstupDialog.Zeptej(this, "Nový dokument", "Název dokumentu, který začne touto stranou (prázdný = navrhne se z textu):", "");
+        if (nazev is null) return;
+        _spis.ZacniDokument(_strana, nazev);
+        if (string.IsNullOrWhiteSpace(nazev)) _spis.NavrhniNazvy();
+        PoUpraveDokumentu();
+    }
+
+    private void SpojitDokument_Click(object sender, RoutedEventArgs e)
+    {
+        if (_spis is null || _strana is null) return;
+        _spis.SpojSPredchozim(_strana);
+        PoUpraveDokumentu();
+    }
+
+    private void PrejmenovatDokument_Click(object sender, RoutedEventArgs e)
+    {
+        if (_spis?.DokumentStrany(_strana!) is not { } d) return;
+        var nazev = VstupDialog.Zeptej(this, "Přejmenovat dokument",
+            "Název dokumentu (do exportu pro Clauda jde anonymizovaný):", d.Nazev);
+        if (string.IsNullOrWhiteSpace(nazev)) return;
+        d.Nazev = nazev.Trim();
+        d.NavrhnoutNazev = false;
+        _spis.Uloz();
+        PoUpraveDokumentu();
+    }
+
+    private void NavrhnoutNazev_Click(object sender, RoutedEventArgs e)
+    {
+        if (_spis?.DokumentStrany(_strana!) is not { } d) return;
+        d.NavrhnoutNazev = true;
+        if (_spis.NavrhniNazvy() == 0)
+        {
+            d.NavrhnoutNazev = false;
+            Stav.Text = "Název nejde navrhnout, první strana dokumentu zatím nemá přepis.";
+        }
+        PoUpraveDokumentu();
     }
 
     // ---------- Zobrazení strany ----------
