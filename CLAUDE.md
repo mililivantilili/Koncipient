@@ -20,6 +20,10 @@ Test běžel na fotkách z Matějova vlastního archivu stavebního úřadu, kte
 - **Nespoléhej na pravidla `deny` v Claude Code jako na jedinou ochranu.** Sandbox na nativních Windows nefunguje a příkazy tam běží nesandboxovaně.
 - **Hranici tvoří oddělené počítače.** Koncipient se spisy má běžet na jiném počítači než Claude Code, přenáší se jen složka `ProClaude`. Šifrování spisů se zatím nedělá (Matějovo rozhodnutí z 2026-11-03).
 
+## Testování agentem na Windows
+
+Agent, který na Matějově počítači dělá testy, má postupovat podle [docs/agent.md](docs/agent.md): ovládat program přes `koncipient-cli` (JSON), pracovat jen s vymyšlenými daty nebo Matějovým archivem a nikdy se spisy advokátky.
+
 ## Omezení prostředí
 
 Cílový systém je Windows. V cloudové relaci (Linux) nejde otestovat Windows OCR, instalátor ani chování na Windows, takže tyhle části drž za rozhraním a jejich ověření nech na Matějův počítač.

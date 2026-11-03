@@ -21,6 +21,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{07C2787E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Koncipient.MereniAnonymizace", "tools\Koncipient.MereniAnonymizace\Koncipient.MereniAnonymizace.csproj", "{5B007270-585B-494D-B021-EA4B343BE8C3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Koncipient.Cli", "src\Koncipient.Cli\Koncipient.Cli.csproj", "{3ACBE857-2DDF-4B92-AF67-516F5F1FAF50}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -103,6 +105,18 @@ Global
 		{5B007270-585B-494D-B021-EA4B343BE8C3}.Release|x64.Build.0 = Release|Any CPU
 		{5B007270-585B-494D-B021-EA4B343BE8C3}.Release|x86.ActiveCfg = Release|Any CPU
 		{5B007270-585B-494D-B021-EA4B343BE8C3}.Release|x86.Build.0 = Release|Any CPU
+		{3ACBE857-2DDF-4B92-AF67-516F5F1FAF50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3ACBE857-2DDF-4B92-AF67-516F5F1FAF50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3ACBE857-2DDF-4B92-AF67-516F5F1FAF50}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3ACBE857-2DDF-4B92-AF67-516F5F1FAF50}.Debug|x64.Build.0 = Debug|Any CPU
+		{3ACBE857-2DDF-4B92-AF67-516F5F1FAF50}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3ACBE857-2DDF-4B92-AF67-516F5F1FAF50}.Debug|x86.Build.0 = Debug|Any CPU
+		{3ACBE857-2DDF-4B92-AF67-516F5F1FAF50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3ACBE857-2DDF-4B92-AF67-516F5F1FAF50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3ACBE857-2DDF-4B92-AF67-516F5F1FAF50}.Release|x64.ActiveCfg = Release|Any CPU
+		{3ACBE857-2DDF-4B92-AF67-516F5F1FAF50}.Release|x64.Build.0 = Release|Any CPU
+		{3ACBE857-2DDF-4B92-AF67-516F5F1FAF50}.Release|x86.ActiveCfg = Release|Any CPU
+		{3ACBE857-2DDF-4B92-AF67-516F5F1FAF50}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -114,5 +128,6 @@ Global
 		{84B3485B-FFCB-4AED-8D91-9E9249778D78} = {6B5E3F5A-D463-43C4-A214-2A5307373F49}
 		{B6D60C0A-7921-42EE-980C-ACA48FD83402} = {8EC989FD-BF90-4AB2-BDC6-C688CB2E22DC}
 		{5B007270-585B-494D-B021-EA4B343BE8C3} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
+		{3ACBE857-2DDF-4B92-AF67-516F5F1FAF50} = {6B5E3F5A-D463-43C4-A214-2A5307373F49}
 	EndGlobalSection
 EndGlobal

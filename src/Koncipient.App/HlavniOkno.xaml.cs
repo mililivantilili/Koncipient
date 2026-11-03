@@ -57,6 +57,31 @@ public partial class HlavniOkno : Window
         Stav.Text = $"Spisy jsou ve složce {_uloziste.Slozka}";
     }
 
+    // ---------- Klávesové zkratky (i pro agenty, kteří okno ovládají) ----------
+
+    private void Okno_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.OriginalSource is TextBox) return; // psaní v polích nechat být
+        var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+        var shift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
+        void Klik(Button b) { if (b.IsEnabled) b.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent)); }
+        switch (e.Key)
+        {
+            case Key.N when ctrl: NovySpis_Click(this, e); break;
+            case Key.O when ctrl && shift: Klik(PridatSlozku); break;
+            case Key.O when ctrl: Klik(PridatFotky); break;
+            case Key.F5: Klik(SpustitPrepis); break;
+            case Key.E when ctrl: Klik(Exportovat); break;
+            case Key.K when ctrl:
+                if (Zkontrolovano.IsEnabled) { Zkontrolovano.IsChecked = Zkontrolovano.IsChecked != true; Zkontrolovano_Click(this, e); }
+                break;
+            case Key.PageDown when ctrl: SeznamStran.SelectedIndex = Math.Min(SeznamStran.SelectedIndex + 1, SeznamStran.Items.Count - 1); break;
+            case Key.PageUp when ctrl: SeznamStran.SelectedIndex = Math.Max(SeznamStran.SelectedIndex - 1, 0); break;
+            default: return;
+        }
+        e.Handled = true;
+    }
+
     // ---------- Spisy a strany ----------
 
     private sealed record PolozkaSpisu(Spis Spis)

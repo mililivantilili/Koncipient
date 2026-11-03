@@ -2,47 +2,47 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Koncipient" Height="850" Width="1400" WindowState="Maximized"
-        FontFamily="Segoe UI" FontSize="13">
+        FontFamily="Segoe UI" FontSize="13" PreviewKeyDown="Okno_PreviewKeyDown">
     <DockPanel>
         <ToolBarTray DockPanel.Dock="Top" IsLocked="True">
             <ToolBar>
-                <Button Content="Nový spis" Click="NovySpis_Click" Padding="8,4" />
-                <Button x:Name="PridatFotky" Content="Přidat fotky…" Click="PridatFotky_Click" Padding="8,4" IsEnabled="False"
+                <Button AutomationProperties.AutomationId="Novyspis" Content="Nový spis" Click="NovySpis_Click" ToolTip="Ctrl+N" Padding="8,4" />
+                <Button x:Name="PridatFotky" AutomationProperties.AutomationId="PridatFotky" Content="Přidat fotky…" Click="PridatFotky_Click" Padding="8,4" IsEnabled="False"
                         ToolTip="Vybrané fotky. Černá fotka (zakrytý objektiv) mezi nimi odděluje dokumenty." />
-                <Button x:Name="PridatSlozku" Content="Přidat složku…" Click="PridatSlozku_Click" Padding="8,4" IsEnabled="False"
+                <Button x:Name="PridatSlozku" AutomationProperties.AutomationId="PridatSlozku" Content="Přidat složku…" Click="PridatSlozku_Click" Padding="8,4" IsEnabled="False"
                         ToolTip="Celá složka: každá podsložka je jeden dokument pojmenovaný podle ní. Černá fotka dokument dál dělí." />
                 <Separator />
-                <Button x:Name="SpustitPrepis" Content="Spustit přepis" Click="SpustitPrepis_Click" Padding="8,4"
+                <Button x:Name="SpustitPrepis" AutomationProperties.AutomationId="SpustitPrepis" Content="Spustit přepis" Click="SpustitPrepis_Click" Padding="8,4"
                         ToolTip="Narovná a přepíše všechny strany bez přepisu a najde v nich údaje. Může běžet přes noc, počítač mezitím neusne." />
-                <Button x:Name="Zastavit" Content="Zastavit" Click="Zastavit_Click" Padding="8,4" IsEnabled="False" />
+                <Button x:Name="Zastavit" AutomationProperties.AutomationId="Zastavit" Content="Zastavit" Click="Zastavit_Click" Padding="8,4" IsEnabled="False" />
                 <Separator />
                 <TextBlock Text="Zvětšení" VerticalAlignment="Center" Margin="8,0,4,0" />
-                <Slider x:Name="Zvetseni" Minimum="0.1" Maximum="3" Value="0.5" Width="120" VerticalAlignment="Center"
+                <Slider x:Name="Zvetseni" AutomationProperties.AutomationId="Zvetseni" Minimum="0.1" Maximum="3" Value="0.5" Width="120" VerticalAlignment="Center"
                         ValueChanged="Zvetseni_ValueChanged" />
-                <Button Content="Na šířku" Click="NaSirku_Click" Padding="8,4" />
-                <Button Content="⟲" Click="OtocitVlevo_Click" Padding="8,4" ToolTip="Otočit stranu doleva" />
-                <Button Content="⟳" Click="OtocitVpravo_Click" Padding="8,4" ToolTip="Otočit stranu doprava" />
+                <Button AutomationProperties.AutomationId="Nasirku" Content="Na šířku" Click="NaSirku_Click" Padding="8,4" />
+                <Button AutomationProperties.AutomationId="Tlacitko" Content="⟲" Click="OtocitVlevo_Click" Padding="8,4" ToolTip="Otočit stranu doleva" />
+                <Button AutomationProperties.AutomationId="Tlacitko" Content="⟳" Click="OtocitVpravo_Click" Padding="8,4" ToolTip="Otočit stranu doprava" />
             </ToolBar>
             <ToolBar>
-                <Button x:Name="NajitUdaje" Content="Najít údaje" Click="NajitUdaje_Click" Padding="8,4" IsEnabled="False"
+                <Button x:Name="NajitUdaje" AutomationProperties.AutomationId="NajitUdaje" Content="Najít údaje" Click="NajitUdaje_Click" Padding="8,4" IsEnabled="False"
                         ToolTip="Projde všechny přepsané strany spisu a najde jména, adresy, čísla a další údaje." />
-                <ToggleButton x:Name="Nahled" Content="Náhled pro Clauda" Click="Nahled_Click" Padding="8,4"
+                <ToggleButton x:Name="Nahled" AutomationProperties.AutomationId="Nahled" Content="Náhled pro Clauda" Click="Nahled_Click" Padding="8,4"
                               ToolTip="Ukáže text strany tak, jak ho dostane Claude." />
-                <CheckBox x:Name="Zkontrolovano" Content="Strana zkontrolována" VerticalAlignment="Center" Margin="8,0"
+                <CheckBox x:Name="Zkontrolovano" AutomationProperties.AutomationId="Zkontrolovano" Content="Strana zkontrolována" VerticalAlignment="Center" Margin="8,0"
                           Click="Zkontrolovano_Click" IsEnabled="False" />
-                <Button x:Name="Exportovat" Content="Exportovat pro Clauda…" Click="Exportovat_Click" Padding="8,4" IsEnabled="False" />
+                <Button x:Name="Exportovat" AutomationProperties.AutomationId="Exportovat" Content="Exportovat pro Clauda…" Click="Exportovat_Click" Padding="8,4" IsEnabled="False" />
                 <Separator />
-                <Button x:Name="VratitJmena" Content="Vrátit jména do výstupu od Clauda…" Click="VratitJmena_Click" Padding="8,4" IsEnabled="False"
+                <Button x:Name="VratitJmena" AutomationProperties.AutomationId="VratitJmena" Content="Vrátit jména do výstupu od Clauda…" Click="VratitJmena_Click" Padding="8,4" IsEnabled="False"
                         ToolTip="Otevře dokument od Clauda, vrátí do něj skutečná jména a uloží ho jako Word." />
             </ToolBar>
         </ToolBarTray>
 
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBarItem>
-                <ProgressBar x:Name="Prubeh" Width="200" Height="14" Visibility="Collapsed" />
+                <ProgressBar x:Name="Prubeh" AutomationProperties.AutomationId="Prubeh" Width="200" Height="14" Visibility="Collapsed" />
             </StatusBarItem>
             <StatusBarItem>
-                <TextBlock x:Name="Stav" Text="Připraveno" />
+                <TextBlock x:Name="Stav" AutomationProperties.AutomationId="Stav" Text="Připraveno" />
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <TextBlock>
@@ -71,9 +71,9 @@
                     <RowDefinition Height="3*" />
                 </Grid.RowDefinitions>
                 <TextBlock Text="Spisy" FontWeight="SemiBold" Margin="6,6,6,2" />
-                <ListBox x:Name="SeznamSpisu" Grid.Row="1" SelectionChanged="SeznamSpisu_SelectionChanged" />
+                <ListBox x:Name="SeznamSpisu" AutomationProperties.AutomationId="SeznamSpisu" Grid.Row="1" SelectionChanged="SeznamSpisu_SelectionChanged" />
                 <TextBlock Grid.Row="2" Text="Dokumenty a strany   (✓ přepsáno, ✎ opraveno, ☑ zkontrolováno, pravé tlačítko = přesuny)" FontWeight="SemiBold" Margin="6,8,6,2" TextWrapping="Wrap" />
-                <ListBox x:Name="SeznamStran" Grid.Row="3" SelectionChanged="SeznamStran_SelectionChanged">
+                <ListBox x:Name="SeznamStran" AutomationProperties.AutomationId="SeznamStran" Grid.Row="3" SelectionChanged="SeznamStran_SelectionChanged">
                     <ListBox.GroupStyle>
                         <GroupStyle>
                             <GroupStyle.HeaderTemplate>
@@ -101,11 +101,11 @@
 
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" />
 
-            <TabControl x:Name="Zalozky" Grid.Column="2" SelectionChanged="Zalozky_SelectionChanged">
+            <TabControl x:Name="Zalozky" AutomationProperties.AutomationId="Zalozky" Grid.Column="2" SelectionChanged="Zalozky_SelectionChanged">
                 <TabItem Header="Text strany">
-                    <FlowDocumentScrollViewer x:Name="TextStrany" VerticalScrollBarVisibility="Auto">
+                    <FlowDocumentScrollViewer x:Name="TextStrany" AutomationProperties.AutomationId="TextStrany" VerticalScrollBarVisibility="Auto">
                         <FlowDocumentScrollViewer.ContextMenu>
-                            <ContextMenu x:Name="MenuSlova">
+                            <ContextMenu x:Name="MenuSlova" AutomationProperties.AutomationId="MenuSlova">
                                 <MenuItem Header="Anonymizovat jako osobu" Tag="Osoba" Click="OznacitJako_Click" />
                                 <MenuItem Header="Anonymizovat jako firmu" Tag="Firma" Click="OznacitJako_Click" />
                                 <MenuItem Header="Anonymizovat jako adresu" Tag="Adresa" Click="OznacitJako_Click" />
@@ -131,24 +131,24 @@
                 <TabItem Header="Osoby a údaje">
                     <DockPanel>
                         <WrapPanel DockPanel.Dock="Top" Margin="4">
-                            <Button Content="Nahradit" Click="UdajPseudonym_Click" Padding="8,3" Margin="2" ToolTip="Údaj se v textu pro Clauda nahradí." />
-                            <Button Content="Odstranit" Click="UdajOdstranit_Click" Padding="8,3" Margin="2" ToolTip="Údaj se z textu úplně vypustí." />
-                            <Button Content="Tohle neanonymizovat" Click="UdajPonechat_Click" Padding="8,3" Margin="2"
+                            <Button AutomationProperties.AutomationId="Nahradit" Content="Nahradit" Click="UdajPseudonym_Click" Padding="8,3" Margin="2" ToolTip="Údaj se v textu pro Clauda nahradí." />
+                            <Button AutomationProperties.AutomationId="Odstranit" Content="Odstranit" Click="UdajOdstranit_Click" Padding="8,3" Margin="2" ToolTip="Údaj se z textu úplně vypustí." />
+                            <Button AutomationProperties.AutomationId="Tohleneanonymizovat" Content="Tohle neanonymizovat" Click="UdajPonechat_Click" Padding="8,3" Margin="2"
                                     ToolTip="Údaj zůstane v textu pro Clauda tak, jak je ve spisu (soud, úřad, obec…)." />
-                            <Button Content="Jiné vymyšlené jméno" Click="UdajNoveJmeno_Click" Padding="8,3" Margin="2" />
-                            <Button Content="Smazat" Click="UdajSmazat_Click" Padding="8,3" Margin="2" ToolTip="Údaj není citlivý ani nesouvisí, odebrat z klíče." />
+                            <Button AutomationProperties.AutomationId="Jinevymyslenejmeno" Content="Jiné vymyšlené jméno" Click="UdajNoveJmeno_Click" Padding="8,3" Margin="2" />
+                            <Button AutomationProperties.AutomationId="Smazat" Content="Smazat" Click="UdajSmazat_Click" Padding="8,3" Margin="2" ToolTip="Údaj není citlivý ani nesouvisí, odebrat z klíče." />
                             <TextBlock Text="Osoby nahrazovat:" VerticalAlignment="Center" Margin="12,0,4,0" />
-                            <ComboBox x:Name="StylOsob" Width="200" SelectionChanged="StylOsob_SelectionChanged">
+                            <ComboBox x:Name="StylOsob" AutomationProperties.AutomationId="StylOsob" Width="200" SelectionChanged="StylOsob_SelectionChanged">
                                 <ComboBoxItem Content="vymyšlenými jmény (stromy)" Tag="Stromy" />
                                 <ComboBoxItem Content="vymyšlenými jmény (zvířata)" Tag="Zvirata" />
                                 <ComboBoxItem Content="kódy [OSOBA_001]" Tag="Kody" />
                             </ComboBox>
-                            <Button Content="Převzít z jiného spisu…" Click="Prevzit_Click" Padding="8,3" Margin="8,2,2,2"
+                            <Button AutomationProperties.AutomationId="Prevzitzjinehospisu" Content="Převzít z jiného spisu…" Click="Prevzit_Click" Padding="8,3" Margin="8,2,2,2"
                                     ToolTip="Stejné osoby dostanou stejná vymyšlená jména jako v jiném spisu." />
                         </WrapPanel>
                         <TextBlock DockPanel.Dock="Bottom" Margin="6" Foreground="Gray" TextWrapping="Wrap"
                                    Text="Skutečné jméno, náhradu a roli jde přepsat dvojklikem. Skutečné jméno v 1. pádě se vrací do dokumentů od Clauda, proto ho oprav, pokud ho OCR přečetlo chybně. Odsazené řádky patří k osobě nad nimi." />
-                        <DataGrid x:Name="TabulkaUdaju" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                        <DataGrid x:Name="TabulkaUdaju" AutomationProperties.AutomationId="TabulkaUdaju" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
                                   HeadersVisibility="Column" SelectionMode="Extended" GridLinesVisibility="Horizontal"
                                   CellEditEnding="TabulkaUdaju_CellEditEnding" RowHeaderWidth="0">
                             <DataGrid.Columns>
@@ -167,17 +167,17 @@
 
             <GridSplitter Grid.Column="3" HorizontalAlignment="Stretch" />
 
-            <ScrollViewer x:Name="FotkaScroll" Grid.Column="4" HorizontalScrollBarVisibility="Auto"
+            <ScrollViewer x:Name="FotkaScroll" AutomationProperties.AutomationId="FotkaScroll" Grid.Column="4" HorizontalScrollBarVisibility="Auto"
                           VerticalScrollBarVisibility="Auto" Background="#F0F0F0"
                           PreviewMouseWheel="FotkaScroll_PreviewMouseWheel">
-                <Grid x:Name="Platno" HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid x:Name="Platno" AutomationProperties.AutomationId="Platno" HorizontalAlignment="Left" VerticalAlignment="Top">
                     <Grid.LayoutTransform>
-                        <ScaleTransform x:Name="Meritko" ScaleX="0.5" ScaleY="0.5" />
+                        <ScaleTransform x:Name="Meritko" AutomationProperties.AutomationId="Meritko" ScaleX="0.5" ScaleY="0.5" />
                     </Grid.LayoutTransform>
-                    <Image x:Name="Fotka" Stretch="Fill" Cursor="Hand"
+                    <Image x:Name="Fotka" AutomationProperties.AutomationId="Fotka" Stretch="Fill" Cursor="Hand"
                            MouseLeftButtonDown="Fotka_MouseLeftButtonDown" MouseMove="Fotka_MouseMove"
                            MouseLeftButtonUp="Fotka_MouseLeftButtonUp" />
-                    <Canvas x:Name="Vrstva" IsHitTestVisible="False" />
+                    <Canvas x:Name="Vrstva" AutomationProperties.AutomationId="Vrstva" IsHitTestVisible="False" />
                 </Grid>
             </ScrollViewer>
         </Grid>

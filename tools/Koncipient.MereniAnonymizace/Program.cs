@@ -20,7 +20,7 @@ using Text = Koncipient.Jadro.Anonymizace.Text;
 Console.OutputEncoding = Encoding.UTF8;
 bool rezimText = args.Contains("--text");
 string? Parametr(string nazev) { int i = Array.IndexOf(args, nazev); return i >= 0 && i + 1 < args.Length ? args[i + 1] : null; }
-var koren = args.FirstOrDefault(a => !a.StartsWith("--") && a != Parametr("--prace")) ?? NajdiSadu();
+var koren = args.FirstOrDefault(a => !a.StartsWith("--") && a != Parametr("--prace") && a != Parametr("--cast")) ?? NajdiSadu();
 var prace = Parametr("--prace") ?? Path.Combine(Path.GetTempPath(), "koncipient-mereni");
 Directory.CreateDirectory(prace);
 Console.WriteLine($"Sada: {koren}\nVýsledky: {prace}");
@@ -32,11 +32,21 @@ static string NajdiSadu()
     throw new DirectoryNotFoundException("Sada vzory/sada se nenašla, zadej složku jako parametr.");
 }
 
+// --cast vyvoj|kontrola: pevné rozdělení dokumentů 70:30 podle názvu (strany téhož dokumentu zůstanou spolu)
+var cast = Parametr("--cast");
+bool VCasti(string nazev)
+{
+    if (cast is null) return true;
+    var dokument = System.Text.RegularExpressions.Regex.Replace(nazev, @"_s\d+$", "");
+    uint h = 2166136261; foreach (var c in dokument) h = (h ^ c) * 16777619;
+    return (h % 10 < 7) == (cast == "vyvoj");
+}
 var reference = Directory.GetFiles(Path.Combine(koren, "reference"), "*.json").OrderBy(f => f)
+    .Where(f => VCasti(Path.GetFileNameWithoutExtension(f)))
     .Select(f => (Nazev: Path.GetFileNameWithoutExtension(f), Data: JsonSerializer.Deserialize<Reference>(File.ReadAllText(f), new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!))
     .ToList();
 
-var slozkaSpisu = Path.Combine(prace, rezimText ? "spisy-text" : "spisy-ocr");
+var slozkaSpisu = Path.Combine(prace, (rezimText ? "spisy-text" : "spisy-ocr") + (cast is null ? "" : "-" + cast));
 if (Directory.Exists(slozkaSpisu) && rezimText) Directory.Delete(slozkaSpisu, true);
 var uloziste = new Uloziste(slozkaSpisu);
 var spis = uloziste.Spisy().FirstOrDefault() ?? uloziste.Zaloz("měření");
@@ -45,7 +55,7 @@ if (spis.Strany.Count == 0)
 
 if (rezimText)
 {
-    foreach (var (strana, r) in spis.Strany.Zip(reference))
+    foreach (var (strana, r) in reference.Select(r => (spis.Strany.Single(s => s.PuvodniNazev == r.Nazev + ".jpg"), r)))
     {
         var v = new VysledekOcr { Motor = Motory.Windows };
         foreach (var radek in r.Data.Text.Split('\n'))
@@ -77,7 +87,7 @@ var vypis = new StringBuilder();
 var souhrn = new Dictionary<string, (int Celkem, int Uniklo)>();
 int navicCelkem = 0;
 
-foreach (var (strana, r) in spis.Strany.Zip(reference))
+foreach (var (strana, r) in reference.Select(r => (spis.Strany.Single(s => s.PuvodniNazev == r.Nazev + ".jpg"), r)))
 {
     var v = Motory.ProZobrazeni(spis, strana);
     var anonym = v is null ? "" : Anonymizator.AnonymizovanyText(v, klic);
@@ -96,7 +106,7 @@ foreach (var (strana, r) in spis.Strany.Zip(reference))
         var cislice = new string(u.Hodnota.Where(char.IsDigit).ToArray());
         if (cislice.Length >= 4 && anonymCislice.Contains(cislice) && !new string(verejny.ToString().Where(char.IsDigit).ToArray()).Contains(cislice))
             uniklo.Add(cislice);
-        foreach (var slovo in u.Hodnota.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(Text.Ocisti))
+        foreach (var slovo in u.Hodnota.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Select(Text.Ocisti))
         {
             if (slovo.Length < 3 || slovo.Any(char.IsDigit) || nevyznamna.Contains(slovo.TrimEnd('.'))) continue;
             if (verejnaSlova.Any(p => Text.StejneSlovo(p, slovo))) continue; // slovo je i ve veřejném textu
@@ -110,7 +120,7 @@ foreach (var (strana, r) in spis.Strany.Zip(reference))
 }
 
 // údaje v klíči, které neodpovídají ničemu vyznačenému
-var vyznacena = reference.SelectMany(r => r.Data.Udaje).SelectMany(u => u.Hodnota.Split(' ')).Select(Text.Ocisti).Where(s => s.Length > 0).ToList();
+var vyznacena = reference.SelectMany(r => r.Data.Udaje).SelectMany(u => u.Hodnota.Split((char[]?)null)).Select(Text.Ocisti).Where(s => s.Length > 0).ToList();
 var vyznacenaCisla = reference.SelectMany(r => r.Data.Udaje).Select(u => new string(u.Hodnota.Where(char.IsDigit).ToArray())).Where(s => s.Length > 0).ToList();
 vypis.AppendLine("\n=== Nahrazeno navíc (v klíči, ale nevyznačeno)");
 foreach (var e in klic.Entity)

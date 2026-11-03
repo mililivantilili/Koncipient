@@ -2,6 +2,8 @@
 
 Návod pro Matěje. V cloudové relaci jde program jen přeložit a otestovat jádro, okno a Windows OCR se dají vyzkoušet až tady. Každý test má na konci, co poslat zpět Claudovi.
 
+Testy může dělat i agent (Claude Code), postup pro něj je v [agent.md](agent.md).
+
 **Používej jen svůj archiv ze stavebního úřadu nebo vymyšlené dokumenty, nikdy spisy advokátky.** Fotky do vývojové relace s Claudem neposílej, stačí texty, čísla a snímky obrazovky bez citlivých údajů.
 
 ## Přehled

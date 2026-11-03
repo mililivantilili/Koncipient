@@ -7,7 +7,8 @@ public sealed class Uloziste
 
     public Uloziste(string? slozka = null)
     {
-        Slozka = slozka ?? Path.Combine(
+        // KONCIPIENT_SPISY umožní testovat v oddělené složce (agent, skripty)
+        Slozka = slozka ?? Environment.GetEnvironmentVariable("KONCIPIENT_SPISY") ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Koncipient", "Spisy");
         Directory.CreateDirectory(Slozka);
     }
