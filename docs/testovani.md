@@ -12,7 +12,7 @@ Návod pro Matěje. V cloudové relaci jde program jen přeložit a otestovat j�
 | Test 0: automatické testy | ✅ hotovo, vše prošlo |
 | Test 1: OCR a rychlost | ✅ hotovo, výsledky v [návrhu](navrh.md) |
 | Test 1b: grafická karta | ⬜ čeká |
-| Test 2: prohlížeč | 🟨 rozpracováno, dokončit v nové verzi |
+| Test 2: prohlížeč | ✅ hotovo, vše funguje, PaddleOCR na grafice znatelně rychlejší |
 | Test 3: fotky bez otočení | ⬜ čeká |
 | Test 4: anonymizace a export | ⬜ čeká |
 | Test 5: vrácení jmen a Word | ⬜ čeká |
@@ -71,9 +71,10 @@ PaddleOCR umí počítat na grafické kartě (DirectML). Notebook má dvě, Inte
 
 **Poslat:** nový `vysledky-ocr.zip`. Jestli program napíše „grafická karta nejde použít“, opiš i text chyby.
 
-## 🟨 Test 2: prohlížeč (etapa 2, 15 minut)
+## ✅ Test 2: prohlížeč: hotovo 2026-11-03
 
-Rozpracováno: první připomínky (zvětšování k myši, doplňování a přeskládání textu) jsou zapracované. Dokonči v nové verzi po Git → Pull.
+<details>
+<summary>Postup (pro případné zopakování)</summary>
 
 1. Nastav `Koncipient.App` jako spouštěný projekt a stiskni F5.
 2. **Nový spis**, pojmenuj ho třeba „test archiv“.
@@ -91,6 +92,8 @@ Rozpracováno: první připomínky (zvětšování k myši, doplňování a pře
 6. Během přepisu by počítač neměl usnout ani po delší době.
 
 **Poslat:** co nefungovalo nebo bylo nepohodlné, ideálně se snímkem obrazovky. Zajímá nás i to, jestli je text dobře čitelný a jestli by šlo něco udělat jednodušeji.
+
+</details>
 
 ## Test 3: fotky bez údaje o otočení (5 minut)
 
