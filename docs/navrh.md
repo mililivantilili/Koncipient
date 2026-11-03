@@ -144,8 +144,9 @@ Citlivé údaje jsou jména, adresy, čísla parcel, telefon, e-mail, data a č�
 | --- | --- | --- |
 | Před úpravami | 184 (12,8 %) | 61 (10,2 %) |
 | Po úpravách | 25 (1,7 %) | 17 (2,8 %) |
+| Po opravách z testů na Windows | 12 (0,8 %) | 11 (1,8 %) |
 
-Zbývající úniky jsou hlavně samotné názvy obcí v běžném textu, údaje bez jakékoli nápovědy v okolí a chyby generátoru. Nahrazeno navíc je asi 2,5 % (jména soudců a úředníků, ta program označí jako veřejné osoby). Citovaná judikatura vyšších soudů se ponechává. Měření přes OCR z fotek v cloudu běží jen s PaddleOCR a Tesseractem; s Windows OCR je třeba ho zopakovat na Windows (test 6).
+Přes OCR z fotek (v cloudu PaddleOCR a Tesseract, 247 stran vývojové části) uniká 11 z 1439 údajů (0,8 %), stejně jako z bezchybného textu. Pomohlo hlavně hledání údajů rozdělených koncem řádku (SPZ, IBAN, telefon, jméno a příjmení na dvou řádcích) a SPZ bez návěští. Zbývající úniky jsou hlavně samotné názvy obcí v běžném textu, údaje bez jakékoli nápovědy v okolí a chyby generátoru (údaje slepené bez mezery, „XY“ místo popisku; v `dosad.py` už opravené, sada se zatím nepřegenerovala). Nahrazeno navíc je asi 2,5 % (jména soudců a úředníků, ta program označí jako veřejné osoby). Citovaná judikatura vyšších soudů se ponechává. S Windows OCR je třeba měření zopakovat na Windows (test 6).
 
 ## Dokumenty ve spisu
 

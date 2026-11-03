@@ -173,19 +173,21 @@ public static class Detektor
     private static readonly (Regex Vzor, TypUdaje Typ)[] Pravidla =
     {
         (new Regex(@"\b\d{2}[0156]\d[0-3]\d\s?/\s?\d{3,4}\b"), TypUdaje.RodneCislo),
-        (new Regex(@"(?:nar\.|narozen\w*|datum narození:?|dat\. ?nar\.:?)\s*(?:dne\s*)?(?<u>\d{1,2}\.\s?(?:\d{1,2}\.|" + Mesice + @")\s?\d{4})", RegexOptions.IgnoreCase), TypUdaje.DatumNarozeni),
+        (new Regex(@"(?:nar\.|narozen\w*|datum narození:?|dat\. ?nar\.:?)\s*(?:dne\s*)?(?-i:(?:\p{Lu}\p{Ll}+\s+)?)(?<u>\d{1,2}\.\s?(?:\d{1,2}\.|" + Mesice + @")\s?\d{4})", RegexOptions.IgnoreCase), TypUdaje.DatumNarozeni),
         (new Regex(@"\b(?:IČO?|DIČ)\s*:?\s*(?<u>(?:CZ)?\d{8,10})\b"), TypUdaje.Ico),
         (new Regex(@"\b(?:\d{1,6}-)?\d{6,10}/\d{4}\b"), TypUdaje.Ucet),
-        (new Regex(@"(?:\+420 ?)?\b[1-9]\d{2} ?\d{3} ?\d{3}\b"), TypUdaje.Telefon),
+        (new Regex(@"(?:\+420[ \n]?)?\b[1-9]\d{2}[ \n]?\d{3}[ \n]?\d{3}\b"), TypUdaje.Telefon),
         (new Regex(@"[\w.+-]+@[\w-]+\.[\w.-]*\w"), TypUdaje.Email),
         (new Regex(@"\b\d{1,3}\s?[A-Z][A-Za-z]{0,3}\s?\d{1,6}/\d{4}\b"), TypUdaje.SpisovaZnacka),
         (new Regex(@"(?:č\.\s?j\.|čj\.|sp\.\s?zn\.|spis\.\s?zn\.|spisová značka|značka)\s*:?\s*(?<u>(?-i:(?:\p{Lu}[\p{Lu}-]* )?)[\w/-]*\d[\w/-]*(?: [\w/-]*\d[\w/-]*)?)", RegexOptions.IgnoreCase), TypUdaje.SpisovaZnacka),
         (new Regex(@"\bvložka\s*(?<u>\d+)", RegexOptions.IgnoreCase), TypUdaje.SpisovaZnacka),
         (new Regex(@"\bev\.\s?č\.(?:\s?ČAK)?\s*(?<u>\d+)", RegexOptions.IgnoreCase), TypUdaje.Jiny),
-        (new Regex(@"\b(?:RZ|SPZ)\s*:?\s*(?<u>\d[A-Z][A-Z0-9] ?\d{4})\b"), TypUdaje.Jiny),
+        (new Regex(@"\b(?:RZ|SPZ)\s*:?\s*(?<u>\d[A-Z][A-Z0-9]?[ \n]?\d{4})\b"), TypUdaje.Jiny),
+        (new Regex(@"(?:registrační\w* značk\w*|reg\. ?zn\.)\s*:?\s*(?<u>\d[A-Z][A-Z0-9]?[ \n]?\d{4})\b", RegexOptions.IgnoreCase), TypUdaje.Jiny),
+        (new Regex(@"\b(?<u>\d[A-Z][A-Z0-9][ \n]?\d{4})\b"), TypUdaje.Jiny),          // SPZ bez návěští (3S1 1301)
         (new Regex(@"\b\d[A-Z][A-Z0-9] ?\d{4}\b"), TypUdaje.Jiny),                          // SPZ i bez označení (1AB 2345)
         (new Regex(@"\b(?=[A-HJ-NPR-Z0-9]*\d)(?=[A-HJ-NPR-Z0-9]*[A-Z])[A-HJ-NPR-Z0-9]{17}\b"), TypUdaje.Jiny), // VIN
-        (new Regex(@"\bCZ\d{2}(?:[ ]?\d{4}){5}\b"), TypUdaje.Ucet),                          // IBAN
+        (new Regex(@"\bCZ\d{2}(?:[ \n]?\d{4}){5}\b"), TypUdaje.Ucet),                          // IBAN
         // hlavička e-mailu: jméno za Od/Komu/To, i malými písmeny a mimo seznam jmen
         (new Regex(@"(?m)^(?:Od|Komu|Kopie|From|To|Cc|Odesílatel|Příjemce)\s*:\s*(?:\d+\s*[-–]\s*)?(?<u>\p{L}[\p{L}'-]*(?: \p{L}[\p{L}'-]*){1,2}?)(?=\s*<|\s*\(|\s*,|\s*;|[ \t]*$)"), TypUdaje.Osoba),
         // číslo popisné nebo evidenční, případně s obcí (č.p 158 v Lhotě u Nikde)
@@ -305,7 +307,9 @@ public static class Detektor
             // křestní jméno + příjmení, nebo příjmení + křestní jméno
             if (JeKrestniJmeno(slova[i]))
             {
-                if (StejnyRadek(i + 1) && (MuzeBytPrijmeni(slova[i + 1]) || (JeVelkymi(slova[i]) && JeVelkymi(slova[i + 1]))))
+                // jméno na konci řádku může pokračovat příjmením na dalším řádku („Marie⏎Marková“)
+                if ((StejnyRadek(i + 1) && (MuzeBytPrijmeni(slova[i + 1]) || (JeVelkymi(slova[i]) && JeVelkymi(slova[i + 1]))))
+                    || (i + 1 < slova.Count && !StejnyRadek(i + 1) && MuzeBytPrijmeni(slova[i + 1])))
                 {
                     nalezy.Add(new Nalez(i, i + 1, TypUdaje.Osoba));
                     i++;

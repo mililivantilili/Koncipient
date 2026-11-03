@@ -168,4 +168,25 @@ public class WindowsNalezyTesty
             Assert.True(Text.Levenshtein(Text.Normalizuj(jmeno!), "radmila") > 2, jmeno);
         }
     }
+    [Theory]
+    [InlineData("provozovatelem vozidla RZ 3H6\n9882 od roku 2018", "9882")]
+    [InlineData("vozidla registrační značky 7H\n1024 dne", "1024")]
+    [InlineData("vlastníkem vozidla s 4E6\n3893 v době", "3893")]
+    [InlineData("kupní smlouvu podepsala Marie\nMarková dne 1. 1. 2020", "Marie")]
+    [InlineData("technického průkazu CZ64 0800\n0000 2040 3170 9173, který byl", "9173")]
+    [InlineData("společnost Fiktivní s.r.o., tel. +420 743\n748 240, uzavřela smlouvu", "748")]
+    public void UdajRozdelenyKoncemRadkuSeNajde(string text, string zbytek)
+    {
+        var klic = KlicZ(text);
+        var vystup = Anonym(text, klic);
+        Assert.DoesNotContain(zbytek, vystup);
+    }
+
+    [Fact]
+    public void DatumNarozeniZaRodnymPrijmenim()
+    {
+        const string text = "žalobkyně: Smyšlená Pokusná, narozená Zkušební 28. 5. 1990, bytem Fiktivní 1, 999 01 Lhota";
+        var vystup = Anonym(text, KlicZ(text));
+        Assert.DoesNotContain("1990", vystup);
+    }
 }
