@@ -12,6 +12,7 @@ Slovník: hunspell cs_CZ (na Linuxu balíček hunspell-cs), cesta --slovnik.
 """
 
 import difflib
+import re
 
 from spolecne import argumenty, vystup, zkontroluj_data
 
@@ -28,7 +29,8 @@ class Slovnik:
         if not jadro:
             return False
         if any(z.isdigit() for z in jadro):
-            return True
+            # platné je jen čisté číslo (2,1 / 4136/3 / 12.3.), ne směs jako „Těs1n“
+            return re.fullmatch(r"[\d.,/:\-–%+()]+", jadro) is not None
         try:
             return bool(self.d.lookup(jadro) or self.d.lookup(jadro.lower()))
         except Exception:
@@ -40,7 +42,8 @@ def klic(slovo):
 
 
 def ma_cislo(text):
-    return any(z.isdigit() for z in text) or "§" in text
+    """Čísla, paragrafy a e-maily čte PaddleOCR spolehlivěji než Windows OCR."""
+    return any(z.isdigit() for z in text) or "§" in text or "@" in text
 
 
 def slouc(text_a, text_b, slovnik):
@@ -51,6 +54,9 @@ def slouc(text_a, text_b, slovnik):
     vysledek, sporna = [], 0
 
     def vyber(a, b):
+        # jeden motor má číslo, § nebo @ a druhý ne (S místo §, l místo 1): vyhraje číslo
+        if ma_cislo(a) != ma_cislo(b):
+            return a if ma_cislo(a) else b
         pa, pb = slovnik.platne(a), slovnik.platne(b)
         if pa != pb:
             return a if pa else b
@@ -66,16 +72,20 @@ def slouc(text_a, text_b, slovnik):
         sporna += max(a2 - a1, b2 - b1)
         if op == "replace" and a2 - a1 == b2 - b1:
             vysledek += [vyber(a, b) for a, b in zip(A[a1:a2], B[b1:b2])]
+        elif op == "replace" and b2 - b1 <= 3 and all(ma_cislo(w) for w in B[b1:b2]) and not ma_cislo(" ".join(A[a1:a2])):
+            # druhý motor přečetl číslo nebo §, kde první má něco jiného (S místo §)
+            vysledek += B[b1:b2]
         elif op == "replace":
             pa, pb = podil_platnych(A[a1:a2]), podil_platnych(B[b1:b2])
-            lepsi_b = pb > pa or (pb == pa and ma_cislo(" ".join(B[b1:b2])))
+            lepsi_b = pb > pa  # při shodě zůstává první (hlavní) motor
             vysledek += B[b1:b2] if lepsi_b else A[a1:a2]
         elif op == "delete":
             # slova jen v prvním motoru: ponechat, pokud jsou většinou ze slovníku
             if podil_platnych(A[a1:a2]) >= 0.5:
                 vysledek += A[a1:a2]
-        elif op == "insert" and b2 - b1 <= 8:
-            # krátký úsek jen v druhém motoru, typicky useknutý levý okraj u Tesseractu
+        elif op == "insert" and b2 - b1 <= 3 and all(ma_cislo(w) for w in B[b1:b2]):
+            # krátký úsek jen v druhém motoru, a to jen čísla, § nebo e-mail, které první vynechal;
+            # ostatní (útržky z okraje sousední stránky, patičky) se nevkládá
             vysledek += B[b1:b2]
     return " ".join(vysledek), sporna
 

@@ -60,5 +60,21 @@ public static class Davka
             }
             prubeh?.Report(new StavDavky(zbyva.Count, zbyva.Count, $"{motor.Nazev}: hotovo"));
         }
+
+        // Sloučení Windows OCR (hlavní) a PaddleOCR (kontrolní) do jednoho textu
+        var kSlouceni = spisy.SelectMany(sp => sp.Strany.Select(st => (sp, st)))
+            .Where(x => !x.sp.MaOcr(x.st, Slouceni.Nazev) && x.sp.MaOcr(x.st, Motory.Windows) && x.sp.MaOcr(x.st, Motory.Paddle))
+            .ToList();
+        if (kSlouceni.Count > 0)
+        {
+            var slouceni = new Slouceni(Motory.SlozkaModelu);
+            for (int i = 0; i < kSlouceni.Count; i++)
+            {
+                zruseni.ThrowIfCancellationRequested();
+                var (spis, strana) = kSlouceni[i];
+                prubeh?.Report(new StavDavky(i, kSlouceni.Count, $"Slučuji přepisy: {spis.Id} strana {strana.Cislo}"));
+                spis.UlozOcr(strana, slouceni.Sluc(spis.NactiOcr(strana, Motory.Windows)!, spis.NactiOcr(strana, Motory.Paddle)!));
+            }
+        }
     }
 }

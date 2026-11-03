@@ -38,6 +38,8 @@ Windows OCR se spustí, jen když má Windows nainstalovanou češtinu pro rozpo
 Add-WindowsCapability -Online -Name "Language.OCR~~~cs-CZ~0.0.1.0"
 ```
 
+Po přepisu oběma motory dávka stranu sloučí (`Slouceni.cs`): základem je Windows OCR, čísla, § a e-maily se berou z PaddleOCR. Sloučení potřebuje český slovník `cs_CZ.aff` a `cs_CZ.dic`, který se stahuje s modely.
+
 PaddleOCR počítá na Windows na nejvýkonnější grafické kartě přes DirectML, když to nejde, na procesoru. Zařízení jde vynutit proměnnou prostředí `KONCIPIENT_GPU` (`ne` = procesor, `0` nebo `1` = grafická karta podle pořadí ve Windows). Srovnání zařízení spustí `Koncipient.OcrTest` volbou 2.
 
 Tesseract potřebuje Microsoft Visual C++ Redistributable (x64). S Visual Studiem bývá nainstalovaný.

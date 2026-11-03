@@ -14,7 +14,7 @@ public static class Motory
     /// text nejlépe a nejrychleji (test na Matějově notebooku 2026-11-03), PaddleOCR
     /// je nejlepší na čísla a jména, Tesseract je záloha.
     /// </summary>
-    public static readonly string[] PoradiZobrazeni = { Spis.Opraveno, Windows, Paddle, Tesseract };
+    public static readonly string[] PoradiZobrazeni = { Spis.Opraveno, Slouceni.Nazev, Windows, Paddle, Tesseract };
 
     /// <summary>Výsledky všech motorů, které se používají ke kontrole a hledání údajů.</summary>
     public static readonly string[] VsechnyMotory = { Windows, Paddle, Tesseract };
@@ -25,6 +25,9 @@ public static class Motory
         ("rec.onnx", "https://huggingface.co/PaddlePaddle/PP-OCRv6_medium_rec_onnx/resolve/main/inference.onnx"),
         ("rec.yml", "https://huggingface.co/PaddlePaddle/PP-OCRv6_medium_rec_onnx/resolve/main/inference.yml"),
         ("ces.traineddata", "https://github.com/tesseract-ocr/tessdata/raw/main/ces.traineddata"),
+        // český slovník pro sloučení motorů (LibreOffice, GPL/LGPL/MPL)
+        ("cs_CZ.aff", "https://raw.githubusercontent.com/LibreOffice/dictionaries/master/cs_CZ/cs_CZ.aff"),
+        ("cs_CZ.dic", "https://raw.githubusercontent.com/LibreOffice/dictionaries/master/cs_CZ/cs_CZ.dic"),
     };
 
     /// <summary>Složka s modely, výchozí %LOCALAPPDATA%\Koncipient\modely, jde změnit proměnnou KONCIPIENT_MODELY.</summary>

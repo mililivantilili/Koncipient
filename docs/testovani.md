@@ -123,6 +123,8 @@ Fotky z foťáku často nemají údaj o otočení. Program ho pozná z textu.
 
 ## Test 4: anonymizace a export (etapa 3, 20 minut)
 
+Nejdřív po Git → Pull klikni ve spisu z testu 2 na **Spustit přepis**. Program stáhne český slovník (asi 4 MB) a sloučí přepisy Windows OCR a PaddleOCR do jednoho textu, nic se znovu nepřepisuje. Strany s Tvými ručními opravami zůstanou, jak jsou.
+
 1. Ve spisu z testu 2 klikni na **Najít údaje** (po přepisu se to udělá i samo).
 2. Projdi strany. Fialově jsou údaje, které se nahradí. Najetím myši se ukáže pseudonym.
    - [ ] Jména, adresy, telefony, e-maily, čísla parcel jsou fialově.
