@@ -11,12 +11,16 @@ Návod pro Matěje. V cloudové relaci jde program jen přeložit a otestovat j�
 3. Otevři `Koncipient.sln`. Při prvním sestavení si Visual Studio stáhne balíčky NuGet, chvíli to trvá.
 4. Připrav si složku s 5–10 fotkami z archivu, ideálně různorodými: tištěný text, tabulka, razítko, šikmá nebo tmavá fotka a pokud máš, i ručně psaný text.
 
-## Test 0: automatické testy (2 minuty)
+## Test 0: automatické testy (5 minut)
 
-1. Nabídka Test, Spustit všechny testy (Test Explorer).
-2. Všechny testy mají být zelené.
+1. Otevři **řešení**, ne jen složku: Soubor → Otevřít → Projekt/řešení… → `Koncipient.sln`. Bez toho se nabídka Test ani testy neukážou.
+2. Počkej, až se stáhnou balíčky (vlevo dole), a sestav řešení: Sestavení → Sestavit řešení (Ctrl+Shift+B).
+3. Otevři Test → Průzkumník testů (Ctrl+E, T), anglicky *Test Explorer*.
+4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 354, všechny zelené.
 
-**Poslat:** kolik testů prošlo a případně název a text chyby u neúspěšného.
+Když sestavení selže, otevři Zobrazit → Seznam chyb.
+
+**Poslat:** kolik testů prošlo, případně název a text chyby u neúspěšného testu nebo první chybu ze Seznamu chyb.
 
 ## Test 1: OCR a rychlost (etapa 1, 10 minut)
 

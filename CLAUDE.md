@@ -33,6 +33,6 @@ Odpovědi od advokátky zatím chybí:
 1. Jaký má počítač (paměť, verze Windows)? Víme jen, že není silný.
 2. Jsou spisy převážně tištěné, nebo i psané rukou?
 3. Znamená „přeložit“ jen převod fotky na text, nebo i překlad z cizího jazyka? Zatím se počítá jen s převodem na text.
+4. Jaký má Claude Code tarif a nastavení uchovávání dat?
 
 Rozhodnuto Matějem 2026-11-03: výstupy jako .docx, klíč pseudonymů pro každý spis zvlášť s možností převzít z jiného spisu, osoby se nahrazují vymyšlenými jmény (téma stromy, případně upravíme podle ohlasů).
-4. Jaký má Claude Code tarif a nastavení uchovávání dat?
