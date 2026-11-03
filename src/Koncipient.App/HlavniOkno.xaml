@@ -1,0 +1,79 @@
+<Window x:Class="Koncipient.App.HlavniOkno"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Koncipient" Height="850" Width="1400" WindowState="Maximized"
+        FontFamily="Segoe UI" FontSize="13">
+    <DockPanel>
+        <ToolBar DockPanel.Dock="Top" ToolBarTray.IsLocked="True">
+            <Button Content="Nový spis" Click="NovySpis_Click" Padding="8,4" />
+            <Button x:Name="PridatFotky" Content="Přidat fotky…" Click="PridatFotky_Click" Padding="8,4" IsEnabled="False" />
+            <Separator />
+            <Button x:Name="SpustitPrepis" Content="Spustit přepis" Click="SpustitPrepis_Click" Padding="8,4"
+                    ToolTip="Přepíše všechny strany bez přepisu. Může běžet přes noc, počítač mezitím neusne." />
+            <Button x:Name="Zastavit" Content="Zastavit" Click="Zastavit_Click" Padding="8,4" IsEnabled="False" />
+            <Separator />
+            <TextBlock Text="Zvětšení" VerticalAlignment="Center" Margin="8,0,4,0" />
+            <Slider x:Name="Zvetseni" Minimum="0.1" Maximum="3" Value="0.5" Width="150" VerticalAlignment="Center"
+                    ValueChanged="Zvetseni_ValueChanged" />
+            <Button Content="Na šířku" Click="NaSirku_Click" Padding="8,4" />
+            <Separator />
+            <TextBlock VerticalAlignment="Center" Margin="8,0">
+                <Run Background="#FFE0B2" Text=" sporné " /> druhý motor čte jinak
+                <Run Text="   " /><Run Background="#C8E6C9" Text=" opraveno " />
+                <Run Text="   " /><Run Text="dvojklik na slovo = oprava" Foreground="Gray" />
+            </TextBlock>
+        </ToolBar>
+
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <ProgressBar x:Name="Prubeh" Width="200" Height="14" Visibility="Collapsed" />
+            </StatusBarItem>
+            <StatusBarItem>
+                <TextBlock x:Name="Stav" Text="Připraveno" />
+            </StatusBarItem>
+        </StatusBar>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="230" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="2*" />
+                </Grid.RowDefinitions>
+                <TextBlock Text="Spisy" FontWeight="SemiBold" Margin="6,6,6,2" />
+                <ListBox x:Name="SeznamSpisu" Grid.Row="1" SelectionChanged="SeznamSpisu_SelectionChanged" />
+                <TextBlock Grid.Row="2" Text="Strany" FontWeight="SemiBold" Margin="6,8,6,2" />
+                <ListBox x:Name="SeznamStran" Grid.Row="3" SelectionChanged="SeznamStran_SelectionChanged" />
+            </Grid>
+
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" />
+
+            <FlowDocumentScrollViewer x:Name="TextStrany" Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                <FlowDocument FontFamily="Segoe UI" FontSize="15" PagePadding="16" />
+            </FlowDocumentScrollViewer>
+
+            <GridSplitter Grid.Column="3" HorizontalAlignment="Stretch" />
+
+            <ScrollViewer x:Name="FotkaScroll" Grid.Column="4" HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Auto" Background="#F0F0F0"
+                          PreviewMouseWheel="FotkaScroll_PreviewMouseWheel">
+                <Grid x:Name="Platno" HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <Grid.LayoutTransform>
+                        <ScaleTransform x:Name="Meritko" ScaleX="0.5" ScaleY="0.5" />
+                    </Grid.LayoutTransform>
+                    <Image x:Name="Fotka" Stretch="Fill" MouseLeftButtonDown="Fotka_MouseLeftButtonDown" Cursor="Hand" />
+                    <Canvas x:Name="Vrstva" IsHitTestVisible="False" />
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
+</Window>

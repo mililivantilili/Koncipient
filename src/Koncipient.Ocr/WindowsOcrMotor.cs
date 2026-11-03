@@ -26,16 +26,38 @@ public sealed class WindowsOcrMotor : IOcrMotor
     public string Nazev => "windows-ocr";
     public bool ChceUpravenouFotku => true;
 
-    public string Prepis(string cestaKFotce) => PrepisAsync(cestaKFotce).GetAwaiter().GetResult();
+    public VysledekOcr Rozpoznej(string cestaKFotce) => RozpoznejAsync(cestaKFotce).GetAwaiter().GetResult();
 
-    private async Task<string> PrepisAsync(string cestaKFotce)
+    private async Task<VysledekOcr> RozpoznejAsync(string cestaKFotce)
     {
         var soubor = await StorageFile.GetFileFromPathAsync(Path.GetFullPath(cestaKFotce));
         using var proud = await soubor.OpenAsync(FileAccessMode.Read);
         var dekoder = await BitmapDecoder.CreateAsync(proud);
         using var bitmapa = await dekoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-        var vysledek = await _engine.RecognizeAsync(bitmapa);
-        return string.Join("\n", vysledek.Lines.Select(r => r.Text));
+        var ocr = await _engine.RecognizeAsync(bitmapa);
+
+        var vysledek = new VysledekOcr { Motor = Nazev, Sirka = bitmapa.PixelWidth, Vyska = bitmapa.PixelHeight };
+        foreach (var r in ocr.Lines)
+        {
+            var radek = new RadekOcr();
+            foreach (var w in r.Words)
+            {
+                var b = w.BoundingRect;
+                radek.Slova.Add(new SlovoOcr
+                {
+                    Text = w.Text,
+                    Ramecek = new Obdelnik((int)b.X, (int)b.Y, (int)Math.Ceiling(b.Width), (int)Math.Ceiling(b.Height)),
+                });
+            }
+            if (radek.Slova.Count == 0) continue;
+            radek.Ramecek = Obdelnik.ZBodu(radek.Slova.SelectMany(s => new[]
+            {
+                ((double)s.Ramecek.X, (double)s.Ramecek.Y),
+                ((double)(s.Ramecek.X + s.Ramecek.Sirka), (double)(s.Ramecek.Y + s.Ramecek.Vyska)),
+            }));
+            vysledek.Radky.Add(radek);
+        }
+        return vysledek;
     }
 
     public void Dispose() { }

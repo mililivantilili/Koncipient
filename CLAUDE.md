@@ -6,7 +6,7 @@ Komunikuj česky. Úplný návrh je v [docs/navrh.md](docs/navrh.md).
 
 ## Stav
 
-K 2026-11-02 proběhlo první kolo testu OCR (skripty v `ocr_test/`, výsledky v návrhu). Doporučení: vyrovnání osvětlení, Tesseract a PaddleOCR sloučené přes český slovník, dávkové zpracování přes noc. Program bude v C# ve Visual Studiu. K 2026-11-03 existuje knihovna `src/Koncipient.Ocr` a konzolový test `src/Koncipient.OcrTest`, ověřené v cloudu proti Python skriptům. Čeká se na spuštění testu na Matějově notebooku a na vzorky rukopisu.
+K 2026-11-02 proběhlo první kolo testu OCR (skripty v `ocr_test/`, výsledky v návrhu). Doporučení: vyrovnání osvětlení, Tesseract a PaddleOCR sloučené přes český slovník, dávkové zpracování přes noc. Program bude v C# ve Visual Studiu. K 2026-11-03 existuje knihovna `src/Koncipient.Ocr` a konzolový test `src/Koncipient.OcrTest`, ověřené v cloudu proti Python skriptům. Od 2026-11-03 existuje i první verze prohlížeče `src/Koncipient.App` (WPF) a jádro `src/Koncipient.Jadro` s testy v `tests/`. Čeká se na vyzkoušení na Matějově notebooku a na vzorky rukopisu.
 
 Test běžel na fotkách z Matějova vlastního archivu stavebního úřadu, které dal výslovně k dispozici. Nejsou to spisy advokátky a do repozitáře nepatří ani ony, ani jejich přepisy.
 
@@ -23,6 +23,8 @@ Test běžel na fotkách z Matějova vlastního archivu stavebního úřadu, kte
 ## Omezení prostředí
 
 Cílový systém je Windows. V cloudové relaci (Linux) nejde otestovat Windows OCR, instalátor ani chování na Windows, takže tyhle části drž za rozhraním a jejich ověření nech na Matějův počítač.
+
+V cloudu překládej řešení oficiálním .NET 8 SDK z `dotnet-install.sh`, protože Ubuntu balíček neumí WPF. Windows variantu ověříš příkazem `dotnet build Koncipient.sln -p:OS=Windows_NT -p:EnableWindowsTargeting=true`.
 
 ## Otevřené otázky
 

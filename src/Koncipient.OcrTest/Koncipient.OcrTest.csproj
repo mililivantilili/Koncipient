@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Koncipient.Ocr\Koncipient.Ocr.csproj" />
+    <ProjectReference Include="..\Koncipient.Jadro\Koncipient.Jadro.csproj" />
   </ItemGroup>
 
 </Project>

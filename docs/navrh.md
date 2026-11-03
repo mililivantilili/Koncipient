@@ -120,7 +120,7 @@ Tato struktura je datová složka programu u advokátky, ne složka tohoto repoz
 ## Plán po etapách
 
 1. **Test OCR.** První kolo je hotové, viz výsledky výše. Obě OCR v C# dávají stejné výsledky jako Python. Zbývá vyzkoušet rukopis, spustit `Koncipient.OcrTest` na Matějově notebooku (rychlost na Windows, Windows OCR). Advokátka pak spustí srovnání na pár skutečných fotkách u sebe, aby se nic neposílalo ven.
-2. **Prohlížeč.** Import fotek, noční OCR, rozdělené zobrazení a oprava textu.
+2. **Prohlížeč.** Import fotek, noční OCR, rozdělené zobrazení a oprava textu. První verze je hotová (`src/Koncipient.App`), v cloudu přeložená a s otestovaným jádrem, čeká na vyzkoušení na Windows. Zatím zobrazuje výsledek PaddleOCR a oranžově místa, kde Tesseract četl jinak. Sloučení přes slovník přijde později.
 3. **Anonymizace a export.** Návrhy údajů, schvalování, klíč pseudonymů, složka `ProClaude` a kontrola před zápisem.
 4. **Propojení s Claude Code.** `CLAUDE.md`, pravidla přístupu a dosazení skutečných jmen zpět do výstupu.
 5. **Instalátor a předání.** Instalace na počítači se spisy, návod na přenos exportu na počítač s Claude Code, záloha složky `Spisy` a krátký návod.

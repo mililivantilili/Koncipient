@@ -43,7 +43,7 @@ public sealed class PaddleMotor : IOcrMotor
     public string Nazev => "paddle-cs";
     public bool ChceUpravenouFotku => true;
 
-    public string Prepis(string cestaKFotce)
+    public VysledekOcr Rozpoznej(string cestaKFotce)
     {
         using var obrazek = Cv2.ImRead(cestaKFotce, ImreadModes.Color);
         if (obrazek.Empty())
@@ -53,13 +53,67 @@ public sealed class PaddleMotor : IOcrMotor
         var vyrezy = ramecky.Select(r => Vyrizni(obrazek, r)).ToList();
         try
         {
-            var texty = Rozpoznej(vyrezy);
-            return string.Join("\n", texty.Where(t => t.Length > 0));
+            var znaky = RozpoznejVyrezy(vyrezy.Select(v => v.Obrazek).ToList());
+            var vysledek = new VysledekOcr { Motor = Nazev, Sirka = obrazek.Cols, Vyska = obrazek.Rows };
+            for (int i = 0; i < ramecky.Count; i++)
+            {
+                var radek = SlozRadek(ramecky[i], vyrezy[i], znaky[i]);
+                if (radek.Slova.Count > 0) vysledek.Radky.Add(radek);
+            }
+            return vysledek;
         }
         finally
         {
-            foreach (var v in vyrezy) v.Dispose();
+            foreach (var v in vyrezy) v.Obrazek.Dispose();
         }
+    }
+
+    /// <summary>Rozpoznaný znak a jeho vodorovná poloha ve výřezu řádku (v pixelech výřezu).</summary>
+    private readonly record struct Znak(string Text, double X, float Jistota);
+
+    private sealed record Vyrez(Mat Obrazek, bool Otoceny);
+
+    /// <summary>
+    /// Rozdělí řádek na slova podle mezer. Hranice slova leží v půli mezi
+    /// posledním znakem a mezerou, poloha se přepočte z výřezu zpět na fotku.
+    /// </summary>
+    private static RadekOcr SlozRadek(Point2f[] b, Vyrez vyrez, List<Znak> znaky)
+    {
+        int sirka = vyrez.Obrazek.Cols;
+        var radek = new RadekOcr { Ramecek = Obdelnik.ZBodu(b.Select(p => ((double)p.X, (double)p.Y))) };
+
+        // Úseky znaků mezi mezerami
+        var useky = new List<(int Od, int Do)>();
+        int start = -1;
+        for (int i = 0; i <= znaky.Count; i++)
+        {
+            bool mezera = i == znaky.Count || string.IsNullOrWhiteSpace(znaky[i].Text);
+            if (!mezera && start < 0) start = i;
+            if (mezera && start >= 0) { useky.Add((start, i - 1)); start = -1; }
+        }
+
+        foreach (var (od, @do) in useky)
+        {
+            var text = string.Concat(znaky.Skip(od).Take(@do - od + 1).Select(z => z.Text));
+            var jistota = znaky.Skip(od).Take(@do - od + 1).Min(z => z.Jistota);
+            Obdelnik ramecek;
+            if (vyrez.Otoceny)
+            {
+                ramecek = radek.Ramecek; // svislý řádek, slova nerozdělujeme
+            }
+            else
+            {
+                double x0 = od > 0 ? (znaky[od - 1].X + znaky[od].X) / 2 : 0;
+                double x1 = @do < znaky.Count - 1 ? (znaky[@do].X + znaky[@do + 1].X) / 2 : sirka;
+                double u0 = Math.Clamp(x0 / sirka, 0, 1), u1 = Math.Clamp(x1 / sirka, 0, 1);
+                (double, double) Bod(double u, double v) => (
+                    b[0].X + u * (b[1].X - b[0].X) + v * (b[3].X - b[0].X),
+                    b[0].Y + u * (b[1].Y - b[0].Y) + v * (b[3].Y - b[0].Y));
+                ramecek = Obdelnik.ZBodu(new[] { Bod(u0, 0), Bod(u1, 0), Bod(u1, 1), Bod(u0, 1) });
+            }
+            radek.Slova.Add(new SlovoOcr { Text = text, Ramecek = ramecek, Jistota = jistota });
+        }
+        return radek;
     }
 
     // ---------- Detekce řádků ----------
@@ -165,7 +219,7 @@ public sealed class PaddleMotor : IOcrMotor
         return s;
     }
 
-    private static Mat Vyrizni(Mat obrazek, Point2f[] b)
+    private static Vyrez Vyrizni(Mat obrazek, Point2f[] b)
     {
         int sirka = (int)Math.Max(Vzdalenost(b[0], b[1]), Vzdalenost(b[2], b[3]));
         int vyska = (int)Math.Max(Vzdalenost(b[0], b[3]), Vzdalenost(b[1], b[2]));
@@ -178,16 +232,16 @@ public sealed class PaddleMotor : IOcrMotor
             var otoceny = new Mat();
             Cv2.Rotate(vyrez, otoceny, RotateFlags.Rotate90Counterclockwise);
             vyrez.Dispose();
-            return otoceny;
+            return new Vyrez(otoceny, true);
         }
-        return vyrez;
+        return new Vyrez(vyrez, false);
     }
 
     // ---------- Rozpoznání textu ----------
 
-    private string[] Rozpoznej(List<Mat> vyrezy)
+    private List<Znak>[] RozpoznejVyrezy(List<Mat> vyrezy)
     {
-        var texty = new string[vyrezy.Count];
+        var vysledek = new List<Znak>[vyrezy.Count];
         var poradi = Enumerable.Range(0, vyrezy.Count)
             .OrderBy(i => (double)vyrezy[i].Cols / vyrezy[i].Rows).ToArray();
 
@@ -200,18 +254,25 @@ public sealed class PaddleMotor : IOcrMotor
             int sirka = (int)(VyskaRadku * maxPomer);
 
             var vstup = new DenseTensor<float>(new[] { davka.Length, 3, VyskaRadku, sirka });
+            var sirkyRadku = new int[davka.Length];
             for (int k = 0; k < davka.Length; k++)
-                VlozRadek(vyrezy[davka[k]], vstup, k, sirka);
+                sirkyRadku[k] = VlozRadek(vyrezy[davka[k]], vstup, k, sirka);
 
             using var vysledky = _rozpoznani.Run(new[] { NamedOnnxValue.CreateFromTensor(_rozpoznani.InputMetadata.Keys.First(), vstup) });
             var p = vysledky.First().AsTensor<float>();
             for (int k = 0; k < davka.Length; k++)
-                texty[davka[k]] = DekodujCtc(p, k);
+            {
+                // časový krok t odpovídá úseku šířky sirka/kroky ve vstupu modelu;
+                // přepočet na pixely výřezu přes poměr šířky výřezu a zmenšeného řádku
+                double meritko = (double)vyrezy[davka[k]].Cols / sirkyRadku[k];
+                vysledek[davka[k]] = DekodujCtc(p, k, sirka, meritko);
+            }
         }
-        return texty;
+        return vysledek;
     }
 
-    private static void VlozRadek(Mat vyrez, DenseTensor<float> vstup, int index, int maxSirka)
+    /// <summary>Vloží řádek do dávky a vrátí jeho šířku po zmenšení.</summary>
+    private static int VlozRadek(Mat vyrez, DenseTensor<float> vstup, int index, int maxSirka)
     {
         double pomer = (double)vyrez.Cols / vyrez.Rows;
         int sirka = Math.Min(maxSirka, (int)Math.Ceiling(VyskaRadku * pomer));
@@ -226,12 +287,14 @@ public sealed class PaddleMotor : IOcrMotor
                     vstup[index, c, y, x] = (px[o + c] / 255f - 0.5f) / 0.5f;
             }
         // zbytek šířky zůstává 0, stejně jako v PaddleOCR
+        return sirka;
     }
 
-    private string DekodujCtc(Tensor<float> p, int index)
+    private List<Znak> DekodujCtc(Tensor<float> p, int index, int sirkaVstupu, double meritko)
     {
         int kroky = p.Dimensions[1], tridy = p.Dimensions[2];
-        var sb = new System.Text.StringBuilder();
+        double krok = (double)sirkaVstupu / kroky;
+        var znaky = new List<Znak>();
         int predchozi = -1;
         for (int t = 0; t < kroky; t++)
         {
@@ -243,10 +306,16 @@ public sealed class PaddleMotor : IOcrMotor
                 if (v > max) { max = v; nejlepsi = c; }
             }
             if (nejlepsi != 0 && nejlepsi != predchozi)
-                sb.Append(nejlepsi - 1 < _znaky.Length ? _znaky[nejlepsi - 1] : " ");
+            {
+                var text = nejlepsi - 1 < _znaky.Length ? _znaky[nejlepsi - 1] : " ";
+                znaky.Add(new Znak(text, (t + 0.5) * krok * meritko, max));
+            }
             predchozi = nejlepsi;
         }
-        return sb.ToString().Trim();
+        // mezery na začátku a konci řádku nemají význam
+        while (znaky.Count > 0 && string.IsNullOrWhiteSpace(znaky[0].Text)) znaky.RemoveAt(0);
+        while (znaky.Count > 0 && string.IsNullOrWhiteSpace(znaky[^1].Text)) znaky.RemoveAt(znaky.Count - 1);
+        return znaky;
     }
 
     // ---------- Pomocné ----------
