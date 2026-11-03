@@ -147,6 +147,27 @@ public class AnonymizatorTesty
     }
 
     [Fact]
+    public void UdajNalezenyKontrolnimMotoremSeNahradiIVHlavnimTextu()
+    {
+        using var d = new DocasnaSlozka();
+        var spis = new Uloziste(Path.Combine(d.Cesta, "Spisy")).Zaloz("vzor");
+        using (var m = new Mat(50, 50, MatType.CV_8UC3, Scalar.White)) Cv2.ImWrite(Path.Combine(d.Cesta, "1.png"), m);
+        var strana = spis.PridejFotky(new[] { Path.Combine(d.Cesta, "1.png") })[0];
+        // hlavní motor přečetl titul chybně, takže jméno sám nenajde
+        var hlavni = Vzor.Ocr("Smlouvu podepsal lng Smyšlenčík dne 1. 1. 2026.");
+        hlavni.Motor = Motory.Windows;
+        spis.UlozOcr(strana, hlavni);
+        var kontrolni = Vzor.Ocr("Smlouvu podepsal Ing. Smyšlenčík dne 1. 1. 2026.");
+        spis.UlozOcr(strana, kontrolni); // Motor = paddle-cs
+
+        var klic = new Klic { Styl = StylPseudonymu.Kody };
+        Anonymizator.AktualizujKlic(spis, klic);
+        var text = Anonymizator.AnonymizovanyText(Motory.ProZobrazeni(spis, strana)!, klic);
+        Assert.DoesNotContain("Smyšlenčík", text);
+        Assert.Contains("[OSOBA_001]", text);
+    }
+
+    [Fact]
     public void KontrolaNajdeZapomenutyUdaj()
     {
         var klic = new Klic();

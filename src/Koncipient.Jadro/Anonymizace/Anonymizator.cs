@@ -124,6 +124,23 @@ public static class Anonymizator
                     e.PatriK = posledniOsoba.Id;
                 }
             }
+
+            // Údaje i z výstupů ostatních motorů: co jeden motor zkomolí, druhý často přečte
+            // správně, a oba tvary pak v klíči pomohou najít údaj v hlavním textu.
+            foreach (var jiny in Motory.Ostatni(spis, strana, v.Motor))
+            {
+                var js = Slova(jiny);
+                vsechnaSlova.AddRange(js);
+                foreach (var n in Detektor.Najdi(js, Radky(jiny)))
+                {
+                    var usek = js.Skip(n.Od).Take(n.Do - n.Od + 1).ToList();
+                    if (usek.All(s => klic.Vyjimky.Contains(Text.Normalizuj(s)))) continue;
+                    var e = NajdiEntitu(klic, n.Typ, js, n.Od, n.Do);
+                    if (e is null) { klic.Nova(n.Typ, usek); nove++; }
+                    else if (!e.Tvary.Any(t => t.Count == usek.Count && t.Zip(usek).All(p => p.First == Text.Ocisti(p.Second))))
+                        e.Tvary.Add(usek.Select(Text.Ocisti).ToList());
+                }
+            }
         }
         DoplnOsoby(klic, vsechnaSlova);
         return nove;

@@ -13,7 +13,6 @@ namespace Koncipient.Ocr;
 public sealed class PaddleMotor : IOcrMotor, IUrceniOtoceni
 {
     // Výchozí hodnoty z paddlex/configs/pipelines/OCR.yaml
-    private const int MaxStrana = 4000;
     private const float PrahBinarizace = 0.3f;
     private const float PrahSkore = 0.6f;
     private const float Rozsireni = 1.5f;
@@ -39,6 +38,14 @@ public sealed class PaddleMotor : IOcrMotor, IUrceniOtoceni
         _rozpoznani = new InferenceSession(Path.Combine(slozkaModelu, "rec.onnx"), volby);
         _znaky = NactiZnaky(Path.Combine(slozkaModelu, "rec.yml"));
     }
+
+    /// <summary>
+    /// Největší strana obrázku pro hledání řádků. Fotky z telefonu (4000 bodů) jsou
+    /// na hledání řádků zbytečně velké a na slabém notebooku pomalé; samotné čtení
+    /// textu dál používá plné rozlišení výřezů.
+    /// </summary>
+    public int MaxStranaDetekce { get; init; } =
+        int.TryParse(Environment.GetEnvironmentVariable("KONCIPIENT_DETEKCE"), out var n) && n >= 640 ? n : 2000;
 
     public string Nazev => "paddle-cs";
     public bool ChceUpravenouFotku => true;
@@ -174,7 +181,7 @@ public sealed class PaddleMotor : IOcrMotor, IUrceniOtoceni
     {
         int h = obrazek.Rows, w = obrazek.Cols;
         double pomer = 1.0;
-        if (Math.Max(h, w) > MaxStrana) pomer = (double)MaxStrana / Math.Max(h, w);
+        if (Math.Max(h, w) > MaxStranaDetekce) pomer = (double)MaxStranaDetekce / Math.Max(h, w);
         int nh = Math.Max((int)Math.Round(h * pomer / 32) * 32, 32);
         int nw = Math.Max((int)Math.Round(w * pomer / 32) * 32, 32);
 

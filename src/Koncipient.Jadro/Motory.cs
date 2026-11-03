@@ -7,9 +7,17 @@ public static class Motory
 {
     public const string Paddle = "paddle-cs";
     public const string Tesseract = "tesseract-cs";
+    public const string Windows = "windows-ocr";
 
-    /// <summary>Pořadí, ve kterém se bere hlavní výsledek pro zobrazení.</summary>
-    public static readonly string[] PoradiZobrazeni = { Spis.Opraveno, Paddle, Tesseract, "windows-ocr" };
+    /// <summary>
+    /// Pořadí, ve kterém se bere hlavní výsledek pro zobrazení. Windows OCR čte souvislý
+    /// text nejlépe a nejrychleji (test na Matějově notebooku 2026-11-03), PaddleOCR
+    /// je nejlepší na čísla a jména, Tesseract je záloha.
+    /// </summary>
+    public static readonly string[] PoradiZobrazeni = { Spis.Opraveno, Windows, Paddle, Tesseract };
+
+    /// <summary>Výsledky všech motorů, které se používají ke kontrole a hledání údajů.</summary>
+    public static readonly string[] VsechnyMotory = { Windows, Paddle, Tesseract };
 
     private static readonly (string Soubor, string Url)[] Soubory =
     {
@@ -48,28 +56,50 @@ public static class Motory
     }
 
     /// <summary>Motory pro noční zpracování: PaddleOCR (hlavní) a Tesseract (kontrolní).</summary>
-    public static IReadOnlyList<Func<IOcrMotor>> ProDavku() => new Func<IOcrMotor>[]
+    /// <summary>Má Windows OCR nainstalovanou češtinu (jen na Windows).</summary>
+    public static bool WindowsOcrJe =>
+#if WINDOWS
+        WindowsOcrMotor.JeCestinaDostupna;
+#else
+        false;
+#endif
+
+    /// <summary>
+    /// Motory pro noční zpracování: Windows OCR jako hlavní a PaddleOCR jako kontrolní.
+    /// Bez češtiny ve Windows OCR nastoupí místo něj Tesseract.
+    /// </summary>
+    public static IReadOnlyList<Func<IOcrMotor>> ProDavku()
     {
-        () => new PaddleMotor(SlozkaModelu),
-        () => new TesseractMotor(SlozkaModelu),
-    };
+        var motory = new List<Func<IOcrMotor>>();
+#if WINDOWS
+        if (WindowsOcrMotor.JeCestinaDostupna) motory.Add(() => new WindowsOcrMotor());
+#endif
+        motory.Add(() => new PaddleMotor(SlozkaModelu));
+        if (!WindowsOcrJe) motory.Add(() => new TesseractMotor(SlozkaModelu));
+        return motory;
+    }
 
     /// <summary>Určení otočení fotek pomocí modelů PaddleOCR.</summary>
     public static Func<IUrceniOtoceni> Narovnani() => () => new PaddleMotor(SlozkaModelu);
 
     /// <summary>
-    /// Výsledek strany pro prohlížeč: ručně opravený, jinak PaddleOCR, jinak co je.
-    /// Slova, která druhý motor přečetl jinak, jsou označená jako sporná.
+    /// Výsledek strany pro prohlížeč: ručně opravený, jinak Windows OCR, PaddleOCR,
+    /// Tesseract. Slova, která kontrolní motor přečetl jinak, jsou označená jako sporná.
+    /// Kontrolní je PaddleOCR, a když je hlavní on, tak další dostupný.
     /// </summary>
     public static VysledekOcr? ProZobrazeni(Spis spis, Strana strana)
     {
         var hlavni = PoradiZobrazeni.Select(m => spis.NactiOcr(strana, m)).FirstOrDefault(v => v is not null);
         if (hlavni is null) return null;
-        if (hlavni.Motor != Tesseract)
-        {
-            var kontrolni = spis.NactiOcr(strana, Tesseract);
-            if (kontrolni is not null) Porovnani.OznacSporna(hlavni, kontrolni);
-        }
+        var kontrolni = new[] { Paddle, Windows, Tesseract }
+            .Where(m => m != hlavni.Motor)
+            .Select(m => spis.NactiOcr(strana, m))
+            .FirstOrDefault(v => v is not null);
+        if (kontrolni is not null) Porovnani.OznacSporna(hlavni, kontrolni);
         return hlavni;
     }
+
+    /// <summary>Výsledky ostatních motorů pro stranu (kromě hlavního), k hledání údajů.</summary>
+    public static IEnumerable<VysledekOcr> Ostatni(Spis spis, Strana strana, string hlavniMotor) =>
+        VsechnyMotory.Where(m => m != hlavniMotor).Select(m => spis.NactiOcr(strana, m)).OfType<VysledekOcr>();
 }

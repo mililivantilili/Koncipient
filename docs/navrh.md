@@ -97,6 +97,22 @@ Citlivé údaje jsou jména, adresy, čísla parcel, telefon, e-mail, data a č�
 - Oprava přepisu malým místním jazykovým modelem (Qwen3 1,7B) se nevyplatila: chyby se nesnížily, model zanesl novou chybu a na stranu potřeboval asi 7 minut. U jmen a čísel je navíc riziko, že je „opraví“ na něco jiného.
 - Vzorek je malý a chybí rukopis. Závěry je třeba potvrdit na dalších fotkách.
 
+### Druhé kolo: Matějův notebook (2026-11-03)
+
+`Koncipient.OcrTest` na 28 fotkách z archivu (fotky z telefonu, plné rozlišení), notebook s 8 jádry. Přesnost změřená na listech, ke kterým existuje ručně přepsaný text z prvního kola:
+
+| Motor | Chyby znaků (str. 8 / str. 9) | Čísla v tabulce | Citlivé údaje | Čas na stranu |
+| --- | --- | --- | --- | --- |
+| Tesseract | 4,4 % / 1,4 % | 1 ze 73 | 29 z 34 | 2–8 s |
+| PaddleOCR | 4,4 % / 3,1 % | 73 ze 73 | 32 z 34 | 40–117 s |
+| Windows OCR | 3,1 % / 0,5 % | 69 ze 73 | 29 z 34 | asi 1 s |
+
+- Windows OCR čte souvislý text nejlépe a je řádově nejrychlejší, proto je hlavním motorem. Unikají mu ale některé znaky (§) a rozdělil e-mail na kousky.
+- PaddleOCR zůstává kontrolním motorem: nejlépe čte čísla a jména a jeho odlišné čtení označí sporná místa. Údaje se hledají ve výstupech obou motorů.
+- PaddleOCR byl na fotkách z telefonu pomalý kvůli hledání řádků v plném rozlišení. Hledání řádků teď běží na kopii zmenšené na 2000 bodů: v cloudu dvakrát rychlejší při stejné přesnosti.
+- Tesseract je jen záloha pro počítač, kde Windows OCR nemá češtinu.
+- Test neotáčí fotky, takže strana vyfocená vzhůru nohama vyšla nečitelná. Prohlížeč ji před přepisem otočí.
+
 ## Struktura složek a formát dat
 
 Spisy a export jsou dvě oddělené složky. Na počítač s Claude Code se přenáší jen export, Claude Code se spouští v něm. Každá strana je samostatný Markdown.
