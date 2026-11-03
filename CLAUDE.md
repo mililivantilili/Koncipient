@@ -18,6 +18,7 @@ Test běžel na fotkách z Matějova vlastního archivu stavebního úřadu, kte
 - **Nic se neexportuje bez schválení člověkem.** Automatika nikdy nezachytí 100 % údajů.
 - **Fotky ani klíč pseudonymů nesmí do složky `ProClaude`.**
 - **Nespoléhej na pravidla `deny` v Claude Code jako na jedinou ochranu.** Sandbox na nativních Windows nefunguje a příkazy tam běží nesandboxovaně.
+- **Hranici tvoří oddělené počítače.** Koncipient se spisy má běžet na jiném počítači než Claude Code, přenáší se jen složka `ProClaude`. Šifrování spisů se zatím nedělá (Matějovo rozhodnutí z 2026-11-03).
 
 ## Omezení prostředí
 

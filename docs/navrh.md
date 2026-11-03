@@ -9,27 +9,27 @@ Doporučuji desktopový program pro Windows v C#, vyvíjený ve Visual Studiu, k
 - **Přepis:** místní OCR, nic se neposílá ven. Fotky se zpracují dávkově, klidně přes noc, dvěma motory (Tesseract a PaddleOCR), jejichž výsledky se sloučí. Slovo „přeložit“ je zatím chápáno jako převod fotky na text, ne překlad do cizího jazyka.
 - **Kdo text čte:** přepis čte hlavně program pro anonymizaci a pak Claude. Advokátka čte fotky, proto rozhoduje hlavně přesnost jmen, adres a čísel, ne úhlednost textu.
 - **Anonymizace:** program navrhne, advokátka schválí. Hledání údajů počítá s chybami OCR, takže najde i „Miček“ místo „Míček“. Bez lidské kontroly se nic neexportuje.
-- **Claude Code:** pracuje jen v oddělené složce s kopií bez jmen a bez fotek. Klíč pseudonymů z počítače nikdy neodchází.
-- **Hlavní riziko:** na Windows nelze Claude Code spolehlivě zamknout jen nastavením, proto je navržen šifrovaný trezor spisů.
+- **Claude Code:** pracuje jen s kopií bez jmen a bez fotek. Klíč pseudonymů zůstává u Koncipientu.
+- **Oddělené počítače:** doporučuji, aby Koncipient se spisy běžel na jiném počítači než Claude Code. Na Windows nejde Claude Code spolehlivě zamknout nastavením, takže na počítači s Claude Code by měl teoreticky přístup ke všem spisům. Šifrování spisů proto program zatím nedělá.
 
 ## Hranice citlivých dat
 
-Co jednou Claude Code přečte, odchází k Anthropicu, proto do jeho složky smí jen schválený export.
+Co jednou Claude Code přečte, odchází k Anthropicu, proto se k němu smí dostat jen schválený export. Hranici tvoří dva počítače, ne nastavení programu.
 
 ```text
-Fotky -> místní OCR -> anonymizace a schválení -> složka ProClaude -> Claude Code -> Anthropic
-\______ šifrovaný trezor, včetně klíče _______/                            |
-                                                                           v
-                     klíč z trezoru --> dosazení jmen <-- výstup s pseudonymy
+Počítač A: Koncipient (bez Claude Code)            Počítač B: Claude Code
+Fotky -> místní OCR -> anonymizace a schválení -> export ProClaude -> Claude Code -> Anthropic
+                                                                          |
+klíč pseudonymů --> dosazení jmen <---------------- výstup s pseudonymy <-+
 ```
 
 | Vrstva | Co dělá | Proti čemu nechrání |
 | --- | --- | --- |
-| Šifrovaný trezor | Fotky, text i klíč pseudonymů leží šifrované, klíč je jen v paměti otevřeného programu | Soubory mimo trezor, například fotky ve Staženích |
-| Pravidla Claude Code | Spouští se ve složce exportu, s pravidly `deny` a ručním schvalováním příkazů | Na nativních Windows ho nezastaví příkaz v terminálu |
+| Oddělené počítače | Spisy, fotky a klíč pseudonymů jsou jen na počítači A, kde Claude Code není nainstalovaný | Spisy uložené i na počítači B, třeba v e-mailu nebo ve sdíleném úložišti |
+| Přenos jen exportu | Na počítač B se přenáší jen složka `ProClaude` (flash disk nebo sdílená složka, která obsahuje jen export) | Ruční zkopírování jiných souborů |
 | Kontrola před exportem | Advokátka schválí každou stranu, program před zápisem znovu hledá známá jména | Údaje, které přehlédne program i člověk |
 
-Sandbox Claude Code [na nativních Windows nefunguje](https://code.claude.com/docs/en/sandboxing). Silnější izolaci by dalo spuštění ve WSL2, kde sandbox funguje, nebo pod samostatným účtem Windows. Do první verze se to nedoporučuje kvůli složitosti, rozhodnutí je na advokátce.
+Sandbox Claude Code [na nativních Windows nefunguje](https://code.claude.com/docs/en/sandboxing), pravidla `deny` tedy nejsou ochrana. Pokud advokátka už Claude Code na počítači se spisy používá, má k nim teoreticky přístup tak jako tak. Koncipient to nezhorší, jen nepřidá ochranu. Šifrování spisů a další izolace se mohou doplnit později.
 
 ## Architektura a technologie
 
@@ -86,18 +86,18 @@ Citlivé údaje jsou jména, adresy, čísla parcel, telefon, e-mail, data a č�
 
 ## Struktura složek a formát dat
 
-Trezor a export jsou dvě oddělené složky a Claude Code se spouští jen v exportu. Každá strana je samostatný Markdown.
+Spisy a export jsou dvě oddělené složky. Na počítač s Claude Code se přenáší jen export, Claude Code se spouští v něm. Každá strana je samostatný Markdown.
 
 ```text
-Koncipient/
-  Trezor/                     šifrované, Claude Code nemá přístup
+Koncipient/                   na počítači A
+  Spisy/                      jen na počítači A, nešifrované
     S-0001/
       fotky/                  originální fotky
       ocr/                    text a pozice slov
       klic.db                 kdo je kdo
-  ProClaude/                  tady se spouští Claude Code
+  ProClaude/                  export, kopíruje se na počítač B, tam se spouští Claude Code
     CLAUDE.md                 pravidla práce se spisy
-    .claude/settings.json     pravidla deny
+    .claude/settings.json     pravidla deny, jen jako doplněk
     S-0001/
       manifest.json           seznam stran a stav kontroly
       entity.json             pseudonymy a role, bez skutečných hodnot
@@ -120,15 +120,16 @@ Tato struktura je datová složka programu u advokátky, ne složka tohoto repoz
 ## Plán po etapách
 
 1. **Test OCR.** První kolo je hotové, viz výsledky výše. Zbývá vyzkoušet rukopis, ověřit PaddleOCR a Tesseract v C# na Matějově notebooku a porovnat s Windows OCR. Advokátka pak spustí srovnání na pár skutečných fotkách u sebe, aby se nic neposílalo ven.
-2. **Prohlížeč.** Import fotek, OCR, rozdělené zobrazení, oprava textu a šifrovaný trezor.
+2. **Prohlížeč.** Import fotek, noční OCR, rozdělené zobrazení a oprava textu.
 3. **Anonymizace a export.** Návrhy údajů, schvalování, klíč pseudonymů, složka `ProClaude` a kontrola před zápisem.
 4. **Propojení s Claude Code.** `CLAUDE.md`, pravidla přístupu a dosazení skutečných jmen zpět do výstupu.
-5. **Instalátor a předání.** Instalace na jejím počítači, záloha trezoru a krátký návod.
+5. **Instalátor a předání.** Instalace na počítači se spisy, návod na přenos exportu na počítač s Claude Code, záloha složky `Spisy` a krátký návod.
 
 ## Rizika
 
 - Pseudonymizace není anonymizace: i bez jmen může spis prozradit, o koho jde, a podle GDPR se pseudonymizovaná data stále považují za osobní údaje. Jestli takové použití obstojí z pohledu mlčenlivosti advokáta, musí posoudit ona.
-- Ztráta hesla k trezoru znamená ztrátu dat, proto bude součástí programu záloha a náhradní klíč.
+- Složka `Spisy` není šifrovaná. Ochranu dává jen to, že na počítači A neběží Claude Code ani jiný cloudový nástroj. Při krádeži počítače pomůže šifrování disku ve Windows (BitLocker), které je mimo program.
+- Druhý počítač je pro advokátku náklad navíc. Pokud ho mít nebude, Koncipient funguje i na jednom počítači, jen bez téhle ochrany.
 - Matějův notebook má 8 GB RAM. To na lehké OCR stačí, na místní jazykový model spíš ne. Advokátka nemá silný počítač, přesné parametry nejsou známé. PaddleOCR na něm může trvat i minutu na stranu, proto dávkové zpracování přes noc.
 - Převod PaddleOCR do C# nemusí dát stejnou přesnost jako v Pythonu. Ověří se jako první krok vývoje.
 - Žádné OCR nepřepíše všechno správně. Chybně přečtené jméno může projít anonymizací, proto hledání údajů toleruje chyby a advokátka export schvaluje.
