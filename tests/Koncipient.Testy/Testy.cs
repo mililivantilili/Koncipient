@@ -71,8 +71,8 @@ public class ModelTesty
     [Fact]
     public void OpravaMaPrednostPredTextem()
     {
-        var s = new SlovoOcr { Text = "Miček", Oprava = "Míček" };
-        Assert.Equal("Míček", s.Platny);
+        var s = new SlovoOcr { Text = "Vymyslíček", Oprava = "Vymyšlíček" };
+        Assert.Equal("Vymyšlíček", s.Platny);
     }
 }
 

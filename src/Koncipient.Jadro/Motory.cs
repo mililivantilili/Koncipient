@@ -54,6 +54,9 @@ public static class Motory
         () => new TesseractMotor(SlozkaModelu),
     };
 
+    /// <summary>Určení otočení fotek pomocí modelů PaddleOCR.</summary>
+    public static Func<IUrceniOtoceni> Narovnani() => () => new PaddleMotor(SlozkaModelu);
+
     /// <summary>
     /// Výsledek strany pro prohlížeč: ručně opravený, jinak PaddleOCR, jinak co je.
     /// Slova, která druhý motor přečetl jinak, jsou označená jako sporná.

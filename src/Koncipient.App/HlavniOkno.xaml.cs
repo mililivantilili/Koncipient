@@ -7,28 +7,41 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using Koncipient.Jadro;
+using Koncipient.Jadro.Anonymizace;
 using Koncipient.Ocr;
 using Microsoft.Win32;
 
 namespace Koncipient.App;
 
 /// <summary>
-/// Prohlížeč spisu: vlevo seznam spisů a stran, uprostřed přepsaný text,
+/// Prohlížeč spisu: vlevo spisy, strany a údaje, uprostřed přepsaný text,
 /// vpravo fotka. Kliknutí na slovo ukáže jeho místo na fotce a naopak.
+/// V textu se označují údaje k anonymizaci a odtud se dělá export pro Clauda.
 /// </summary>
 public partial class HlavniOkno : Window
 {
-    private static readonly Brush BarvaSporne = new SolidColorBrush(Color.FromRgb(0xFF, 0xE0, 0xB2));
-    private static readonly Brush BarvaOpraveno = new SolidColorBrush(Color.FromRgb(0xC8, 0xE6, 0xC9));
-    private static readonly Brush BarvaVybrane = new SolidColorBrush(Color.FromRgb(0xFF, 0xF1, 0x76));
-    private static readonly Brush BarvaRamecku = new SolidColorBrush(Color.FromArgb(0x60, 0xFF, 0xD6, 0x00));
+    private static readonly Brush BarvaUdaj = Zmrazit(new SolidColorBrush(Color.FromRgb(0xE1, 0xBE, 0xE7)));
+    private static readonly Brush BarvaSporne = Zmrazit(new SolidColorBrush(Color.FromRgb(0xFF, 0xE0, 0xB2)));
+    private static readonly Brush BarvaOpraveno = Zmrazit(new SolidColorBrush(Color.FromRgb(0xC8, 0xE6, 0xC9)));
+    private static readonly Brush BarvaVybrane = Zmrazit(new SolidColorBrush(Color.FromRgb(0xFF, 0xF1, 0x76)));
+    private static readonly Brush BarvaRamecku = Zmrazit(new SolidColorBrush(Color.FromArgb(0x60, 0xFF, 0xD6, 0x00)));
+
+    private static Brush Zmrazit(Brush b) { b.Freeze(); return b; }
 
     private readonly Uloziste _uloziste = new();
     private Spis? _spis;
+    private Klic _klic = new();
     private Strana? _strana;
     private VysledekOcr? _vysledek;
-    private readonly Dictionary<SlovoOcr, Run> _behy = new();
-    private SlovoOcr? _vybrane;
+
+    // slova strany v pořadí čtení, jejich běhy v textu a údaje, kterým patří
+    private List<SlovoOcr> _slova = new();
+    private readonly Dictionary<SlovoOcr, int> _indexy = new();
+    private readonly Dictionary<int, Run> _behy = new();
+    private Entita?[] _udaje = Array.Empty<Entita?>();
+
+    // vybraný úsek slov (Shift+klik rozšiřuje)
+    private int _kotva = -1, _vyberOd = -1, _vyberDo = -1;
     private CancellationTokenSource? _zruseni;
 
     public HlavniOkno()
@@ -52,7 +65,23 @@ public partial class HlavniOkno : Window
         {
             var znacka = Spis.MaOcr(Strana, Spis.Opraveno) ? "✎"
                 : Spis.MaOcr(Strana, Motory.Paddle) || Spis.MaOcr(Strana, Motory.Tesseract) ? "✓" : "…";
-            return $"{znacka}  Strana {Strana.Cislo}   {Strana.PuvodniNazev}";
+            var kontrola = Strana.Zkontrolovano ? " ☑" : "";
+            return $"{znacka}{kontrola}  Strana {Strana.Cislo}   {Strana.PuvodniNazev}";
+        }
+    }
+
+    private sealed record PolozkaUdaje(Entita Entita)
+    {
+        public override string ToString()
+        {
+            var akce = Entita.Akce switch
+            {
+                Akce.Odstranit => "  [odstranit]",
+                Akce.Ponechat => "  [ponechat]",
+                _ => "",
+            };
+            var role = string.IsNullOrWhiteSpace(Entita.Role) ? "" : $"  ({Entita.Role})";
+            return $"{Entita.Id}  {Entita.Popis}{role}{akce}";
         }
     }
 
@@ -71,19 +100,29 @@ public partial class HlavniOkno : Window
             ?? SeznamStran.Items.Cast<PolozkaStrany>().FirstOrDefault();
     }
 
+    private void NactiUdaje()
+    {
+        SeznamUdaju.ItemsSource = _klic.Entity
+            .OrderBy(e => e.Typ).ThenBy(e => e.Id, StringComparer.Ordinal)
+            .Select(e => new PolozkaUdaje(e)).ToList();
+    }
+
     private void SeznamSpisu_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         _spis = (SeznamSpisu.SelectedItem as PolozkaSpisu)?.Spis;
+        _klic = _spis is null ? new Klic() : Anonymizator.NactiKlic(_spis);
         _strana = null;
-        PridatFotky.IsEnabled = _spis is not null;
+        PridatFotky.IsEnabled = NajitUdaje.IsEnabled = Exportovat.IsEnabled = _spis is not null;
+        NactiUdaje();
         NactiStrany();
     }
 
     private void SeznamStran_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        var polozka = SeznamStran.SelectedItem as PolozkaStrany;
-        _strana = polozka?.Strana;
-        ZobrazStranu();
+        _strana = (SeznamStran.SelectedItem as PolozkaStrany)?.Strana;
+        Zkontrolovano.IsEnabled = _strana is not null;
+        Zkontrolovano.IsChecked = _strana?.Zkontrolovano ?? false;
+        ZobrazStranu(posunoutFotku: true);
     }
 
     private void NovySpis_Click(object sender, RoutedEventArgs e)
@@ -123,10 +162,12 @@ public partial class HlavniOkno : Window
 
     // ---------- Zobrazení strany ----------
 
-    private void ZobrazStranu()
+    private void ZobrazStranu(bool posunoutFotku = false)
     {
         _behy.Clear();
-        _vybrane = null;
+        _indexy.Clear();
+        _slova = new List<SlovoOcr>();
+        _kotva = _vyberOd = _vyberDo = -1;
         Vrstva.Children.Clear();
         var dokument = TextStrany.Document;
         dokument.Blocks.Clear();
@@ -137,16 +178,20 @@ public partial class HlavniOkno : Window
             return;
         }
 
-        var bitmapa = new BitmapImage();
-        bitmapa.BeginInit();
-        bitmapa.CacheOption = BitmapCacheOption.OnLoad; // nezamkne soubor
-        bitmapa.UriSource = new Uri(_spis.CestaFotky(_strana));
-        bitmapa.EndInit();
-        Fotka.Source = bitmapa;
-        // Rozměry v pixelech, aby souřadnice slov z OCR seděly bez přepočtu DPI
-        Fotka.Width = Vrstva.Width = bitmapa.PixelWidth;
-        Fotka.Height = Vrstva.Height = bitmapa.PixelHeight;
-        Dispatcher.BeginInvoke(new Action(NaSirku), System.Windows.Threading.DispatcherPriority.Loaded);
+        if (posunoutFotku || Fotka.Source is null)
+        {
+            var bitmapa = new BitmapImage();
+            bitmapa.BeginInit();
+            bitmapa.CacheOption = BitmapCacheOption.OnLoad; // nezamkne soubor
+            bitmapa.CreateOptions = BitmapCreateOptions.IgnoreImageCache; // po otočení načte novou fotku
+            bitmapa.UriSource = new Uri(_spis.CestaFotky(_strana));
+            bitmapa.EndInit();
+            Fotka.Source = bitmapa;
+            // Rozměry v pixelech, aby souřadnice slov z OCR seděly bez přepočtu DPI
+            Fotka.Width = Vrstva.Width = bitmapa.PixelWidth;
+            Fotka.Height = Vrstva.Height = bitmapa.PixelHeight;
+            Dispatcher.BeginInvoke(new Action(NaSirku), System.Windows.Threading.DispatcherPriority.Loaded);
+        }
 
         _vysledek = Motory.ProZobrazeni(_spis, _strana);
         if (_vysledek is null)
@@ -158,71 +203,109 @@ public partial class HlavniOkno : Window
             return;
         }
 
-        foreach (var radek in _vysledek.Radky)
+        _slova = _vysledek.Slova.ToList();
+        for (int i = 0; i < _slova.Count; i++) _indexy[_slova[i]] = i;
+        _udaje = new Entita?[_slova.Count];
+        foreach (var v in Anonymizator.Vyskyty(Anonymizator.Slova(_vysledek), _klic))
+            for (int i = v.Od; i <= v.Do; i++) _udaje[i] = v.Entita;
+
+        if (Nahled.IsChecked == true)
         {
-            var odstavec = new Paragraph { Margin = new Thickness(0, 0, 0, 4) };
-            foreach (var slovo in radek.Slova)
-            {
-                if (odstavec.Inlines.Count > 0) odstavec.Inlines.Add(new Run(" "));
-                var beh = new Run(slovo.Platny) { Tag = slovo, Cursor = Cursors.Hand };
-                NastavVzhled(beh, slovo);
-                beh.MouseLeftButtonDown += Slovo_MouseLeftButtonDown;
-                odstavec.Inlines.Add(beh);
-                _behy[slovo] = beh;
-            }
-            dokument.Blocks.Add(odstavec);
+            // text tak, jak ho dostane Claude
+            foreach (var radek in Anonymizator.AnonymizovanyText(_vysledek, _klic).Split('\n'))
+                dokument.Blocks.Add(new Paragraph(new Run(radek)) { Margin = new Thickness(0, 0, 0, 4) });
         }
-        var sporna = _vysledek.Slova.Count(s => s.Sporne);
-        Stav.Text = $"{_spis.Id}, strana {_strana.Cislo}: {_vysledek.Slova.Count()} slov, sporných {sporna}, motor {_vysledek.Motor}";
+        else
+        {
+            int index = 0;
+            foreach (var radek in _vysledek.Radky)
+            {
+                var odstavec = new Paragraph { Margin = new Thickness(0, 0, 0, 4) };
+                foreach (var _ in radek.Slova)
+                {
+                    if (odstavec.Inlines.Count > 0) odstavec.Inlines.Add(new Run(" "));
+                    var beh = new Run { Tag = index, Cursor = Cursors.Hand };
+                    beh.MouseLeftButtonDown += Slovo_MouseLeftButtonDown;
+                    beh.MouseRightButtonDown += Slovo_MouseRightButtonDown;
+                    _behy[index] = beh;
+                    NastavVzhled(index);
+                    odstavec.Inlines.Add(beh);
+                    index++;
+                }
+                dokument.Blocks.Add(odstavec);
+            }
+        }
+
+        var sporna = _slova.Count(s => s.Sporne);
+        var udaje = _udaje.Count(u => u is not null);
+        Stav.Text = $"{_spis.Id}, strana {_strana.Cislo}: {_slova.Count} slov, sporných {sporna}, slov v údajích {udaje}";
     }
 
-    private void NastavVzhled(Run beh, SlovoOcr slovo)
+    private bool JeVybrane(int i) => i >= _vyberOd && i <= _vyberDo && _vyberOd >= 0;
+
+    private void NastavVzhled(int i)
     {
+        if (!_behy.TryGetValue(i, out var beh)) return;
+        var slovo = _slova[i];
+        var udaj = _udaje[i];
         beh.Text = slovo.Platny;
-        beh.Background = slovo == _vybrane ? BarvaVybrane
+        beh.Background = JeVybrane(i) ? BarvaVybrane
+            : udaj is not null ? BarvaUdaj
             : slovo.Oprava is not null ? BarvaOpraveno
             : slovo.Sporne ? BarvaSporne
             : null;
-        beh.ToolTip = slovo.Oprava is not null ? $"Opraveno, OCR četlo: {slovo.Text}"
-            : slovo.Jistota is float j ? $"Jistota OCR {j:P0}" : null;
+        var popis = new List<string>();
+        if (udaj is not null) popis.Add($"{udaj.Nahrada}  ({Nazvy.Typ(udaj.Typ)})");
+        if (slovo.Oprava is not null) popis.Add($"Opraveno, OCR četlo: {slovo.Text}");
+        if (slovo.Sporne) popis.Add("Druhý motor zde četl něco jiného.");
+        if (slovo.Jistota is float j) popis.Add($"Jistota OCR {j:P0}");
+        beh.ToolTip = popis.Count > 0 ? string.Join("\n", popis) : null;
     }
 
-    private void Vyber(SlovoOcr? slovo, bool posunoutText)
+    private void Vyber(int od, int @do, bool posunoutText)
     {
-        var predchozi = _vybrane;
-        _vybrane = slovo;
-        if (predchozi is not null && _behy.TryGetValue(predchozi, out var stary)) NastavVzhled(stary, predchozi);
+        int stareOd = _vyberOd, stareDo = _vyberDo;
+        (_vyberOd, _vyberDo) = (Math.Min(od, @do), Math.Max(od, @do));
+        if (stareOd >= 0) for (int i = stareOd; i <= stareDo; i++) NastavVzhled(i);
+        for (int i = _vyberOd; i <= _vyberDo; i++) NastavVzhled(i);
         Vrstva.Children.Clear();
-        if (slovo is null) return;
+        if (_vyberOd < 0) return;
 
-        if (_behy.TryGetValue(slovo, out var beh))
+        if (posunoutText && _behy.TryGetValue(_vyberOd, out var beh)) beh.BringIntoView();
+
+        foreach (var slovo in _slova.Skip(_vyberOd).Take(_vyberDo - _vyberOd + 1))
         {
-            NastavVzhled(beh, slovo);
-            if (posunoutText) beh.BringIntoView();
+            var r = slovo.Ramecek;
+            var obdelnik = new Rectangle
+            {
+                Width = r.Sirka + 8, Height = r.Vyska + 8,
+                Fill = BarvaRamecku, Stroke = Brushes.OrangeRed, StrokeThickness = 3,
+            };
+            Canvas.SetLeft(obdelnik, r.X - 4);
+            Canvas.SetTop(obdelnik, r.Y - 4);
+            Vrstva.Children.Add(obdelnik);
         }
 
-        var r = slovo.Ramecek;
-        var obdelnik = new Rectangle
-        {
-            Width = r.Sirka + 8, Height = r.Vyska + 8,
-            Fill = BarvaRamecku, Stroke = Brushes.OrangeRed, StrokeThickness = 3,
-        };
-        Canvas.SetLeft(obdelnik, r.X - 4);
-        Canvas.SetTop(obdelnik, r.Y - 4);
-        Vrstva.Children.Add(obdelnik);
-
-        // posun fotky tak, aby bylo slovo uprostřed
+        // posun fotky tak, aby bylo vybrané slovo uprostřed
+        var prvni = _slova[_vyberOd].Ramecek;
         double m = Meritko.ScaleX;
-        FotkaScroll.ScrollToHorizontalOffset((r.X + r.Sirka / 2.0) * m - FotkaScroll.ViewportWidth / 2);
-        FotkaScroll.ScrollToVerticalOffset((r.Y + r.Vyska / 2.0) * m - FotkaScroll.ViewportHeight / 2);
+        FotkaScroll.ScrollToHorizontalOffset((prvni.X + prvni.Sirka / 2.0) * m - FotkaScroll.ViewportWidth / 2);
+        FotkaScroll.ScrollToVerticalOffset((prvni.Y + prvni.Vyska / 2.0) * m - FotkaScroll.ViewportHeight / 2);
     }
 
     private void Slovo_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (sender is not Run { Tag: SlovoOcr slovo } beh) return;
-        if (e.ClickCount == 2) Oprav(slovo, beh);
-        else Vyber(slovo, posunoutText: false);
+        if (sender is not Run { Tag: int i }) return;
+        if (e.ClickCount == 2) { Vyber(i, i, false); Oprav(i); }
+        else if (Keyboard.Modifiers == ModifierKeys.Shift && _kotva >= 0) Vyber(_kotva, i, false);
+        else { _kotva = i; Vyber(i, i, false); }
         e.Handled = true;
+    }
+
+    private void Slovo_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        // pravé tlačítko mimo výběr vybere kliknuté slovo, uvnitř výběru ho nechá
+        if (sender is Run { Tag: int i } && !JeVybrane(i)) { _kotva = i; Vyber(i, i, false); }
     }
 
     private void Fotka_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -230,19 +313,147 @@ public partial class HlavniOkno : Window
         if (_vysledek is null) return;
         var bod = e.GetPosition(Fotka); // v pixelech fotky, protože Fotka má rozměry v pixelech
         var slovo = _vysledek.SlovoNa(bod.X, bod.Y);
-        if (slovo is not null) Vyber(slovo, posunoutText: true);
+        if (slovo is null || !_indexy.TryGetValue(slovo, out var i)) return;
+        if (Keyboard.Modifiers == ModifierKeys.Shift && _kotva >= 0) Vyber(_kotva, i, true);
+        else { _kotva = i; Vyber(i, i, true); }
     }
 
-    private void Oprav(SlovoOcr slovo, Run beh)
+    // ---------- Oprava slova ----------
+
+    private void OpravitSlovo_Click(object sender, RoutedEventArgs e)
+    {
+        if (_vyberOd >= 0) Oprav(_vyberOd);
+    }
+
+    private void Oprav(int i)
     {
         if (_spis is null || _strana is null || _vysledek is null) return;
-        Vyber(slovo, posunoutText: false);
+        var slovo = _slova[i];
         var novy = VstupDialog.Zeptej(this, "Oprava slova", $"OCR přečetlo: {slovo.Text}", slovo.Platny);
         if (novy is null) return;
         novy = novy.Trim();
         slovo.Oprava = novy == slovo.Text ? null : novy;
         _spis.UlozOcr(_strana, _vysledek, Spis.Opraveno);
-        NastavVzhled(beh, slovo);
+        ZobrazStranu();
+        Vyber(i, i, false);
+    }
+
+    // ---------- Anonymizace ----------
+
+    private async void NajitUdaje_Click(object sender, RoutedEventArgs e)
+    {
+        if (_spis is null) return;
+        var spis = _spis;
+        var klic = _klic;
+        Stav.Text = "Hledám údaje ve spisu…";
+        var nove = await Task.Run(() => Anonymizator.AktualizujKlic(spis, klic));
+        Anonymizator.UlozKlic(spis, klic);
+        NactiUdaje();
+        ZobrazStranu();
+        Stav.Text = $"Nalezeno {nove} nových údajů. Zkontroluj je v textu (fialově) a v seznamu vlevo dole.";
+    }
+
+    private void OznacitJako_Click(object sender, RoutedEventArgs e)
+    {
+        if (_spis is null || _vysledek is null || _vyberOd < 0) return;
+        if (sender is not MenuItem { Tag: string tag } || !Enum.TryParse<TypUdaje>(tag, out var typ)) return;
+        var entita = Anonymizator.OznacRucne(_klic, typ, Anonymizator.Slova(_vysledek), _vyberOd, _vyberDo);
+        UlozKlicAObnov();
+        Stav.Text = $"Označeno jako {entita.Id}. Stejné jméno se nahradí na všech stranách spisu, i v jiném pádě.";
+    }
+
+    private void Necitlive_Click(object sender, RoutedEventArgs e)
+    {
+        if (_spis is null || _vyberOd < 0) return;
+        for (int i = _vyberOd; i <= _vyberDo; i++) Anonymizator.OznacNecitlive(_klic, _slova[i].Platny);
+        UlozKlicAObnov();
+    }
+
+    private Entita? VybranyUdaj => (SeznamUdaju.SelectedItem as PolozkaUdaje)?.Entita;
+
+    private void NastavAkci(Akce akce)
+    {
+        if (VybranyUdaj is not { } e) return;
+        e.Akce = akce;
+        UlozKlicAObnov();
+    }
+
+    private void UdajPseudonym_Click(object sender, RoutedEventArgs e) => NastavAkci(Akce.Pseudonym);
+    private void UdajOdstranit_Click(object sender, RoutedEventArgs e) => NastavAkci(Akce.Odstranit);
+    private void UdajPonechat_Click(object sender, RoutedEventArgs e) => NastavAkci(Akce.Ponechat);
+
+    private void UdajRole_Click(object sender, RoutedEventArgs e)
+    {
+        if (VybranyUdaj is not { } u) return;
+        var role = VstupDialog.Zeptej(this, "Role ve věci",
+            $"Role pro {u.Id}, např. žalobce, žalovaný, svědek. Claude ji uvidí, skutečné jméno ne:", u.Role ?? "");
+        if (role is null) return;
+        u.Role = string.IsNullOrWhiteSpace(role) ? null : role.Trim();
+        UlozKlicAObnov();
+    }
+
+    private void UdajSmazat_Click(object sender, RoutedEventArgs e)
+    {
+        if (VybranyUdaj is not { } u) return;
+        _klic.Entity.Remove(u);
+        UlozKlicAObnov();
+    }
+
+    private void UlozKlicAObnov()
+    {
+        if (_spis is null) return;
+        Anonymizator.UlozKlic(_spis, _klic);
+        int od = _vyberOd, @do = _vyberDo;
+        NactiUdaje();
+        ZobrazStranu();
+        if (od >= 0 && @do < _slova.Count) Vyber(od, @do, false);
+    }
+
+    private void Nahled_Click(object sender, RoutedEventArgs e) => ZobrazStranu();
+
+    private void Zkontrolovano_Click(object sender, RoutedEventArgs e)
+    {
+        if (_spis is null || _strana is null) return;
+        _strana.Zkontrolovano = Zkontrolovano.IsChecked == true;
+        _spis.Uloz();
+        NactiStrany();
+    }
+
+    private void Exportovat_Click(object sender, RoutedEventArgs e)
+    {
+        if (_spis is null) return;
+        var vysledek = Export.Proved(_spis, _klic);
+        if (!vysledek.Uspech)
+        {
+            var seznam = string.Join("\n", vysledek.Problemy.Take(15));
+            if (vysledek.Problemy.Count > 15) seznam += $"\n… a dalších {vysledek.Problemy.Count - 15}";
+            MessageBox.Show(this, "Export se neprovedl, nic nebylo zapsáno:\n\n" + seznam, "Koncipient",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        MessageBox.Show(this,
+            $"Anonymizovaný spis je ve složce\n{vysledek.Slozka}\n\n" +
+            "Na počítač s Claude Code přenes celou složku ProClaude (flash diskem nebo sdílenou složkou, " +
+            "ve které není nic jiného). Fotky ani klíč pseudonymů v ní nejsou.",
+            "Koncipient", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    // ---------- Ruční otočení ----------
+
+    private void OtocitVlevo_Click(object sender, RoutedEventArgs e) => OtocStranu(270);
+    private void OtocitVpravo_Click(object sender, RoutedEventArgs e) => OtocStranu(90);
+
+    private void OtocStranu(int stupne)
+    {
+        if (_spis is null || _strana is null || _zruseni is not null) return;
+        if (_spis.MaOcr(_strana, Spis.Opraveno) &&
+            MessageBox.Show(this, "Otočením se smažou ruční opravy na této straně. Pokračovat?", "Koncipient",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            return;
+        _spis.OtocStranu(_strana, stupne);
+        NactiStrany();
+        ZobrazStranu(posunoutFotku: true);
+        Stav.Text = "Strana otočena. Přepis se udělá znovu při příštím spuštění přepisu.";
     }
 
     // ---------- Zvětšení ----------
@@ -295,8 +506,21 @@ public partial class HlavniOkno : Window
                 Prubeh.Value = s.Hotovo;
                 Stav.Text = $"{s.Popis}  ({s.Hotovo}/{s.Celkem})";
             });
-            await Davka.ZpracujAsync(_uloziste.Spisy(), Motory.ProDavku(), prubeh, _zruseni.Token);
-            Stav.Text = "Přepis dokončen.";
+            var spisy = _uloziste.Spisy();
+            await Davka.ZpracujAsync(spisy, Motory.ProDavku(), prubeh, _zruseni.Token, Motory.Narovnani());
+
+            // po přepisu rovnou najít údaje, ať jsou ráno připravené ke kontrole
+            Stav.Text = "Hledám údaje…";
+            await Task.Run(() =>
+            {
+                foreach (var spis in spisy)
+                {
+                    var klic = Anonymizator.NactiKlic(spis);
+                    Anonymizator.AktualizujKlic(spis, klic);
+                    Anonymizator.UlozKlic(spis, klic);
+                }
+            });
+            Stav.Text = "Přepis dokončen a údaje vyhledány.";
         }
         catch (OperationCanceledException)
         {
@@ -311,7 +535,8 @@ public partial class HlavniOkno : Window
             _zruseni.Dispose();
             _zruseni = null;
         }
-        NactiSpisy();
+        _spis = null; // znovu načíst spis a klíč z disku
+        NactiSpisy(SeznamSpisu.SelectedItem is PolozkaSpisu p ? p.Spis.Id : null);
     }
 
     private void Zastavit_Click(object sender, RoutedEventArgs e)

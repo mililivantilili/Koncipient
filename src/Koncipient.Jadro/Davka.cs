@@ -10,19 +10,40 @@ public sealed record StavDavky(int Hotovo, int Celkem, string Popis);
 /// </summary>
 public static class Davka
 {
+    /// <param name="narovnani">
+    /// Určení otočení pro strany, které ještě nejsou narovnané (fotky z foťáku bez EXIF).
+    /// Proběhne před přepisem. Null znamená neotáčet.
+    /// </param>
     public static Task ZpracujAsync(
         IReadOnlyList<Spis> spisy,
         IReadOnlyList<Func<IOcrMotor>> tovarny,
         IProgress<StavDavky>? prubeh = null,
-        CancellationToken zruseni = default)
+        CancellationToken zruseni = default,
+        Func<IUrceniOtoceni>? narovnani = null)
     {
         // OCR je náročné na procesor, poběží mimo vlákno okna
-        return Task.Run(() => Zpracuj(spisy, tovarny, prubeh, zruseni), zruseni);
+        return Task.Run(() => Zpracuj(spisy, tovarny, prubeh, zruseni, narovnani), zruseni);
     }
 
     private static void Zpracuj(IReadOnlyList<Spis> spisy, IReadOnlyList<Func<IOcrMotor>> tovarny,
-        IProgress<StavDavky>? prubeh, CancellationToken zruseni)
+        IProgress<StavDavky>? prubeh, CancellationToken zruseni, Func<IUrceniOtoceni>? narovnani)
     {
+        var nenarovnane = spisy.SelectMany(sp => sp.Strany.Select(st => (sp, st)))
+            .Where(x => !x.st.Narovnano).ToList();
+        if (narovnani is not null && nenarovnane.Count > 0)
+        {
+            using var urceni = narovnani();
+            for (int i = 0; i < nenarovnane.Count; i++)
+            {
+                zruseni.ThrowIfCancellationRequested();
+                var (spis, strana) = nenarovnane[i];
+                prubeh?.Report(new StavDavky(i, nenarovnane.Count, $"Narovnávám: {spis.Id} strana {strana.Cislo}"));
+                var stupne = urceni.ZjistiOtoceni(spis.CestaFotky(strana));
+                if (stupne != 0) spis.OtocStranu(strana, stupne);
+                else { strana.Narovnano = true; spis.Uloz(); }
+            }
+        }
+
         foreach (var tovarna in tovarny)
         {
             using var motor = tovarna();

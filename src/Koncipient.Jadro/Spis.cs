@@ -15,6 +15,12 @@ public sealed class Strana
 
     /// <summary>Název souboru, ze kterého fotka pochází. Zůstává jen v počítači se spisy.</summary>
     public string? PuvodniNazev { get; set; }
+
+    /// <summary>Otočení už je vyřešené (automaticky při přepisu, nebo ručně).</summary>
+    public bool Narovnano { get; set; }
+
+    /// <summary>Advokátka stranu zkontrolovala pro export. Změna údajů ve spisu kontrolu nezruší, export ji ale ověří znovu.</summary>
+    public bool Zkontrolovano { get; set; }
 }
 
 /// <summary>
@@ -112,6 +118,22 @@ public sealed class Spis
         Directory.CreateDirectory(Path.GetDirectoryName(cesta)!);
         File.WriteAllText(cesta + ".tmp", JsonSerializer.Serialize(vysledek, Json));
         File.Move(cesta + ".tmp", cesta, overwrite: true);
+    }
+
+    /// <summary>
+    /// Otočí fotku strany a smaže její přepisy včetně ručních oprav, protože polohy
+    /// slov přestanou platit. Stranu označí jako narovnanou.
+    /// </summary>
+    public void OtocStranu(Strana s, int stupne)
+    {
+        Otoceni.OtocSoubor(CestaFotky(s), stupne);
+        var ocr = Path.Combine(Slozka, "ocr");
+        if (Directory.Exists(ocr))
+            foreach (var soubor in Directory.GetFiles(ocr, $"{s.Cislo:D4}.*", SearchOption.AllDirectories))
+                File.Delete(soubor);
+        s.Narovnano = true;
+        s.Zkontrolovano = false;
+        Uloz();
     }
 
     /// <summary>Upravená fotka pro OCR, ukládá se mezi výsledky, aby se nepočítala znovu.</summary>

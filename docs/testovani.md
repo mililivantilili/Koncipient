@@ -1,0 +1,81 @@
+# Co a jak otestovat na Windows
+
+Návod pro Matěje. V cloudové relaci jde program jen přeložit a otestovat jádro, okno a Windows OCR se dají vyzkoušet až tady. Každý test má na konci, co poslat zpět Claudovi.
+
+**Používej jen svůj archiv ze stavebního úřadu nebo vymyšlené dokumenty, nikdy spisy advokátky.** Fotky do vývojové relace s Claudem neposílej, stačí texty, čísla a snímky obrazovky bez citlivých údajů.
+
+## Příprava (jednou)
+
+1. Visual Studio 2022 se sadou **Vývoj desktopových aplikací .NET** (obsahuje .NET 8 SDK). Doplní se přes Visual Studio Installer, Upravit.
+2. Stáhni větev `claude/friendly-franklin-k4ma6l` (ve Visual Studiu Git, Spravovat větve, nebo `git pull`).
+3. Otevři `Koncipient.sln`. Při prvním sestavení si Visual Studio stáhne balíčky NuGet, chvíli to trvá.
+4. Připrav si složku s 5–10 fotkami z archivu, ideálně různorodými: tištěný text, tabulka, razítko, šikmá nebo tmavá fotka a pokud máš, i ručně psaný text.
+
+## Test 0: automatické testy (2 minuty)
+
+1. Nabídka Test, Spustit všechny testy (Test Explorer).
+2. Všechny testy mají být zelené.
+
+**Poslat:** kolik testů prošlo a případně název a text chyby u neúspěšného.
+
+## Test 1: OCR a rychlost (etapa 1, 10 minut)
+
+1. V Průzkumníku řešení klikni pravým na `Koncipient.OcrTest`, Nastavit jako spouštěný projekt, a stiskni F5.
+2. Přetáhni do okna složku s fotkami a stiskni Enter. Poprvé se stáhnou modely (asi 140 MB).
+3. Počkej na konec. Program vypíše čas každé fotky a vytvoří ve složce s fotkami `vysledky-ocr.zip`.
+4. Pokud napíše, že Windows OCR chybí čeština, postup je v [src/README.md](../src/README.md). Test pak spusť znovu.
+
+**Poslat:** soubor `vysledky-ocr.zip` (jen texty a časy, žádné fotky). Do zprávy napiš, kolik má notebook paměti a jaký procesor.
+
+## Test 2: prohlížeč (etapa 2, 15 minut)
+
+1. Nastav `Koncipient.App` jako spouštěný projekt a stiskni F5.
+2. **Nový spis**, pojmenuj ho třeba „test archiv“.
+3. **Přidat fotky…** a vyber fotky ze složky.
+4. **Spustit přepis.** Sleduj průběh dole. Zkus uprostřed **Zastavit** a pak znovu **Spustit přepis**, má pokračovat, ne začínat znovu.
+5. Klikni na stranu vlevo a zkontroluj:
+   - [ ] Fotka vpravo je vidět, tlačítko **Na šířku** a Ctrl + kolečko mění zvětšení.
+   - [ ] Klik na slovo v textu zvýrazní správné místo na fotce a fotka se k němu posune.
+   - [ ] Klik do fotky na slovo zvýrazní slovo v textu.
+   - [ ] Oranžová slova (sporná) jsou opravdu místa, kde je text těžko čitelný nebo chybný.
+   - [ ] Dvojklik na slovo otevře opravu, po uložení je slovo zelené a oprava zůstane i po zavření programu.
+6. Během přepisu by počítač neměl usnout ani po delší době.
+
+**Poslat:** co nefungovalo nebo bylo nepohodlné, ideálně se snímkem obrazovky. Zajímá nás i to, jestli je text dobře čitelný a jestli by šlo něco udělat jednodušeji.
+
+## Test 3: fotky bez údaje o otočení (5 minut)
+
+Fotky z foťáku často nemají údaj o otočení. Program ho pozná z textu.
+
+1. Vezmi dvě fotky z archivu a v aplikaci Malování je otoč (jednu o 90°, druhou o 180°) a ulož jako PNG. Malování údaj o otočení neukládá.
+2. Založ nový spis, přidej je a spusť přepis.
+3. [ ] Po přepisu jsou obě strany rovně a text dává smysl.
+4. Tlačítky ⟲ a ⟳ zkus stranu otočit ručně. [ ] Přepis strany se smaže a při dalším spuštění přepisu se udělá znovu.
+
+**Poslat:** jestli se otočení poznalo správně.
+
+## Test 4: anonymizace a export (etapa 3, 20 minut)
+
+1. Ve spisu z testu 2 klikni na **Najít údaje** (po přepisu se to udělá i samo).
+2. Projdi strany. Fialově jsou údaje, které se nahradí. Najetím myši se ukáže pseudonym.
+   - [ ] Jména, adresy, telefony, e-maily, čísla parcel jsou fialově.
+   - [ ] Fialové není nic, co citlivé není. Takové slovo označ pravým tlačítkem, **Není citlivé**.
+   - [ ] Co program přehlédl (třeba ručně psaný podpis), vyber kliknutím, případně Shift + klik na další slova, a pravým tlačítkem **Anonymizovat jako osobu** apod.
+   - [ ] Stejné jméno v jiném pádě nebo s chybou z OCR dostane stejný pseudonym i na ostatních stranách.
+3. V seznamu **Údaje ve spisu** vlevo dole zkus pravým tlačítkem změnit, co se s údajem stane (pseudonym, odstranit, ponechat) a doplnit roli.
+4. Zapni **Náhled pro Clauda** a projdi text, který Claude dostane.
+5. **Exportovat pro Clauda…** bez zaškrtnutých stran. [ ] Export se odmítne a vypíše, které strany nejsou zkontrolované.
+6. U každé strany zaškrtni **Strana zkontrolována** a exportuj znovu. [ ] Ve složce `Dokumenty\Koncipient\ProClaude` vznikne podsložka spisu s `strany/*.md`, `entity.json` a `manifest.json` a v kořeni `CLAUDE.md`.
+7. [ ] V exportu nejsou žádné fotky, soubor `klic.json` ani skutečná jména.
+
+**Poslat:** co program našel špatně nebo nenašel (typ údaje a jak vypadal, klidně přepsaný vymyšlenými slovy) a obsah jednoho souboru `strany/0001.md`, pokud v něm nic citlivého nezůstalo.
+
+## Kde jsou data
+
+| Co | Kde |
+| --- | --- |
+| Spisy (fotky, přepisy, klíč pseudonymů) | `Dokumenty\Koncipient\Spisy` |
+| Export pro Clauda | `Dokumenty\Koncipient\ProClaude` |
+| Modely OCR | `%LOCALAPPDATA%\Koncipient\modely` |
+
+Po testu můžeš obě složky v `Dokumenty\Koncipient` smazat.

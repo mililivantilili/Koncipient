@@ -4,25 +4,32 @@
         Title="Koncipient" Height="850" Width="1400" WindowState="Maximized"
         FontFamily="Segoe UI" FontSize="13">
     <DockPanel>
-        <ToolBar DockPanel.Dock="Top" ToolBarTray.IsLocked="True">
-            <Button Content="Nový spis" Click="NovySpis_Click" Padding="8,4" />
-            <Button x:Name="PridatFotky" Content="Přidat fotky…" Click="PridatFotky_Click" Padding="8,4" IsEnabled="False" />
-            <Separator />
-            <Button x:Name="SpustitPrepis" Content="Spustit přepis" Click="SpustitPrepis_Click" Padding="8,4"
-                    ToolTip="Přepíše všechny strany bez přepisu. Může běžet přes noc, počítač mezitím neusne." />
-            <Button x:Name="Zastavit" Content="Zastavit" Click="Zastavit_Click" Padding="8,4" IsEnabled="False" />
-            <Separator />
-            <TextBlock Text="Zvětšení" VerticalAlignment="Center" Margin="8,0,4,0" />
-            <Slider x:Name="Zvetseni" Minimum="0.1" Maximum="3" Value="0.5" Width="150" VerticalAlignment="Center"
-                    ValueChanged="Zvetseni_ValueChanged" />
-            <Button Content="Na šířku" Click="NaSirku_Click" Padding="8,4" />
-            <Separator />
-            <TextBlock VerticalAlignment="Center" Margin="8,0">
-                <Run Background="#FFE0B2" Text=" sporné " /> druhý motor čte jinak
-                <Run Text="   " /><Run Background="#C8E6C9" Text=" opraveno " />
-                <Run Text="   " /><Run Text="dvojklik na slovo = oprava" Foreground="Gray" />
-            </TextBlock>
-        </ToolBar>
+        <ToolBarTray DockPanel.Dock="Top" IsLocked="True">
+            <ToolBar>
+                <Button Content="Nový spis" Click="NovySpis_Click" Padding="8,4" />
+                <Button x:Name="PridatFotky" Content="Přidat fotky…" Click="PridatFotky_Click" Padding="8,4" IsEnabled="False" />
+                <Separator />
+                <Button x:Name="SpustitPrepis" Content="Spustit přepis" Click="SpustitPrepis_Click" Padding="8,4"
+                        ToolTip="Narovná a přepíše všechny strany bez přepisu a najde v nich údaje. Může běžet přes noc, počítač mezitím neusne." />
+                <Button x:Name="Zastavit" Content="Zastavit" Click="Zastavit_Click" Padding="8,4" IsEnabled="False" />
+                <Separator />
+                <TextBlock Text="Zvětšení" VerticalAlignment="Center" Margin="8,0,4,0" />
+                <Slider x:Name="Zvetseni" Minimum="0.1" Maximum="3" Value="0.5" Width="120" VerticalAlignment="Center"
+                        ValueChanged="Zvetseni_ValueChanged" />
+                <Button Content="Na šířku" Click="NaSirku_Click" Padding="8,4" />
+                <Button Content="⟲" Click="OtocitVlevo_Click" Padding="8,4" ToolTip="Otočit stranu doleva" />
+                <Button Content="⟳" Click="OtocitVpravo_Click" Padding="8,4" ToolTip="Otočit stranu doprava" />
+            </ToolBar>
+            <ToolBar>
+                <Button x:Name="NajitUdaje" Content="Najít údaje" Click="NajitUdaje_Click" Padding="8,4" IsEnabled="False"
+                        ToolTip="Projde všechny přepsané strany spisu a najde jména, adresy, čísla a další údaje." />
+                <ToggleButton x:Name="Nahled" Content="Náhled pro Clauda" Click="Nahled_Click" Padding="8,4"
+                              ToolTip="Ukáže text strany tak, jak ho dostane Claude." />
+                <CheckBox x:Name="Zkontrolovano" Content="Strana zkontrolována" VerticalAlignment="Center" Margin="8,0"
+                          Click="Zkontrolovano_Click" IsEnabled="False" />
+                <Button x:Name="Exportovat" Content="Exportovat pro Clauda…" Click="Exportovat_Click" Padding="8,4" IsEnabled="False" />
+            </ToolBar>
+        </ToolBarTray>
 
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBarItem>
@@ -31,11 +38,19 @@
             <StatusBarItem>
                 <TextBlock x:Name="Stav" Text="Připraveno" />
             </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <TextBlock>
+                    <Run Background="#E1BEE7" Text=" údaj " />
+                    <Run Text="  " /><Run Background="#FFE0B2" Text=" sporné čtení " />
+                    <Run Text="  " /><Run Background="#C8E6C9" Text=" opraveno " />
+                    <Run Text="   klik = místo na fotce, Shift+klik = více slov, pravé tlačítko = anonymizace, dvojklik = oprava" Foreground="Gray" />
+                </TextBlock>
+            </StatusBarItem>
         </StatusBar>
 
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="230" />
+                <ColumnDefinition Width="260" />
                 <ColumnDefinition Width="5" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="5" />
@@ -48,16 +63,45 @@
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="2*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="2*" />
                 </Grid.RowDefinitions>
                 <TextBlock Text="Spisy" FontWeight="SemiBold" Margin="6,6,6,2" />
                 <ListBox x:Name="SeznamSpisu" Grid.Row="1" SelectionChanged="SeznamSpisu_SelectionChanged" />
-                <TextBlock Grid.Row="2" Text="Strany" FontWeight="SemiBold" Margin="6,8,6,2" />
+                <TextBlock Grid.Row="2" Text="Strany   (✓ přepsáno, ✎ opraveno, ☑ zkontrolováno)" FontWeight="SemiBold" Margin="6,8,6,2" TextWrapping="Wrap" />
                 <ListBox x:Name="SeznamStran" Grid.Row="3" SelectionChanged="SeznamStran_SelectionChanged" />
+                <TextBlock Grid.Row="4" Text="Údaje ve spisu   (pravé tlačítko = co s údajem)" FontWeight="SemiBold" Margin="6,8,6,2" TextWrapping="Wrap" />
+                <ListBox x:Name="SeznamUdaju" Grid.Row="5">
+                    <ListBox.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Nahradit pseudonymem" Click="UdajPseudonym_Click" />
+                            <MenuItem Header="Úplně odstranit" Click="UdajOdstranit_Click" />
+                            <MenuItem Header="Ponechat (není citlivé)" Click="UdajPonechat_Click" />
+                            <Separator />
+                            <MenuItem Header="Role ve věci…" Click="UdajRole_Click" />
+                            <MenuItem Header="Smazat údaj" Click="UdajSmazat_Click" />
+                        </ContextMenu>
+                    </ListBox.ContextMenu>
+                </ListBox>
             </Grid>
 
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" />
 
             <FlowDocumentScrollViewer x:Name="TextStrany" Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                <FlowDocumentScrollViewer.ContextMenu>
+                    <ContextMenu x:Name="MenuSlova">
+                        <MenuItem Header="Anonymizovat jako osobu" Tag="Osoba" Click="OznacitJako_Click" />
+                        <MenuItem Header="Anonymizovat jako firmu" Tag="Firma" Click="OznacitJako_Click" />
+                        <MenuItem Header="Anonymizovat jako adresu" Tag="Adresa" Click="OznacitJako_Click" />
+                        <MenuItem Header="Anonymizovat jako nemovitost" Tag="Nemovitost" Click="OznacitJako_Click" />
+                        <MenuItem Header="Anonymizovat jako spisovou značku" Tag="SpisovaZnacka" Click="OznacitJako_Click" />
+                        <MenuItem Header="Odstranit (jiný citlivý údaj)" Tag="Jiny" Click="OznacitJako_Click" />
+                        <Separator />
+                        <MenuItem Header="Není citlivé" Click="Necitlive_Click" />
+                        <Separator />
+                        <MenuItem Header="Opravit slovo…" Click="OpravitSlovo_Click" />
+                    </ContextMenu>
+                </FlowDocumentScrollViewer.ContextMenu>
                 <FlowDocument FontFamily="Segoe UI" FontSize="15" PagePadding="16" />
             </FlowDocumentScrollViewer>
 

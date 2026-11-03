@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Anonymizace\jmena.txt" LogicalName="Koncipient.Jadro.Anonymizace.jmena.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Koncipient.Ocr\Koncipient.Ocr.csproj" />
   </ItemGroup>
 

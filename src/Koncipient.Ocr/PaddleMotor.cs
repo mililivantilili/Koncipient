@@ -10,7 +10,7 @@ namespace Koncipient.Ocr;
 /// Napodobuje výchozí nastavení PaddleOCR 3.7: detekce řádků (DB), výřez
 /// každého řádku a rozpoznání textu (CTC). Pomalý, ale nejlepší na čísla.
 /// </summary>
-public sealed class PaddleMotor : IOcrMotor
+public sealed class PaddleMotor : IOcrMotor, IUrceniOtoceni
 {
     // Výchozí hodnoty z paddlex/configs/pipelines/OCR.yaml
     private const int MaxStrana = 4000;
@@ -67,6 +67,58 @@ public sealed class PaddleMotor : IOcrMotor
             foreach (var v in vyrezy) v.Obrazek.Dispose();
         }
     }
+
+    /// <summary>
+    /// Zjistí, o kolik stupňů po směru hodinových ručiček je potřeba fotku otočit,
+    /// aby text stál rovně (0, 90, 180 nebo 270). Nepotřebuje údaje z fotoaparátu:
+    /// podle tvaru řádků pozná, jestli text běží vodorovně nebo svisle, a nejdelší
+    /// řádky zkusí přečíst normálně i vzhůru nohama. Vyhraje směr s vyšší jistotou.
+    /// </summary>
+    public int ZjistiOtoceni(string cestaKFotce)
+    {
+        using var puvodni = Cv2.ImRead(cestaKFotce, ImreadModes.Color);
+        if (puvodni.Empty())
+            throw new InvalidOperationException($"Fotku {cestaKFotce} nejde načíst.");
+        // na určení směru stačí menší obrázek, je to rychlejší
+        double pomer = Math.Min(1.0, 1000.0 / Math.Max(puvodni.Rows, puvodni.Cols));
+        using var obrazek = new Mat();
+        Cv2.Resize(puvodni, obrazek, new Size(), pomer, pomer);
+
+        var ramecky = NajdiRadky(obrazek);
+        if (ramecky.Count < 3) return 0;
+        int vodorovne = 0, svisle = 0;
+        foreach (var b in ramecky)
+        {
+            double w = Vzdalenost(b[0], b[1]), h = Vzdalenost(b[0], b[3]);
+            if (w > 1.5 * h) vodorovne++;
+            else if (h > 1.5 * w) svisle++;
+        }
+        bool jeSvisle = svisle > vodorovne;
+
+        // nejdelší řádky ve směru textu
+        var vybrane = ramecky
+            .OrderByDescending(b => Math.Max(Vzdalenost(b[0], b[1]), Vzdalenost(b[0], b[3])))
+            .Take(10).ToList();
+        var vyrezy = vybrane.Select(b => Vyrizni(obrazek, b).Obrazek).ToList();
+        var obracene = vyrezy.Select(v => { var o = new Mat(); Cv2.Rotate(v, o, RotateFlags.Rotate180); return o; }).ToList();
+        try
+        {
+            double rovne = Jistota(RozpoznejVyrezy(vyrezy));
+            double vzhuruNohama = Jistota(RozpoznejVyrezy(obracene));
+            // Svislé výřezy Vyrizni otáčí o 90° proti směru hodinových ručiček.
+            // Čte-li se takový výřez dobře, fotku je třeba otočit stejně, tj. o 270° po směru.
+            if (jeSvisle) return rovne >= vzhuruNohama ? 270 : 90;
+            return rovne >= vzhuruNohama ? 0 : 180;
+        }
+        finally
+        {
+            foreach (var m in vyrezy.Concat(obracene)) m.Dispose();
+        }
+    }
+
+    /// <summary>Součet průměrné jistoty znaků přes řádky, delší řádky váží víc.</summary>
+    private static double Jistota(List<Znak>[] radky) =>
+        radky.Sum(r => r.Count == 0 ? 0 : r.Average(z => z.Jistota) * Math.Min(r.Count, 40));
 
     /// <summary>Rozpoznaný znak a jeho vodorovná poloha ve výřezu řádku (v pixelech výřezu).</summary>
     private readonly record struct Znak(string Text, double X, float Jistota);

@@ -38,6 +38,7 @@ Program bude v C# na .NET s rozhraním WPF, vyvíjený ve Visual Studiu, které 
 | Část | Návrh | Poznámka |
 | --- | --- | --- |
 | Úprava fotky | Vyrovnání osvětlení (odečtení odhadnutého pozadí) | V testu snížila chyby Tesseractu z 16–25 % na 1–3 % znaků |
+| Otočení fotky | Podle údaje z telefonu (EXIF), a když chybí (foťák), podle textu: tvar řádků a čtení nejdelších řádků normálně a vzhůru nohama | V testu 20 z 20 otočení správně, asi 6 s na stranu. Ruční otočení v prohlížeči jako záloha |
 | OCR, motor 1 | Tesseract s češtinou | Rychlý (sekundy na stranu), nejméně chyb v souvislém textu, ztrácí desetinné čárky a levý okraj šikmých fotek |
 | OCR, motor 2 | PaddleOCR PP-OCRv6, česky | Pomalejší (v C# kolem 10–15 s na stranu na 4 jádrech), přesná čísla a tabulky, občas ztratí čárku nad í |
 | Sloučení | Shodná slova platí, sporná rozhodne český slovník, u čísel má přednost PaddleOCR | V testu nejvíc přesně přepsaných citlivých údajů (33 z 34) |
@@ -121,7 +122,7 @@ Tato struktura je datová složka programu u advokátky, ne složka tohoto repoz
 
 1. **Test OCR.** První kolo je hotové, viz výsledky výše. Obě OCR v C# dávají stejné výsledky jako Python. Zbývá vyzkoušet rukopis, spustit `Koncipient.OcrTest` na Matějově notebooku (rychlost na Windows, Windows OCR). Advokátka pak spustí srovnání na pár skutečných fotkách u sebe, aby se nic neposílalo ven.
 2. **Prohlížeč.** Import fotek, noční OCR, rozdělené zobrazení a oprava textu. První verze je hotová (`src/Koncipient.App`), v cloudu přeložená a s otestovaným jádrem, čeká na vyzkoušení na Windows. Zatím zobrazuje výsledek PaddleOCR a oranžově místa, kde Tesseract četl jinak. Sloučení přes slovník přijde později.
-3. **Anonymizace a export.** Návrhy údajů, schvalování, klíč pseudonymů, složka `ProClaude` a kontrola před zápisem.
+3. **Anonymizace a export.** Návrhy údajů, schvalování, klíč pseudonymů, složka `ProClaude` a kontrola před zápisem. První verze je hotová (`src/Koncipient.Jadro/Anonymizace`): pravidla a seznam křestních jmen, porovnání odolné vůči skloňování a chybám OCR, ruční označení v prohlížeči, kontrola každé strany a závěrečná kontrola exportu. NER model zatím není.
 4. **Propojení s Claude Code.** `CLAUDE.md`, pravidla přístupu a dosazení skutečných jmen zpět do výstupu.
 5. **Instalátor a předání.** Instalace na počítači se spisy, návod na přenos exportu na počítač s Claude Code, záloha složky `Spisy` a krátký návod.
 
