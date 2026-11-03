@@ -97,3 +97,35 @@ Entita `FIKTIVNET a.s` nepokryje stejnou firmu napsanou jako `FIKTIVNET,` bez pr
 - Černá fotka byla vygenerovaná, ne vyfocená mobilem.
 - Tooltipy a zvětšení Ctrl + kolečko jsem nezkoušel.
 - Čísla z testu 4 a 7 jsou z 11 stran z jednoho archivu, nejde o měření úspěšnosti.
+
+## Stav oprav
+
+Opraveno v cloudové relaci 2026-11-03, každá oprava má automatický test na vymyšleném příkladu (`tests/Koncipient.Testy/WindowsNalezyTesty.cs`), celkem 405 testů.
+
+| Nález | Oprava |
+| --- | --- |
+| 1. Datum spolkne příjmení | Číselný údaj sedí jen na slova s číslicí (nebo názvem měsíce), datum `12 3 1975` už nepřekryje jméno |
+| 2. Příjmení v názvu dokumentu | Samotné křestní jméno už osoby nespojuje, tvar z názvu se přidá k entitě a závěrečná kontrola ho najde |
+| 3. Nerozpoznaná jména | Jména za `Od:`, `Komu:`, `To:` v hlavičce e-mailu (i malými a mimo seznam), jméno a příjmení velkými písmeny |
+| 4. Zbytky po OCR | Useknutý začátek křestního jména před příjmením a příjmení s číslicemi z OCR (`Pokusn011a`) patří k osobě |
+| 5. Adresa bez ulice | `č.p.`/`č. ev.` s číslem a obcí, obec z více slov se pak najde i samostatně |
+| 6. Doména v odkazu | Webové odkazy (`http://`, `www.`) se odstraňují |
+| 7. Firma v jiném tvaru | Firma se hledá i bez právní formy, slova jako Dodavatel, Správě, společnost už nejsou součástí názvu |
+| Ruční oprava jména | Opravené jméno se označí a program ho už neodvozuje znovu |
+| Rod neznámého jména | U dvouslovného jména mimo seznam je první slovo křestní a rod se určí z něj (Xenie → žena) |
+| Ručně označená osoba | Hned dostane vymyšlené jméno |
+| Není citlivé u víceslovného údaje | Údaje zasažené výběrem se nastaví na Ponechat, program to oznámí |
+| Iniciály | Vymyšlené jméno se od skutečného liší aspoň o tři písmena |
+| Falešné adresy z výkresů | Pětimístné číslo se slovem VELKÝMI písmeny se nebere jako PSČ s obcí |
+| Matka a syn sloučení | Různá křestní jména u stejného příjmení znamenají různé osoby |
+| Skloňování křestního jména | Karla → Karel podle příjmení, pohyblivé e i u -el (Karel, Pavel, Havel) |
+| Hláška kontroly | Ukazuje jen skutečný zbytek, ne vymyšlené jméno vedle něj |
+| Konec dávky | Titulek okna ukáže „přepis dokončen“ s časem |
+| Hláška po importu | Počet stran a dokumentů, zmínka o černých fotkách |
+| Nový dokument na konci | Zařadí se hned za původní dokument strany |
+| ☑ po otočení | Kontrola se pamatuje pro každé natočení a vrátí se s přepisem |
+| Návrhy názvů | Víc typů dokumentů (stanovisko, povolení, technická zpráva…), krátké řádky hlavičky se přeskakují |
+| Zastaralý návod | Opraveno v `testovani.md` |
+
+Neřešeno: falešná spisová značka `347` (bez kontextu nejde určit pravidlo) a role zkomolená OCR ve jméně. Oboje zachytí kontrola v tabulce Osoby a údaje.
+

@@ -70,7 +70,8 @@ public sealed class Vzor
         if (rod == Rod.Muz && char.IsLetter(z[^1]) && !"aeiouyáéíóúůýě".Contains(char.ToLowerInvariant(z[^1])))
         {
             // pohyblivé e: Vrabec → Vrabce, Pešek → Peška
-            var kmen = z.Length >= 4 && (n.EndsWith("ek") || n.EndsWith("ec")) ? z[..^2] + z[^1] : z;
+            // Karel → Karla, Pavel → Pavla, Havel → Havla; Daniel si e nechává (Daniela)
+            var kmen = z.Length >= 4 && (n.EndsWith("ek") || n.EndsWith("ec") || (n.EndsWith("el") && !n.EndsWith("iel"))) ? z[..^2] + z[^1] : z;
             bool mekky = "cjřšžčďťň".Contains(char.ToLowerInvariant(kmen[^1]));
             return V(kmen == z ? "muž souhláska" : "muž pohyblivé e", kmen).With(
                 (Pad.N, new[] { "" }), (Pad.G, new[] { mekky ? "e" : "a" }), (Pad.D, new[] { "ovi", mekky ? "i" : "u" }),

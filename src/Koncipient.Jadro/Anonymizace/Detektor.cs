@@ -13,7 +13,7 @@ public readonly record struct Nalez(int Od, int Do, TypUdaje Typ);
 /// </summary>
 public static class Detektor
 {
-    private static readonly Lazy<HashSet<string>> KrestniJmena = new(NactiJmena);
+    private static readonly Lazy<Dictionary<string, string>> KrestniJmena = new(NactiJmena);
 
     private static readonly HashSet<string> Tituly = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -38,20 +38,56 @@ public static class Detektor
         "Viz", "Rozhodnutí", "Usnesení", "Rozsudek", "Žalobce", "Žalovaný", "Navrhovatel", "Odpůrce",
     };
 
-    private static HashSet<string> NactiJmena()
+    /// <summary>Křestní jména: normalizovaný tvar → tvar s diakritikou.</summary>
+    private static Dictionary<string, string> NactiJmena()
     {
         using var proud = Assembly.GetExecutingAssembly()
             .GetManifestResourceStream("Koncipient.Jadro.Anonymizace.jmena.txt")!;
         using var cteni = new StreamReader(proud);
-        return cteni.ReadToEnd().Split('\n')
-            .Where(r => !r.TrimStart().StartsWith('#'))
-            .SelectMany(r => r.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-            .Select(Text.Normalizuj)
-            .ToHashSet();
+        var jmena = new Dictionary<string, string>();
+        foreach (var j in cteni.ReadToEnd().Split('\n')
+                     .Where(r => !r.TrimStart().StartsWith('#'))
+                     .SelectMany(r => r.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)))
+            jmena.TryAdd(Text.Normalizuj(j), j);
+        return jmena;
+    }
+
+    /// <summary>
+    /// Křestní jména v 1. pádě, jejichž některý pád odpovídá slovu: Karla → Karel (2. pád) i Karla.
+    /// </summary>
+    public static IEnumerable<string> ZakladniTvaryJmena(string slovo)
+    {
+        var n = Text.Normalizuj(slovo);
+        if (KrestniJmena.Value.TryGetValue(n, out var presne)) yield return presne;
+        var kmeny = Text.Kmeny(n);
+        // přes kmeny, aby prošlo i pohyblivé e (Karel → Karla)
+        foreach (var j in KrestniJmena.Value.Where(p => Math.Abs(p.Key.Length - n.Length) <= 3 && Text.Kmeny(p.Key).Overlaps(kmeny)).Select(p => p.Value))
+            if (Vzor.Urci(j, Sklonovani.UrciRod(j, null)).UrciPad(slovo) is not null)
+                yield return j;
+    }
+
+    /// <summary>Dvě slova jsou tvary téhož křestního jména (Karel × Karla ve 2. pádě).</summary>
+    public static bool StejneKrestniJmeno(string a, string b) =>
+        ZakladniTvaryJmena(a).Intersect(ZakladniTvaryJmena(b)).Any();
+
+    public static bool JeMesic(string slovo) => Regex.IsMatch(Text.Ocisti(slovo), "^(" + Mesice + ")$", RegexOptions.IgnoreCase);
+
+    /// <summary>Slova, která před názvem firmy nejsou jeho součástí (Dodavatel FIKTIVNET a.s.).</summary>
+    private static readonly HashSet<string> PredFirmou = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "dodavatel", "odběratel", "objednatel", "zhotovitel", "prodávající", "kupující", "pronajímatel", "nájemce", "věřitel",
+        "dlužník", "pojistitel", "zaměstnavatel", "společnost", "společnosti", "společností", "firma", "firmy", "firmou",
+        "správa", "správě", "správy", "správou", "provozovatel", "investor", "zadavatel", "příjemce", "plátce", "banka",
+    };
+
+    public static bool JePravniForma(string slovo)
+    {
+        var f = Text.Ocisti(slovo).TrimEnd('.');
+        return PravniFormy.Contains(f) || f is "s" or "r.o" or "r" or "o";
     }
 
     /// <summary>Je normalizované slovo přímo v seznamu jmen (tedy v 1. pádě)?</summary>
-    public static bool JeVSeznamuJmen(string slovo) => KrestniJmena.Value.Contains(Text.Normalizuj(slovo));
+    public static bool JeVSeznamuJmen(string slovo) => KrestniJmena.Value.ContainsKey(Text.Normalizuj(slovo));
 
     /// <summary>Označení role před jménem v hlavičce, např. „Žalobce:“.</summary>
     public static string? Role(string slovo)
@@ -99,9 +135,9 @@ public static class Detektor
         if (!Text.ZacinaVelkym(slovo)) return false;
         var n = Text.Normalizuj(slovo);
         if (n.Length < 2) return false;
-        if (KrestniJmena.Value.Contains(n)) return true;
+        if (KrestniJmena.Value.ContainsKey(n)) return true;
         foreach (var kmen in Text.Kmeny(n))
-            if (kmen != n && (KrestniJmena.Value.Contains(kmen) || KrestniJmena.Value.Contains(kmen + "a") || KrestniJmena.Value.Contains(kmen + "e")))
+            if (kmen != n && (KrestniJmena.Value.ContainsKey(kmen) || KrestniJmena.Value.ContainsKey(kmen + "a") || KrestniJmena.Value.ContainsKey(kmen + "e")))
                 return true;
         return false;
     }
@@ -111,6 +147,12 @@ public static class Detektor
         var c = Text.Ocisti(slovo);
         return c.Length >= 2 && char.IsUpper(c[0]) && c.Skip(1).Any(char.IsLower)
             && c.All(z => char.IsLetter(z) || z == '-') && !NeJmena.Contains(c) && !Tituly.Contains(c);
+    }
+
+    private static bool JeVelkymi(string slovo)
+    {
+        var c = Text.Ocisti(slovo);
+        return c.Length >= 3 && c.All(z => char.IsLetter(z) || z == '-') && c.All(z => !char.IsLetter(z) || char.IsUpper(z)) && !NeJmena.Contains(c);
     }
 
     private static bool JeTitul(string slovo) => Tituly.Contains(Text.Ocisti(slovo).TrimEnd('.'));
@@ -144,6 +186,12 @@ public static class Detektor
         (new Regex(@"\b\d[A-Z][A-Z0-9] ?\d{4}\b"), TypUdaje.Jiny),                          // SPZ i bez označení (1AB 2345)
         (new Regex(@"\b(?=[A-HJ-NPR-Z0-9]*\d)(?=[A-HJ-NPR-Z0-9]*[A-Z])[A-HJ-NPR-Z0-9]{17}\b"), TypUdaje.Jiny), // VIN
         (new Regex(@"\bCZ\d{2}(?:[ ]?\d{4}){5}\b"), TypUdaje.Ucet),                          // IBAN
+        // hlavička e-mailu: jméno za Od/Komu/To, i malými písmeny a mimo seznam jmen
+        (new Regex(@"(?m)^(?:Od|Komu|Kopie|From|To|Cc|Odesílatel|Příjemce)\s*:\s*(?:\d+\s*[-–]\s*)?(?<u>\p{L}[\p{L}'-]*(?: \p{L}[\p{L}'-]*){1,2}?)(?=\s*<|\s*\(|\s*,|\s*;|[ \t]*$)"), TypUdaje.Osoba),
+        // číslo popisné nebo evidenční, případně s obcí (č.p 158 v Lhotě u Nikde)
+        (new Regex(@"(?<u>č\.\s?(?:p|ev)\.?\s*\d+(?:/\d+)?(?:\s+v[e]?\s+\p{Lu}\p{Ll}+(?:\s+(?:u|nad|pod|na)\s+\p{Lu}\p{Ll}+)?)?)"), TypUdaje.Adresa),
+        // odkaz s doménou prozradí firmu nebo osobu
+        (new Regex(@"(?:https?://|www\.)[^\s<>""]+"), TypUdaje.Jiny),
         (new Regex(@"(?:se sídlem|sídlem|bytem|bydlištěm)\s+v\s+(?<u>\p{Lu}\p{Ll}+(?:[ -]\p{Lu}\p{Ll}+){0,2})(?=[,.;\s]|$)"), TypUdaje.Adresa),
         (new Regex(@"(?:číslo|č\.)\s+(?:pojistné\s+smlouvy|pojistné\s+události|smlouvy|dokladu|klienta|zákazníka|karty|pojištěnce)\s*:?\s*(?<u>[\w/-]*\d[\w/-]*)", RegexOptions.IgnoreCase), TypUdaje.Jiny),
         // osmimístné číslo hned za firmou je IČO, i když chybí slovo „IČO“ (… a.s., 12345678)
@@ -215,6 +263,8 @@ public static class Detektor
                 var g = m.Groups["u"].Success ? m.Groups["u"] : m.Groups[0];
                 if (g.Length == 0) continue;
                 if (m.Groups["obec"].Success && NeJmena.Contains(m.Groups["obec"].Value)) continue;
+                if (m.Groups["obec"].Success && Regex.IsMatch(g.Value, @"^\d{5}\b")
+                    && m.Groups["obec"].Value.All(z => !char.IsLetter(z) || char.IsUpper(z))) continue; // 12345 VSTUPY z výkresu
                 nalezy.Add(new Nalez(SlovoNa(g.Index), SlovoNa(g.Index + g.Length - 1), typ));
             }
 
@@ -255,7 +305,7 @@ public static class Detektor
             // křestní jméno + příjmení, nebo příjmení + křestní jméno
             if (JeKrestniJmeno(slova[i]))
             {
-                if (StejnyRadek(i + 1) && MuzeBytPrijmeni(slova[i + 1]))
+                if (StejnyRadek(i + 1) && (MuzeBytPrijmeni(slova[i + 1]) || (JeVelkymi(slova[i]) && JeVelkymi(slova[i + 1]))))
                 {
                     nalezy.Add(new Nalez(i, i + 1, TypUdaje.Osoba));
                     i++;
@@ -310,7 +360,8 @@ public static class Detektor
             for (int j = i - 1; j >= 0 && i - j <= 4 && radky[j] == radky[i]; j--)
             {
                 var w = slova[j];
-                if (w.EndsWith(':') || w.EndsWith(';') || (w.EndsWith(',') && j < i - 1) || JeTitul(w)) break;
+                if (w.EndsWith(':') || w.EndsWith(';') || (w.EndsWith(',') && j < i - 1) || JeTitul(w)
+                    || PredFirmou.Contains(Text.Ocisti(w)) || Role(w) is not null) break;
                 if (Text.ZacinaVelkym(w) && !NeJmena.Contains(Text.Ocisti(w))) od = j;
                 // čárka těsně před právní formou patří k názvu (Elektro-Servis Zlín, s.r.o.)
             }

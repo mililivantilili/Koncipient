@@ -73,8 +73,11 @@ public static class Pseudonymy
         if (!string.IsNullOrEmpty(skutecneJmeno))
         {
             var seznam = rod == Rod.Zena ? JmenaZeny : JmenaMuzi;
-            jmeno = VyberZ(seznam, zachovatIniciály ? skutecneJmeno[0] : null, jeZakazane, nahodne)
-                ?? VyberZ(seznam, null, jeZakazane, nahodne) ?? seznam[0];
+            // vymyšlené jméno se nesmí podobat skutečnému (Radmila × Ramila), hlavně při stejných iniciálách
+            var skutecne = Text.Normalizuj(skutecneJmeno);
+            bool Zakazane(string s) => jeZakazane(s) || Text.Levenshtein(Text.Normalizuj(s), skutecne) <= 2;
+            jmeno = VyberZ(seznam, zachovatIniciály ? skutecneJmeno[0] : null, Zakazane, nahodne)
+                ?? VyberZ(seznam, null, Zakazane, nahodne) ?? seznam[0];
         }
 
         // přídavné příjmení (Novotný, Novotná) dostane přídavné, ostatní vzor -ák / -áková

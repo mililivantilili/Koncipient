@@ -279,6 +279,7 @@ public class OtoceniTesty
         Assert.False(spis.MaOcr(strana, Motory.Paddle));
         Assert.False(spis.MaOcr(strana, Spis.Opraveno));
         Assert.True(Spis.Nacti(spis.Slozka).Strany[0].Narovnano);
+        strana.Zkontrolovano = true;
 
         // přepis otočené strany, pak zpět: vrátí se původní přepis i oprava a fotka je původní
         spis.UlozOcr(strana, new VysledekOcr { Motor = Motory.Windows });
@@ -292,5 +293,6 @@ public class OtoceniTesty
         Assert.True(spis.OtocStranu(strana, 90));
         Assert.True(spis.MaOcr(strana, Motory.Windows));
         Assert.Equal(90, Spis.Nacti(spis.Slozka).Strany[0].Otoceni);
+        Assert.True(strana.Zkontrolovano); // kontrola z natočení 90° se vrátila s přepisem
     }
 }

@@ -83,10 +83,23 @@ public static class Text
     /// </summary>
     public static bool StejneJmenoOsoby(string a, string b)
     {
-        if (!StejneSlovo(a, b)) return false;
+        if (!StejneSlovo(a, b) && !StejneSChybouOcr(a, b)) return false;
         var ra = RodPodleKoncovky(a);
         var rb = RodPodleKoncovky(b);
         return ra is null || rb is null || ra == rb;
+    }
+
+    /// <summary>
+    /// OCR přečetlo konec slova jako číslice („Pokusn011a“): stačí shoda začátku před první
+    /// číslicí s kmenem jména, alespoň pět písmen.
+    /// </summary>
+    public static bool StejneSChybouOcr(string a, string b)
+    {
+        var nb = Normalizuj(b);
+        int cislice = nb.IndexOfAny("0123456789".ToCharArray());
+        if (cislice < 5 || !nb.Any(char.IsLetter)) return false;
+        var zacatek = nb[..cislice];
+        return Kmeny(Normalizuj(a)).Any(k => k.Length >= 5 && (k.StartsWith(zacatek) || zacatek.StartsWith(k)));
     }
 
     public static int Levenshtein(string a, string b)

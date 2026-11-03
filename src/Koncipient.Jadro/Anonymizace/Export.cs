@@ -141,7 +141,12 @@ public static class Export
                 continue;
             // vymyšlená jména a vlastní náhrady jsou v pořádku
             if (usekSlova.All(s => Anonymizator.JePseudonym(klic, s) || klic.Vyjimky.Contains(Text.Normalizuj(s)))) continue;
-            if (Nove(n.Od, n.Do)) problemy.Add($"zůstal nerozpoznaný údaj ({Nazvy.Typ(n.Typ)}): „{usek}“");
+            // v hlášce jen skutečný zbytek, ne vymyšlené jméno vedle něj (Ebenáková Lhota → Lhota)
+            var zbytek = string.Join(" ", usekSlova.Where(s => !Anonymizator.JePseudonym(klic, s)));
+            if (Nove(n.Od, n.Do))
+                problemy.Add(zbytek.Length > 0 && zbytek != usek
+                    ? $"zůstal nerozpoznaný údaj ({Nazvy.Typ(n.Typ)}): „{zbytek}“ (v „{usek}“)"
+                    : $"zůstal nerozpoznaný údaj ({Nazvy.Typ(n.Typ)}): „{usek}“");
         }
         foreach (var x in Anonymizator.Vyskyty(slova, klic))
             if (Nove(x.Od, x.Do)) problemy.Add($"zůstal údaj {x.Entita.Id}: „{string.Join(" ", slova.Skip(x.Od).Take(x.Do - x.Od + 1))}“");

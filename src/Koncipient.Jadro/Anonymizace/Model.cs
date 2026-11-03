@@ -49,6 +49,9 @@ public sealed class Entita
 
     public Rod? Rod { get; set; }
 
+    /// <summary>Jméno, příjmení a rod opravila advokátka, program je už neodvozuje z textu.</summary>
+    public bool JmenoRucne { get; set; }
+
     /// <summary>Rod podle okolních slov (paní, rozená, svědkyně…), když ho jméno samo neprozradí.</summary>
     public Rod? RodZOkoli { get; set; }
 

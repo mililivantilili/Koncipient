@@ -126,10 +126,13 @@ public sealed partial class Spis
     /// <summary>Přesune stranu na konec jiného (nebo nového, když null) dokumentu.</summary>
     public void PresunDoDokumentu(Strana s, string? idDokumentu, string? nazevNoveho = null)
     {
+        var puvodni = s.Dokument;
         var cil = idDokumentu is null ? NovyDokument(nazevNoveho) : Dokumenty.First(d => d.Id == idDokumentu);
         Strany.Remove(s);
         s.Dokument = cil.Id;
         int posledni = Strany.FindLastIndex(x => x.Dokument == cil.Id);
+        // nový dokument se zařadí hned za původní dokument strany, ne na konec spisu
+        if (posledni < 0) posledni = Strany.FindLastIndex(x => x.Dokument == puvodni);
         Strany.Insert(posledni < 0 ? Strany.Count : posledni + 1, s);
         Uklid();
     }
@@ -175,6 +178,8 @@ public sealed partial class Spis
         "záznam", "posudek", "zpráva", "faktura", "potvrzení", "oznámení", "sdělení", "žádost", "stížnost",
         "námitky", "příkaz", "obžaloba", "svědecká výpověď", "prohlášení", "čestné prohlášení", "dopis", "list vlastnictví",
         "kupní smlouva", "nájemní smlouva", "smlouva o dílo", "darovací smlouva", "závěť", "osvědčení",
+        "stanovisko", "stavební povolení", "kolaudační", "souhlas", "územní rozhodnutí", "technická zpráva", "posouzení",
+        "požárně bezpečnostní", "průvodní zpráva", "souhrnná technická", "ohlášení", "povolení", "rozkaz", "předvolání",
     };
 
     /// <summary>
@@ -195,7 +200,9 @@ public sealed partial class Spis
         var typ = radky.FirstOrDefault(r => TypyDokumentu.Any(t => r.Contains(t, StringComparison.CurrentCultureIgnoreCase))
                                              && r.Split(' ').Length <= 8);
         if (typ is not null) return Uprav(typ);
-        var prvni = radky.FirstOrDefault(r => r.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length >= 3);
+        // bez typu: první delší řádek (krátké řádky bývají hlavičkový papír, logo, slogan)
+        var prvni = radky.FirstOrDefault(r => r.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length >= 4 && r.Length >= 25)
+                    ?? radky.FirstOrDefault(r => r.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length >= 3);
         return prvni is null ? null : Uprav(prvni);
     }
 

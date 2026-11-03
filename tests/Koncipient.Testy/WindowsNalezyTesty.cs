@@ -1,0 +1,171 @@
+using Koncipient.Jadro;
+using Koncipient.Jadro.Anonymizace;
+using Koncipient.Ocr;
+using OpenCvSharp;
+using Xunit;
+
+namespace Koncipient.Testy;
+
+/// <summary>Chyby z testů na Windows (docs/vysledky-testu-windows.md), napodobené na vymyšlených příkladech.</summary>
+public class WindowsNalezyTesty
+{
+    private static Klic KlicZ(params string[] texty)
+    {
+        var klic = new Klic { Styl = StylPseudonymu.Kody };
+        var vsechna = new List<string>();
+        foreach (var text in texty)
+        {
+            var ocr = Vzor.Ocr(text);
+            var slova = Anonymizator.Slova(ocr);
+            vsechna.AddRange(slova);
+            foreach (var n in Detektor.Najdi(slova, Anonymizator.Radky(ocr)))
+            {
+                var usek = slova.Skip(n.Od).Take(n.Do - n.Od + 1).ToList();
+                var e = Anonymizator.NajdiEntitu(klic, n.Typ, slova, n.Od, n.Do);
+                if (e is null) klic.Nova(n.Typ, usek);
+                else e.Tvary.Add(usek.Select(Text.Ocisti).ToList());
+            }
+        }
+        Anonymizator.DoplnOsoby(klic, vsechna);
+        return klic;
+    }
+
+    private static string Anonym(string text, Klic klic) => Anonymizator.AnonymizovanyText(Vzor.Ocr(text), klic);
+
+    [Fact]
+    public void DatumRozdeleneOcrNespolkneJmeno()
+    {
+        // druhý motor přečetl datum jako tři slova „12 3 1975“
+        var klic = KlicZ("Žalobce: Ing. Petr Pokusný, nar. 12.3.1975, bytem Fiktivní 1, 999 01 Lhota");
+        klic.Nova(TypUdaje.DatumNarozeni, new[] { "12", "3", "1975" });
+        var text = Anonym("Žalobce: Ing. Petr Pokusný, nar. 12.3.1975, bytem Fiktivní 1, 999 01 Lhota", klic);
+        Assert.Contains("[OSOBA_001]", text);
+        Assert.DoesNotContain("Petr", text);
+        Assert.Contains("nar. [ODSTRANĚNO: datum narození]", text);
+    }
+
+    [Fact]
+    public void KrestniJmenoNespojiRuzneOsobySeStejnymPrijmenim()
+    {
+        var klic = KlicZ("Prodávající Marie Nevšední a její syn Jiří Nevšední podepsali.");
+        Assert.Equal(2, klic.Entity.Count(e => e.Typ == TypUdaje.Osoba));
+    }
+
+    [Fact]
+    public void JmenoSamotneKrestniNestrhneCeleJmeno()
+    {
+        // ve spisu je entita jen s tvarem „Jan“; „Jan Pokusný“ se k ní nesmí přiřadit bez příjmení
+        var klic = new Klic { Styl = StylPseudonymu.Kody };
+        klic.Nova(TypUdaje.Osoba, new[] { "Jan" });
+        var slova = new[] { "Smlouva", "Jan", "Pokusný" };
+        Assert.Null(Anonymizator.NajdiEntitu(klic, TypUdaje.Osoba, slova, 1, 2));
+    }
+
+    [Fact]
+    public void NazevDokumentuSeJmenemSeAnonymizujeCely()
+    {
+        using var d = new DocasnaSlozka();
+        var spis = new Uloziste(d.Cesta).Zaloz("vzor");
+        using (var m = new Mat(40, 40, MatType.CV_8UC3, Scalar.White)) Cv2.ImWrite(Path.Combine(d.Cesta, "1.png"), m);
+        var strana = spis.PridejFotky(new[] { Path.Combine(d.Cesta, "1.png") }, "Smlouva Jan Pokusný")[0];
+        spis.UlozOcr(strana, Vzor.Ocr("Kupující Jan podepsal. Ve věci rozhodl Jan Smyšlený."));
+        var klic = new Klic { Styl = StylPseudonymu.Kody };
+        Anonymizator.AktualizujKlic(spis, klic);
+        var nazev = Anonymizator.AnonymizujText("Smlouva Jan Pokusný", klic);
+        Assert.DoesNotContain("Pokusn", nazev);
+        Assert.DoesNotContain("Jan", nazev);
+    }
+
+    [Theory]
+    [InlineData("Od: petra smyšlená <petra@example.cz>", "petra smyšlená")]
+    [InlineData("To: 15 - Xenie Vymyšlenů", "Xenie Vymyšlenů")]
+    [InlineData("S pozdravem\nJANA POKUSNÁ\nreferentka", "JANA POKUSNÁ")]
+    public void JmenaVHlavickachAVelkymi(string text, string jmeno)
+    {
+        var ocr = Vzor.Ocr(text);
+        var slova = Anonymizator.Slova(ocr);
+        var n = Detektor.Najdi(slova, Anonymizator.Radky(ocr));
+        Assert.Contains(n, x => x.Typ == TypUdaje.Osoba && string.Join(" ", slova.Skip(x.Od).Take(x.Do - x.Od + 1)).Contains(jmeno.Split(' ')[^1]));
+    }
+
+    [Fact]
+    public void ZbytkyJmenaPoChybeOcr()
+    {
+        var klic = KlicZ("Stavebník: Jana Pokusná, bytem Fiktivní 1, 999 01 Lhota");
+        var text = Anonym("podpis: etr Pokusná a dále Jana Pokusn011a", klic);
+        Assert.DoesNotContain("Pokusn011a", text);
+        var klic2 = KlicZ("Ing. Petr Pokusný podepsal.");
+        Assert.DoesNotContain("etr", Anonym("Za správnost etr Pokusný.", klic2));
+    }
+
+    [Fact]
+    public void CisloPopisneSObci()
+    {
+        var klic = KlicZ("Přístavba RD č.p 158 v Lhotě u Nikde, stavebník podal žádost.");
+        var text = Anonym("Přístavba RD č.p 158 v Lhotě u Nikde. Dům v Lhotě u Nikde stojí.", klic);
+        Assert.DoesNotContain("158", text);
+        Assert.DoesNotContain("Nikde", text);
+    }
+
+    [Fact]
+    public void OdkazSDomenouFirmy()
+    {
+        var klic = KlicZ("Kontakt: info@fiktivni.cz\nhttp://mail.fiktivni.cz/?_task=mail");
+        var text = Anonym("Kontakt: info@fiktivni.cz\nhttp://mail.fiktivni.cz/?_task=mail", klic);
+        Assert.DoesNotContain("fiktivni", text);
+    }
+
+    [Fact]
+    public void FirmaBezPravniFormyAVZavorce()
+    {
+        var klic = KlicZ("Dodavatel FIKTIVNET a.s. dodal zboží.");
+        Assert.DoesNotContain("FIKTIVNET", Anonym("Reklamaci řešil FIKTIVNET, ale bez výsledku.", klic));
+        var ocr = Vzor.Ocr("odběratel (Smyšlená 02, a.s) zaplatil");
+        var slova = Anonymizator.Slova(ocr);
+        Assert.Contains(Detektor.Najdi(slova, Anonymizator.Radky(ocr)), x => x.Typ == TypUdaje.Firma);
+    }
+
+    [Fact]
+    public void FalesnaAdresaZVykresu()
+    {
+        var ocr = Vzor.Ocr("12345 VSTUPY\n54321 NOVE SITE");
+        Assert.DoesNotContain(Detektor.Najdi(Anonymizator.Slova(ocr), Anonymizator.Radky(ocr)), x => x.Typ == TypUdaje.Adresa);
+    }
+
+    [Fact]
+    public void RucniOpravaJmenaSeNeztrati()
+    {
+        var klic = KlicZ("Žalobce Jan Pokusni podal žalobu.");
+        var e = klic.Entity.Single(x => x.Typ == TypUdaje.Osoba);
+        e.Prijmeni = "Pokusný"; e.JmenoRucne = true;
+        Anonymizator.DoplnOsoby(klic, new[] { "Jan", "Pokusni" });
+        Assert.Equal("Pokusný", e.Prijmeni);
+    }
+
+    [Fact]
+    public void RodNeznamehoJmenaPodleKrestnihoNaE()
+    {
+        var klic = KlicZ("To: Xenie Vymyšlenů");
+        Assert.Equal(Rod.Zena, klic.Entity.Single(x => x.Typ == TypUdaje.Osoba).Rod);
+    }
+
+    [Fact]
+    public void KrestniJmenoPodleRoduPrijmeni()
+    {
+        // jen „Karla Vzorečka“: Karla je i ženské jméno, ale příjmení není -ová/-á, tedy muž Karel
+        var klic = KlicZ("výslech Karla Vzorečka");
+        var e = klic.Entity.Single(x => x.Typ == TypUdaje.Osoba);
+        Assert.Equal("Karel", e.Jmeno);
+        Assert.Equal(Rod.Muz, e.Rod);
+    }
+
+    [Fact]
+    public void InicialyNevyberouPodobneJmeno()
+    {
+        for (int semeno = 0; semeno < 50; semeno++)
+        {
+            var (jmeno, prijmeni) = Pseudonymy.Vyber(StylPseudonymu.Stromy, Rod.Zena, "Radmila", "Pokusná", true, _ => false, semeno);
+            Assert.True(Text.Levenshtein(Text.Normalizuj(jmeno!), "radmila") > 2, jmeno);
+        }
+    }
+}

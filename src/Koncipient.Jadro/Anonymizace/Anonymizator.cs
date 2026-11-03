@@ -43,7 +43,10 @@ public static class Anonymizator
         {
             // čísla mohou být v OCR rozdělená mezerou jinak, porovnají se jen číslice
             var hledane = Text.JenCislice(string.Concat(tvar));
-            return hledane.Length > 0 && Text.JenCislice(string.Concat(slova.Skip(od).Take(tvar.Count))) == hledane;
+            var okno = slova.Skip(od).Take(tvar.Count).ToList();
+            // každé slovo okna musí obsahovat číslici, jinak by datum „12 3 1975“ sedělo i na „Pokusný, nar. 12.3.1975,“
+            if (okno.Any(s => !s.Any(char.IsDigit) && !Detektor.JeMesic(s))) return false;
+            return hledane.Length > 0 && Text.JenCislice(string.Concat(okno)) == hledane;
         }
         for (int k = 0; k < tvar.Count; k++)
         {
@@ -63,6 +66,28 @@ public static class Anonymizator
     private static IEnumerable<List<string>> HledaneTvary(Entita e)
     {
         foreach (var t in e.Tvary.Where(t => t.Count > 0)) yield return t;
+        if (e.Typ == TypUdaje.Firma)
+        {
+            // stejná firma bez právní formy (FIKTIVNET a.s. × FIKTIVNET,)
+            foreach (var t in e.Tvary)
+            {
+                var bez = t.Where(s => !Detektor.JePravniForma(s)).ToList();
+                if (bez.Count > 0 && bez.Count < t.Count && (bez.Count > 1 || Text.Ocisti(bez[0]).Length >= 4)) yield return bez;
+            }
+            yield break;
+        }
+        if (e.Typ == TypUdaje.Adresa)
+        {
+            // obec z více slov z adresy i samostatně (č.p. 158 v Lhotě u Nikde → Lhotě u Nikde)
+            foreach (var t in e.Tvary)
+            {
+                int posledniCislo = t.FindLastIndex(s => s.Any(char.IsDigit));
+                if (posledniCislo < 0) continue;
+                var obec = t.Skip(posledniCislo + 1).SkipWhile(s => s == "v" || s == "ve").ToList();
+                if (obec.Count >= 2 && Text.ZacinaVelkym(obec[0])) yield return obec;
+            }
+            yield break;
+        }
         if (e.Typ != TypUdaje.Osoba) yield break;
         foreach (var t in e.Tvary.Where(t => t.Count >= 2))
         {
@@ -75,9 +100,23 @@ public static class Anonymizator
     public static Entita? NajdiEntitu(Klic klic, TypUdaje typ, IReadOnlyList<string> slova, int od, int @do)
     {
         var usek = slova.Skip(od).Take(@do - od + 1).ToList();
-        return klic.Entity.FirstOrDefault(e => e.Typ == typ && HledaneTvary(e).Any(t => t.Count == usek.Count && StejnyTvar(e, t, usek, 0)))
-            ?? klic.Entity.FirstOrDefault(e => e.Typ == typ && e.Typ == TypUdaje.Osoba
-                && HledaneTvary(e).Any(t => t.Count == 1 && usek.Any(s => StejnyTvar(e, t, new[] { s }, 0))));
+        var shoda = klic.Entity.FirstOrDefault(e => e.Typ == typ && HledaneTvary(e).Any(t => t.Count == usek.Count && StejnyTvar(e, t, usek, 0)));
+        if (shoda is not null || typ != TypUdaje.Osoba) return shoda;
+        // Osoba podle samotného příjmení. Křestní jméno samo osoby nespojuje (Jan × Jan Pokusný)
+        // a různá křestní jména u stejného příjmení znamenají různé osoby (Marie × Jiří Nevšední).
+        var krestni = usek.Where(Detektor.JeKrestniJmeno).ToList();
+        return klic.Entity.FirstOrDefault(e => e.Typ == TypUdaje.Osoba
+            && HledaneTvary(e).Any(t => t.Count == 1 && !Detektor.JeKrestniJmeno(t[0]) && usek.Any(s => StejnyTvar(e, t, new[] { s }, 0)))
+            && !RuznaKrestniJmena(e, krestni));
+    }
+
+    private static bool RuznaKrestniJmena(Entita e, IReadOnlyList<string> krestni)
+    {
+        if (krestni.Count == 0) return false;
+        var zname = e.Tvary.SelectMany(t => t).Where(Detektor.JeKrestniJmeno).ToList();
+        if (e.Jmeno is not null) zname.Add(e.Jmeno);
+        if (zname.Count == 0) return false;
+        return !krestni.Any(k => zname.Any(z => Text.StejneJmenoOsoby(z, k) || Detektor.StejneKrestniJmeno(z, k)));
     }
 
     // ---------- Klíč ----------
@@ -161,7 +200,10 @@ public static class Anonymizator
             foreach (var n in Detektor.Najdi(ns))
             {
                 var usek = ns.Skip(n.Od).Take(n.Do - n.Od + 1).ToList();
-                if (NajdiEntitu(klic, n.Typ, ns, n.Od, n.Do) is null) { klic.Nova(n.Typ, usek); nove++; }
+                var e = NajdiEntitu(klic, n.Typ, ns, n.Od, n.Do);
+                if (e is null) { klic.Nova(n.Typ, usek); nove++; }
+                else if (!e.Tvary.Any(t => t.Count == usek.Count && t.Zip(usek).All(p => p.First == Text.Ocisti(p.Second))))
+                    e.Tvary.Add(usek.Select(Text.Ocisti).ToList()); // i z názvu dokumentu, ať se celé jméno nahradí
             }
         }
         DoplnOsoby(klic, vsechnaSlova);
@@ -217,9 +259,20 @@ public static class Anonymizator
 
     private static void UrciJmeno(Entita e)
     {
+        if (e.JmenoRucne) return; // opravu od advokátky už nepřepisovat
         var slova = e.Tvary.SelectMany(t => t).Select(Text.Ocisti).Where(s => s.Length > 0).ToList();
         var krestni = slova.Where(Detektor.JeKrestniJmeno).ToList();
         var prijmeni = slova.Where(s => !Detektor.JeKrestniJmeno(s)).ToList();
+        if (krestni.Count == 0)
+        {
+            // jméno mimo seznam (Xenie Vymyšlenů): u dvouslovného tvaru je první slovo křestní
+            var dvouslovne = e.Tvary.Where(t => t.Count == 2).ToList();
+            if (dvouslovne.Count > 0)
+            {
+                krestni = dvouslovne.Select(t => Text.Ocisti(t[0])).ToList();
+                prijmeni = e.Tvary.Select(t => Text.Ocisti(t[^1])).ToList();
+            }
+        }
         if (prijmeni.Count == 0 && krestni.Count > 0) { prijmeni = krestni; krestni = new(); }
         if (prijmeni.Count == 0) return;
 
@@ -228,11 +281,14 @@ public static class Anonymizator
         Rod rod = prijmeni.Any(p => p.EndsWith("ová") || (p.EndsWith("á") && p.Length > 3)) ? Anonymizace.Rod.Zena : Anonymizace.Rod.Muz;
         if (krestni.Count > 0)
         {
-            var vSeznamu = krestni.Distinct().Where(Detektor.JeVSeznamuJmen).ToList();
-            jmeno = vSeznamu
+            // kandidáti v 1. pádě: tvary ze seznamu i jména, jejichž některý pád v textu je (Karla → Karel i Karla)
+            var kandidati = krestni.Distinct().SelectMany(Detektor.ZakladniTvaryJmena).Distinct().ToList();
+            bool zenskePrijmeni = rod == Anonymizace.Rod.Zena;
+            jmeno = kandidati
                 .OrderByDescending(k => { var r = Sklonovani.UrciRod(k, null); var v = Vzor.Urci(k, r); return krestni.Count(x => v.UrciPad(x) is not null); })
+                .ThenBy(k => (Sklonovani.UrciRod(k, null) == Anonymizace.Rod.Zena) == zenskePrijmeni ? 0 : 1) // rod podle příjmení
                 .ThenBy(k => k.Length)
-                .FirstOrDefault() ?? Sklonovani.ZakladniTvar(krestni, rod);
+                .FirstOrDefault() ?? (krestni.Count > 0 && !krestni.Any(Detektor.JeVSeznamuJmen) ? krestni[0] : Sklonovani.ZakladniTvar(krestni, rod));
             if (!prijmeni.Any(p => p.EndsWith("ová"))) rod = Sklonovani.UrciRod(jmeno, null);
         }
         else if (!prijmeni.Any(p => Text.RodPodleKoncovky(p) is not null) && e.RodZOkoli is { } okoli)
@@ -321,6 +377,18 @@ public static class Anonymizator
         foreach (var k in kandidati.OrderByDescending(k => k.Do - k.Od).ThenBy(k => k.Od))
             if (!vysledek.Any(v => k.Od <= v.Do && v.Od <= k.Do))
                 vysledek.Add(k);
+
+        // OCR useklo začátek křestního jména („etr Pokusný“): zbytek před příjmením patří k osobě
+        for (int i = 0; i < vysledek.Count; i++)
+        {
+            var v = vysledek[i];
+            if (v.Entita.Typ != TypUdaje.Osoba || v.Od == 0) continue;
+            var pred = Text.Normalizuj(slova[v.Od - 1]);
+            if (pred.Length < 2 || Text.ZacinaVelkym(slova[v.Od - 1]) || vysledek.Any(x => x.Do == v.Od - 1)) continue;
+            var krestni = v.Entita.Tvary.SelectMany(t => t).Where(Detektor.JeKrestniJmeno).Select(Text.Normalizuj).ToList();
+            if (v.Entita.Jmeno is not null) krestni.Add(Text.Normalizuj(v.Entita.Jmeno));
+            if (krestni.Any(k => k.Length > pred.Length && k.EndsWith(pred))) vysledek[i] = v with { Od = v.Od - 1 };
+        }
         return vysledek.OrderBy(v => v.Od).ToList();
     }
 

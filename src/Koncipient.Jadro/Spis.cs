@@ -30,6 +30,9 @@ public sealed class Strana
 
     /// <summary>Advokátka stranu zkontrolovala pro export. Změna údajů ve spisu kontrolu nezruší, export ji ale ověří znovu.</summary>
     public bool Zkontrolovano { get; set; }
+
+    /// <summary>Natočení, ve kterých byla strana zkontrolovaná (kontrola se vrátí s přepisem).</summary>
+    public List<int> ZkontrolovanoNatoceni { get; set; } = new();
 }
 
 /// <summary>
@@ -170,6 +173,8 @@ public sealed partial class Spis
     {
         int stare = s.Otoceni;
         int nove = (((stare + stupne) % 360) + 360) % 360;
+        s.ZkontrolovanoNatoceni.Remove(stare);
+        if (s.Zkontrolovano) s.ZkontrolovanoNatoceni.Add(stare);
         var ocr = Path.Combine(Slozka, "ocr");
         string Odlozene(int r) => Path.Combine(ocr, "otoceni", r.ToString());
 
@@ -181,7 +186,7 @@ public sealed partial class Spis
         bool obnoveno = PresunStranu(s, Odlozene(nove), ocr, vynechat: null);
 
         s.Narovnano = true;
-        if (!obnoveno) s.Zkontrolovano = false;
+        s.Zkontrolovano = obnoveno && s.ZkontrolovanoNatoceni.Contains(nove);
         Uloz();
         return obnoveno;
     }

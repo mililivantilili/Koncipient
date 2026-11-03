@@ -143,6 +143,7 @@ public partial class HlavniOkno : Window
                 Entita.Prijmeni = slova[^1];
                 Entita.Jmeno = slova.Length > 1 ? string.Join(" ", slova[..^1]) : null;
                 Entita.Rod = Sklonovani.UrciRod(Entita.Jmeno, Entita.Prijmeni);
+                Entita.JmenoRucne = true; // program už jméno z textu znovu neodvozuje
             }
         }
 
@@ -271,8 +272,11 @@ public partial class HlavniOkno : Window
         IsEnabled = false;
         try
         {
-            await Task.Run(() => spis.PridejFotky(dialog.FileNames));
-            Stav.Text = $"Přidáno {dialog.FileNames.Length} fotek. Přepis spustíš tlačítkem Spustit přepis.";
+            int dokumentuPred = spis.Dokumenty.Count;
+            var nove = await Task.Run(() => spis.PridejFotky(dialog.FileNames));
+            int cernych = dialog.FileNames.Length - nove.Count;
+            Stav.Text = $"Přidáno {nove.Count} stran v {spis.Dokumenty.Count - dokumentuPred} dokumentech"
+                + (cernych > 0 ? $" ({cernych} černé fotky oddělily dokumenty)" : "") + ". Přepis spustíš tlačítkem Spustit přepis.";
         }
         finally
         {
@@ -674,6 +678,7 @@ public partial class HlavniOkno : Window
         if (_spis is null || _vysledek is null || _vyberOd < 0) return;
         if (sender is not MenuItem { Tag: string tag } || !Enum.TryParse<TypUdaje>(tag, out var typ)) return;
         var entita = Anonymizator.OznacRucne(_klic, typ, Anonymizator.Slova(_vysledek), _vyberOd, _vyberDo);
+        if (typ == TypUdaje.Osoba) Anonymizator.DoplnOsoby(_klic, SlovaSpisu()); // hned vymyšlené jméno, ne [OSOBA_…]
         UlozKlicAObnov();
         Stav.Text = $"Označeno jako {entita.Id}. Stejné jméno se nahradí na všech stranách spisu, i v jiném pádě.";
     }
@@ -681,8 +686,15 @@ public partial class HlavniOkno : Window
     private void Necitlive_Click(object sender, RoutedEventArgs e)
     {
         if (_spis is null || _vyberOd < 0) return;
-        for (int i = _vyberOd; i <= _vyberDo; i++) Anonymizator.OznacNecitlive(_klic, _slova[i].Platny);
+        // údaje, které výběr zasahuje, se nechají neanonymizované (i víceslovné, např. adresa soudu)
+        var udaje = Enumerable.Range(_vyberOd, _vyberDo - _vyberOd + 1).Select(i => _udaje[i]).OfType<Entita>().Distinct().ToList();
+        foreach (var u in udaje) u.Akce = Akce.Ponechat;
+        if (udaje.Count == 0)
+            for (int i = _vyberOd; i <= _vyberDo; i++) Anonymizator.OznacNecitlive(_klic, _slova[i].Platny);
         UlozKlicAObnov();
+        Stav.Text = udaje.Count > 0
+            ? $"Ponecháno bez anonymizace: {string.Join(", ", udaje.Select(u => u.Id))}. Vrátit jde v záložce Osoby a údaje."
+            : "Slova označena jako necitlivá.";
     }
 
     private List<Entita> VybraneUdaje() => TabulkaUdaju.SelectedItems.OfType<RadekTabulky>().Select(r => r.Entita).ToList();
@@ -857,6 +869,7 @@ public partial class HlavniOkno : Window
         }
 
         _zruseni = new CancellationTokenSource();
+        Title = "Koncipient – přepis běží…";
         SpustitPrepis.IsEnabled = false;
         Zastavit.IsEnabled = true;
         Prubeh.Visibility = Visibility.Visible;
@@ -885,6 +898,8 @@ public partial class HlavniOkno : Window
                 }
             });
             Stav.Text = "Přepis dokončen a údaje vyhledány.";
+            // stav strany se po načtení přepíše, konec dávky proto zůstane v titulku okna
+            Title = $"Koncipient – přepis dokončen {DateTime.Now:d. M. H:mm}";
         }
         catch (OperationCanceledException)
         {

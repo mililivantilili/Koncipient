@@ -77,6 +77,7 @@ public class DokumentyTesty
     [InlineData("Advokátní kancelář\nKUPNÍ SMLOUVA\nuzavřená podle § 2079", "Kupní smlouva")]
     [InlineData("12 C 345/2026-87\nROZSUDEK\nJMÉNEM REPUBLIKY", "Rozsudek")]
     [InlineData("Vážený pane,\nzasíláme Vám vyúčtování za rok 2026", "Zasíláme Vám vyúčtování za rok 2026")]
+    [InlineData("Fiktivní s.r.o.\nStavíme s láskou\nStanovisko k projektové dokumentaci", "Stanovisko k projektové dokumentaci")]
     public void NavrhNazvu(string text, string ocekavany)
     {
         var v = new VysledekOcr
