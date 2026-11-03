@@ -6,7 +6,7 @@ Návod pro Matěje. V cloudové relaci jde program jen přeložit a otestovat j�
 
 ## Příprava (jednou)
 
-1. Visual Studio 2022 se sadou **Vývoj desktopových aplikací .NET** (obsahuje .NET 8 SDK). Doplní se přes Visual Studio Installer, Upravit.
+1. Visual Studio 2026 se sadou **Vývoj desktopových aplikací .NET**, která obsahuje .NET 10 SDK. Sadu doplníš přes Visual Studio Installer, tlačítko Upravit. Ve VS 2026 je obvykle už nainstalovaná.
 2. Stáhni větev `claude/friendly-franklin-k4ma6l` (ve Visual Studiu Git, Spravovat větve, nebo `git pull`).
 3. Otevři `Koncipient.sln`. Při prvním sestavení si Visual Studio stáhne balíčky NuGet, chvíli to trvá.
 4. Připrav si složku s 5–10 fotkami z archivu, ideálně různorodými: tištěný text, tabulka, razítko, šikmá nebo tmavá fotka a pokud máš, i ručně psaný text.

@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <!-- Na Windows se přidá Windows OCR, jinde (cloudová relace) se knihovna jen přeloží a otestuje. -->
-    <TargetFramework Condition="'$(OS)' == 'Windows_NT'">net8.0-windows10.0.19041.0</TargetFramework>
-    <TargetFramework Condition="'$(OS)' != 'Windows_NT'">net8.0</TargetFramework>
+    <TargetFramework Condition="'$(OS)' == 'Windows_NT'">net10.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework Condition="'$(OS)' != 'Windows_NT'">net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Koncipient.Ocr</RootNamespace>

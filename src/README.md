@@ -1,6 +1,6 @@
 # Koncipient v C#
 
-Řešení `Koncipient.sln` v kořeni repozitáře se otevírá ve Visual Studiu 2022 (s .NET 8 SDK).
+Řešení `Koncipient.sln` v kořeni repozitáře se otevírá ve Visual Studiu 2026 (s .NET 10 SDK, které je součástí sady Vývoj desktopových aplikací .NET).
 
 | Projekt | Co je |
 | --- | --- |

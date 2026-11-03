@@ -24,7 +24,7 @@ Test běžel na fotkách z Matějova vlastního archivu stavebního úřadu, kte
 
 Cílový systém je Windows. V cloudové relaci (Linux) nejde otestovat Windows OCR, instalátor ani chování na Windows, takže tyhle části drž za rozhraním a jejich ověření nech na Matějův počítač.
 
-V cloudu překládej řešení oficiálním .NET 8 SDK z `dotnet-install.sh`, protože Ubuntu balíček neumí WPF. Windows variantu ověříš příkazem `dotnet build Koncipient.sln -p:OS=Windows_NT -p:EnableWindowsTargeting=true`.
+Projekt cílí na .NET 10 (LTS do 11/2028, Matěj má VS 2026). V cloudu překládej řešení oficiálním .NET 10 SDK z `dotnet-install.sh --channel 10.0`, protože Ubuntu balíček neumí WPF. Windows variantu ověříš příkazem `dotnet build Koncipient.sln -p:OS=Windows_NT -p:EnableWindowsTargeting=true`.
 
 ## Otevřené otázky
 
