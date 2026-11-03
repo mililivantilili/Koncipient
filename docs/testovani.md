@@ -62,13 +62,36 @@ Fotky z foťáku často nemají údaj o otočení. Program ho pozná z textu.
    - [ ] Fialové není nic, co citlivé není. Takové slovo označ pravým tlačítkem, **Není citlivé**.
    - [ ] Co program přehlédl (třeba ručně psaný podpis), vyber kliknutím, případně Shift + klik na další slova, a pravým tlačítkem **Anonymizovat jako osobu** apod.
    - [ ] Stejné jméno v jiném pádě nebo s chybou z OCR dostane stejný pseudonym i na ostatních stranách.
-3. V seznamu **Údaje ve spisu** vlevo dole zkus pravým tlačítkem změnit, co se s údajem stane (pseudonym, odstranit, ponechat) a doplnit roli.
+3. Přepni na záložku **Osoby a údaje**.
+   - [ ] Osoby mají vymyšlená jména se správným rodem (žena dostane ženské jméno).
+   - [ ] Adresa, datum narození a telefon z hlavičky jsou odsazené pod osobou, ke které patří, a role (žalobce…) je vyplněná.
+   - [ ] Dvojklikem jde opravit skutečné jméno (když ho OCR přečetlo s chybou), náhradu i roli.
+   - [ ] **Tohle neanonymizovat** u soudu nebo obce nechá údaj v náhledu pro Clauda beze změny.
+   - [ ] Zaškrtnutí **Iniciály** vybere jméno se stejnými iniciálami.
+   - [ ] Přepnutí na **kódy [OSOBA_001]** a zpět změní náhrady v náhledu.
+   - [ ] Ve druhém spisu **Převzít z jiného spisu…** dá stejné osobě stejné vymyšlené jméno.
 4. Zapni **Náhled pro Clauda** a projdi text, který Claude dostane.
 5. **Exportovat pro Clauda…** bez zaškrtnutých stran. [ ] Export se odmítne a vypíše, které strany nejsou zkontrolované.
 6. U každé strany zaškrtni **Strana zkontrolována** a exportuj znovu. [ ] Ve složce `Dokumenty\Koncipient\ProClaude` vznikne podsložka spisu s `strany/*.md`, `entity.json` a `manifest.json` a v kořeni `CLAUDE.md`.
 7. [ ] V exportu nejsou žádné fotky, soubor `klic.json` ani skutečná jména.
 
-**Poslat:** co program našel špatně nebo nenašel (typ údaje a jak vypadal, klidně přepsaný vymyšlenými slovy) a obsah jednoho souboru `strany/0001.md`, pokud v něm nic citlivého nezůstalo.
+**Poslat:** co program našel špatně nebo nenašel (typ údaje a jak vypadal, klidně přepsaný vymyšlenými slovy) a obsah jednoho souboru `strany/0001.md`, pokud v něm nic citlivého nezůstalo. Napiš i, jak na Tebe působí vymyšlená jména.
+
+## Test 5: vrácení jmen a Word (etapa 4, 10 minut)
+
+Místo skutečného Clauda stačí dokument napsat ručně.
+
+1. Ve složce `Dokumenty\Koncipient\ProClaude\S-0001\vystup` vytvoř soubor `test.md` a napiš do něj pár vět s vymyšlenými jmény z exportu v různých pádech, např. „Doporučujeme panu Jasaníkovi podat odvolání.“ Přidej i řádek s `[NOVÁ OSOBA: znalec]`, jeden kód typu `[ADRESA_001]` a jedno jméno, které ve spisu není.
+2. V programu **Vrátit jména do výstupu od Clauda…**, Otevřít dokument, vyber `test.md`.
+3. Zkontroluj:
+   - [ ] Vymyšlená jména jsou nahrazená skutečnými ve správném pádě (zeleně).
+   - [ ] Kód adresy je nahrazený skutečnou adresou.
+   - [ ] `[NOVÁ OSOBA: …]` je červeně, neznámé jméno oranžově a najetím myši se ukáže proč.
+   - [ ] Text vpravo jde přepsat.
+4. **Uložit jako Word…** upozorní na neodstraněné značky. Ulož a otevři ve Wordu. [ ] Nadpisy, odrážky a tučné písmo vypadají rozumně.
+5. Otevři `ProClaude\PRAVIDLA-KONCIPIENT.md` a přečti si pravidla pro Clauda. [ ] Dávají smysl, nic nechybí?
+
+**Poslat:** co se vrátilo špatně (v jakém pádě a jaké jméno, klidně vymyšlené) a připomínky k pravidlům pro Clauda.
 
 ## Kde jsou data
 

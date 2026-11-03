@@ -110,14 +110,14 @@ public class DetektorTesty
 
 public class AnonymizatorTesty
 {
-    private static (Spis Spis, Klic Klic, DocasnaSlozka Slozka) SpisSeVzorem()
+    internal static (Spis Spis, Klic Klic, DocasnaSlozka Slozka) SpisSeVzorem(StylPseudonymu styl = StylPseudonymu.Kody, int semeno = 1)
     {
         var d = new DocasnaSlozka();
         var spis = new Uloziste(Path.Combine(d.Cesta, "Spisy")).Zaloz("vzor");
         using (var m = new Mat(50, 50, MatType.CV_8UC3, Scalar.White)) Cv2.ImWrite(Path.Combine(d.Cesta, "1.png"), m);
         var strana = spis.PridejFotky(new[] { Path.Combine(d.Cesta, "1.png") })[0];
         spis.UlozOcr(strana, Vzor.Ocr());
-        var klic = new Klic();
+        var klic = new Klic { Styl = styl, Semeno = semeno };
         Anonymizator.AktualizujKlic(spis, klic);
         return (spis, klic, d);
     }
@@ -186,8 +186,9 @@ public class AnonymizatorTesty
 
         var soubory = Directory.GetFiles(proClaude, "*", SearchOption.AllDirectories)
             .Select(f => Path.GetRelativePath(proClaude, f).Replace('\\', '/')).OrderBy(f => f).ToList();
-        Assert.Equal(new[] { "CLAUDE.md", "S-0001/entity.json", "S-0001/manifest.json", "S-0001/strany/0001.md" }, soubory);
-        var vse = string.Concat(Directory.GetFiles(proClaude, "*", SearchOption.AllDirectories).Select(File.ReadAllText));
+        Assert.Equal(new[] { "CLAUDE.md", "PRAVIDLA-KONCIPIENT.md", "S-0001/entity.json", "S-0001/manifest.json", "S-0001/strany/0001.md" }, soubory);
+        Assert.True(Directory.Exists(Path.Combine(proClaude, "S-0001", "vystup")));
+        var vse = string.Concat(Directory.GetFiles(Path.Combine(proClaude, "S-0001"), "*", SearchOption.AllDirectories).Select(File.ReadAllText));
         Assert.DoesNotContain("Vymyšlen", vse);
         Assert.DoesNotContain("vzor", File.ReadAllText(Path.Combine(proClaude, "S-0001", "manifest.json")));
     }

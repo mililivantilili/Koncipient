@@ -6,7 +6,7 @@ Komunikuj česky. Úplný návrh je v [docs/navrh.md](docs/navrh.md).
 
 ## Stav
 
-K 2026-11-02 proběhlo první kolo testu OCR (skripty v `ocr_test/`, výsledky v návrhu). Doporučení: vyrovnání osvětlení, Tesseract a PaddleOCR sloučené přes český slovník, dávkové zpracování přes noc. Program bude v C# ve Visual Studiu. K 2026-11-03 existuje knihovna `src/Koncipient.Ocr` a konzolový test `src/Koncipient.OcrTest`, ověřené v cloudu proti Python skriptům. Od 2026-11-03 existuje i první verze prohlížeče `src/Koncipient.App` (WPF), jádro `src/Koncipient.Jadro` s automatickým otočením fotek a anonymizací (etapa 3) a testy v `tests/`. Co má Matěj vyzkoušet na Windows, je v [docs/testovani.md](docs/testovani.md). Čeká se na jeho výsledky a na vzorky rukopisu.
+K 2026-11-02 proběhlo první kolo testu OCR (skripty v `ocr_test/`, výsledky v návrhu). Doporučení: vyrovnání osvětlení, Tesseract a PaddleOCR sloučené přes český slovník, dávkové zpracování přes noc. Program bude v C# ve Visual Studiu. K 2026-11-03 existuje knihovna `src/Koncipient.Ocr` a konzolový test `src/Koncipient.OcrTest`, ověřené v cloudu proti Python skriptům. Od 2026-11-03 existuje i první verze prohlížeče `src/Koncipient.App` (WPF), jádro `src/Koncipient.Jadro` s automatickým otočením fotek a anonymizací (etapa 3) a testy v `tests/`. Od 2026-11-03 jsou hotové i karty osob, vymyšlená jména se skloňováním a zpětné dosazení do Wordu (etapa 4). Co má Matěj vyzkoušet na Windows, je v [docs/testovani.md](docs/testovani.md). Čeká se na jeho výsledky a na vzorky rukopisu.
 
 Test běžel na fotkách z Matějova vlastního archivu stavebního úřadu, které dal výslovně k dispozici. Nejsou to spisy advokátky a do repozitáře nepatří ani ony, ani jejich přepisy.
 
@@ -33,4 +33,6 @@ Odpovědi od advokátky zatím chybí:
 1. Jaký má počítač (paměť, verze Windows)? Víme jen, že není silný.
 2. Jsou spisy převážně tištěné, nebo i psané rukou?
 3. Znamená „přeložit“ jen převod fotky na text, nebo i překlad z cizího jazyka? Zatím se počítá jen s převodem na text.
+
+Rozhodnuto Matějem 2026-11-03: výstupy jako .docx, klíč pseudonymů pro každý spis zvlášť s možností převzít z jiného spisu, osoby se nahrazují vymyšlenými jmény (téma stromy, případně upravíme podle ohlasů).
 4. Jaký má Claude Code tarif a nastavení uchovávání dat?

@@ -36,9 +36,49 @@ public sealed class Entita
     /// <summary>Přidala ji advokátka ručně.</summary>
     public bool Rucne { get; set; }
 
-    [JsonIgnore] public string Popis => string.Join(" ", Tvary.FirstOrDefault() ?? new List<string>());
+    /// <summary>Osoba nebo firma, ke které údaj patří (adresa, datum narození, telefon…).</summary>
+    public string? PatriK { get; set; }
 
-    [JsonIgnore] public string Nahrada => Akce == Akce.Odstranit ? $"[ODSTRANĚNO: {Nazvy.Typ(Typ)}]" : $"[{Id}]";
+    // ----- jen osoby -----
+
+    /// <summary>Skutečné křestní jméno v 1. pádě, odvozené z tvarů v textu.</summary>
+    public string? Jmeno { get; set; }
+
+    /// <summary>Skutečné příjmení v 1. pádě, odvozené z tvarů v textu.</summary>
+    public string? Prijmeni { get; set; }
+
+    public Rod? Rod { get; set; }
+
+    /// <summary>Vymyšlené jméno a příjmení, vybrané jednou a pak stálé.</summary>
+    public string? PseudoJmeno { get; set; }
+    public string? PseudoPrijmeni { get; set; }
+
+    /// <summary>Vymyšlené jméno má stejné iniciály jako skutečné. Rozhoduje advokátka.</summary>
+    public bool Inicialy { get; set; }
+
+    /// <summary>Náhrada, kterou advokátka napsala sama. Má přednost před vymyšleným jménem i kódem.</summary>
+    public string? VlastniNahrada { get; set; }
+
+    [JsonIgnore]
+    public string Popis => Typ == TypUdaje.Osoba && Prijmeni is not null
+        ? $"{Jmeno} {Prijmeni}".Trim()
+        : string.Join(" ", Tvary.FirstOrDefault() ?? new List<string>());
+
+    /// <summary>Text, který v anonymizovaném dokumentu nahradí údaj (v 1. pádě).</summary>
+    [JsonIgnore]
+    public string TextNahrady => Akce switch
+    {
+        Akce.Odstranit => $"[ODSTRANĚNO: {Nazvy.Typ(Typ)}]",
+        Akce.Ponechat => Popis,
+        _ when !string.IsNullOrWhiteSpace(VlastniNahrada) => VlastniNahrada!,
+        _ when Typ == TypUdaje.Osoba && PseudoPrijmeni is not null => $"{PseudoJmeno} {PseudoPrijmeni}".Trim(),
+        _ => $"[{Id}]",
+    };
+
+    /// <summary>Používá se skloňované vymyšlené jméno (ne kód ani vlastní náhrada).</summary>
+    [JsonIgnore]
+    public bool MaVymysleneJmeno => Typ == TypUdaje.Osoba && Akce == Akce.Pseudonym
+        && string.IsNullOrWhiteSpace(VlastniNahrada) && PseudoPrijmeni is not null && Prijmeni is not null;
 }
 
 /// <summary>
@@ -52,10 +92,23 @@ public sealed class Klic
     /// <summary>Normalizovaná slova, o kterých advokátka řekla, že nejsou citlivá.</summary>
     public HashSet<string> Vyjimky { get; set; } = new();
 
+    /// <summary>Jak se nahrazují osoby, platí pro celý spis.</summary>
+    public StylPseudonymu Styl { get; set; } = StylPseudonymu.Stromy;
+
+    /// <summary>
+    /// Náhodné číslo spisu pro výběr vymyšlených jmen. Díky němu dostane stejný člověk
+    /// v různých spisech různá jména (pokud je advokátka nepřevezme), takže Claude
+    /// nemůže spisy propojit.
+    /// </summary>
+    public int Semeno { get; set; } = Random.Shared.Next();
+
+    public Entita? Podle(string? id) => id is null ? null : Entity.FirstOrDefault(e => e.Id == id);
+
     public Entita Nova(TypUdaje typ, IEnumerable<string> tvar, bool rucne = false)
     {
         var prefix = Nazvy.Prefix(typ);
-        int cislo = Entity.Count(e => e.Id.StartsWith(prefix + "_")) + 1;
+        int cislo = 1;
+        while (Entity.Any(e => e.Id == $"{prefix}_{cislo:D3}")) cislo++;
         var e = new Entita
         {
             Id = $"{prefix}_{cislo:D3}",

@@ -28,6 +28,9 @@
                 <CheckBox x:Name="Zkontrolovano" Content="Strana zkontrolována" VerticalAlignment="Center" Margin="8,0"
                           Click="Zkontrolovano_Click" IsEnabled="False" />
                 <Button x:Name="Exportovat" Content="Exportovat pro Clauda…" Click="Exportovat_Click" Padding="8,4" IsEnabled="False" />
+                <Separator />
+                <Button x:Name="VratitJmena" Content="Vrátit jména do výstupu od Clauda…" Click="VratitJmena_Click" Padding="8,4" IsEnabled="False"
+                        ToolTip="Otevře dokument od Clauda, vrátí do něj skutečná jména a uloží ho jako Word." />
             </ToolBar>
         </ToolBarTray>
 
@@ -62,48 +65,72 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="2*" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="2*" />
+                    <RowDefinition Height="3*" />
                 </Grid.RowDefinitions>
                 <TextBlock Text="Spisy" FontWeight="SemiBold" Margin="6,6,6,2" />
                 <ListBox x:Name="SeznamSpisu" Grid.Row="1" SelectionChanged="SeznamSpisu_SelectionChanged" />
                 <TextBlock Grid.Row="2" Text="Strany   (✓ přepsáno, ✎ opraveno, ☑ zkontrolováno)" FontWeight="SemiBold" Margin="6,8,6,2" TextWrapping="Wrap" />
                 <ListBox x:Name="SeznamStran" Grid.Row="3" SelectionChanged="SeznamStran_SelectionChanged" />
-                <TextBlock Grid.Row="4" Text="Údaje ve spisu   (pravé tlačítko = co s údajem)" FontWeight="SemiBold" Margin="6,8,6,2" TextWrapping="Wrap" />
-                <ListBox x:Name="SeznamUdaju" Grid.Row="5">
-                    <ListBox.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="Nahradit pseudonymem" Click="UdajPseudonym_Click" />
-                            <MenuItem Header="Úplně odstranit" Click="UdajOdstranit_Click" />
-                            <MenuItem Header="Ponechat (není citlivé)" Click="UdajPonechat_Click" />
-                            <Separator />
-                            <MenuItem Header="Role ve věci…" Click="UdajRole_Click" />
-                            <MenuItem Header="Smazat údaj" Click="UdajSmazat_Click" />
-                        </ContextMenu>
-                    </ListBox.ContextMenu>
-                </ListBox>
             </Grid>
 
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" />
 
-            <FlowDocumentScrollViewer x:Name="TextStrany" Grid.Column="2" VerticalScrollBarVisibility="Auto">
-                <FlowDocumentScrollViewer.ContextMenu>
-                    <ContextMenu x:Name="MenuSlova">
-                        <MenuItem Header="Anonymizovat jako osobu" Tag="Osoba" Click="OznacitJako_Click" />
-                        <MenuItem Header="Anonymizovat jako firmu" Tag="Firma" Click="OznacitJako_Click" />
-                        <MenuItem Header="Anonymizovat jako adresu" Tag="Adresa" Click="OznacitJako_Click" />
-                        <MenuItem Header="Anonymizovat jako nemovitost" Tag="Nemovitost" Click="OznacitJako_Click" />
-                        <MenuItem Header="Anonymizovat jako spisovou značku" Tag="SpisovaZnacka" Click="OznacitJako_Click" />
-                        <MenuItem Header="Odstranit (jiný citlivý údaj)" Tag="Jiny" Click="OznacitJako_Click" />
-                        <Separator />
-                        <MenuItem Header="Není citlivé" Click="Necitlive_Click" />
-                        <Separator />
-                        <MenuItem Header="Opravit slovo…" Click="OpravitSlovo_Click" />
-                    </ContextMenu>
-                </FlowDocumentScrollViewer.ContextMenu>
-                <FlowDocument FontFamily="Segoe UI" FontSize="15" PagePadding="16" />
-            </FlowDocumentScrollViewer>
+            <TabControl x:Name="Zalozky" Grid.Column="2" SelectionChanged="Zalozky_SelectionChanged">
+                <TabItem Header="Text strany">
+                    <FlowDocumentScrollViewer x:Name="TextStrany" VerticalScrollBarVisibility="Auto">
+                        <FlowDocumentScrollViewer.ContextMenu>
+                            <ContextMenu x:Name="MenuSlova">
+                                <MenuItem Header="Anonymizovat jako osobu" Tag="Osoba" Click="OznacitJako_Click" />
+                                <MenuItem Header="Anonymizovat jako firmu" Tag="Firma" Click="OznacitJako_Click" />
+                                <MenuItem Header="Anonymizovat jako adresu" Tag="Adresa" Click="OznacitJako_Click" />
+                                <MenuItem Header="Anonymizovat jako nemovitost" Tag="Nemovitost" Click="OznacitJako_Click" />
+                                <MenuItem Header="Anonymizovat jako spisovou značku" Tag="SpisovaZnacka" Click="OznacitJako_Click" />
+                                <MenuItem Header="Odstranit (jiný citlivý údaj)" Tag="Jiny" Click="OznacitJako_Click" />
+                                <Separator />
+                                <MenuItem Header="Není citlivé" Click="Necitlive_Click" />
+                                <Separator />
+                                <MenuItem Header="Opravit slovo…" Click="OpravitSlovo_Click" />
+                            </ContextMenu>
+                        </FlowDocumentScrollViewer.ContextMenu>
+                        <FlowDocument FontFamily="Segoe UI" FontSize="15" PagePadding="16" />
+                    </FlowDocumentScrollViewer>
+                </TabItem>
+                <TabItem Header="Osoby a údaje">
+                    <DockPanel>
+                        <WrapPanel DockPanel.Dock="Top" Margin="4">
+                            <Button Content="Nahradit" Click="UdajPseudonym_Click" Padding="8,3" Margin="2" ToolTip="Údaj se v textu pro Clauda nahradí." />
+                            <Button Content="Odstranit" Click="UdajOdstranit_Click" Padding="8,3" Margin="2" ToolTip="Údaj se z textu úplně vypustí." />
+                            <Button Content="Tohle neanonymizovat" Click="UdajPonechat_Click" Padding="8,3" Margin="2"
+                                    ToolTip="Údaj zůstane v textu pro Clauda tak, jak je ve spisu (soud, úřad, obec…)." />
+                            <Button Content="Jiné vymyšlené jméno" Click="UdajNoveJmeno_Click" Padding="8,3" Margin="2" />
+                            <Button Content="Smazat" Click="UdajSmazat_Click" Padding="8,3" Margin="2" ToolTip="Údaj není citlivý ani nesouvisí, odebrat z klíče." />
+                            <TextBlock Text="Osoby nahrazovat:" VerticalAlignment="Center" Margin="12,0,4,0" />
+                            <ComboBox x:Name="StylOsob" Width="200" SelectionChanged="StylOsob_SelectionChanged">
+                                <ComboBoxItem Content="vymyšlenými jmény (stromy)" Tag="Stromy" />
+                                <ComboBoxItem Content="vymyšlenými jmény (zvířata)" Tag="Zvirata" />
+                                <ComboBoxItem Content="kódy [OSOBA_001]" Tag="Kody" />
+                            </ComboBox>
+                            <Button Content="Převzít z jiného spisu…" Click="Prevzit_Click" Padding="8,3" Margin="8,2,2,2"
+                                    ToolTip="Stejné osoby dostanou stejná vymyšlená jména jako v jiném spisu." />
+                        </WrapPanel>
+                        <TextBlock DockPanel.Dock="Bottom" Margin="6" Foreground="Gray" TextWrapping="Wrap"
+                                   Text="Skutečné jméno, náhradu a roli jde přepsat dvojklikem. Skutečné jméno v 1. pádě se vrací do dokumentů od Clauda, proto ho oprav, pokud ho OCR přečetlo chybně. Odsazené řádky patří k osobě nad nimi." />
+                        <DataGrid x:Name="TabulkaUdaju" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                                  HeadersVisibility="Column" SelectionMode="Extended" GridLinesVisibility="Horizontal"
+                                  CellEditEnding="TabulkaUdaju_CellEditEnding" RowHeaderWidth="0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Údaj" Binding="{Binding Udaj, Mode=OneWay}" IsReadOnly="True" Width="Auto" />
+                                <DataGridTextColumn Header="Skutečnost" Binding="{Binding Skutecnost}" Width="2*" />
+                                <DataGridTextColumn Header="Pro Clauda" Binding="{Binding Nahrada}" Width="2*" />
+                                <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="*" />
+                                <DataGridTextColumn Header="Akce" Binding="{Binding AkceText, Mode=OneWay}" IsReadOnly="True" Width="Auto" />
+                                <DataGridCheckBoxColumn Header="Iniciály" Binding="{Binding Inicialy, UpdateSourceTrigger=PropertyChanged}" Width="Auto" />
+                                <DataGridTextColumn Header="Tvary v textu" Binding="{Binding Tvary, Mode=OneWay}" IsReadOnly="True" Width="2*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </TabItem>
+            </TabControl>
 
             <GridSplitter Grid.Column="3" HorizontalAlignment="Stretch" />
 

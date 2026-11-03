@@ -70,21 +70,6 @@ public partial class HlavniOkno : Window
         }
     }
 
-    private sealed record PolozkaUdaje(Entita Entita)
-    {
-        public override string ToString()
-        {
-            var akce = Entita.Akce switch
-            {
-                Akce.Odstranit => "  [odstranit]",
-                Akce.Ponechat => "  [ponechat]",
-                _ => "",
-            };
-            var role = string.IsNullOrWhiteSpace(Entita.Role) ? "" : $"  ({Entita.Role})";
-            return $"{Entita.Id}  {Entita.Popis}{role}{akce}";
-        }
-    }
-
     private void NactiSpisy(string? vybratId = null)
     {
         SeznamSpisu.ItemsSource = _uloziste.Spisy().Select(s => new PolozkaSpisu(s)).ToList();
@@ -100,11 +85,109 @@ public partial class HlavniOkno : Window
             ?? SeznamStran.Items.Cast<PolozkaStrany>().FirstOrDefault();
     }
 
+    /// <summary>Řádek tabulky Osoby a údaje. Úpravy se rovnou propisují do klíče.</summary>
+    private sealed class RadekTabulky(Entita e, bool odsazeny, Action<RadekTabulky> zmenaInicial)
+    {
+        public Entita Entita { get; } = e;
+
+        public string Udaj => (odsazeny ? "      └ " : "") + Nazvy.Typ(Entita.Typ)
+            + (Entita.Typ == TypUdaje.Osoba && Entita.Rod is { } r ? (r == Rod.Zena ? " (žena)" : " (muž)") : "");
+
+        public string Skutecnost
+        {
+            get => Entita.Popis;
+            set
+            {
+                // u osoby jde opravit jméno v 1. pádě, které se vrací do dokumentů
+                if (Entita.Typ != TypUdaje.Osoba) return;
+                var slova = value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (slova.Length == 0) return;
+                Entita.Prijmeni = slova[^1];
+                Entita.Jmeno = slova.Length > 1 ? string.Join(" ", slova[..^1]) : null;
+                Entita.Rod = Sklonovani.UrciRod(Entita.Jmeno, Entita.Prijmeni);
+            }
+        }
+
+        public string Nahrada
+        {
+            get => Entita.TextNahrady;
+            set
+            {
+                var v = value.Trim();
+                if (v == Entita.TextNahrady) return;
+                Entita.Akce = Akce.Pseudonym;
+                var slova = v.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                // jméno a příjmení se dál skloňují, cokoli jiného je pevná náhrada
+                if (Entita.Typ == TypUdaje.Osoba && slova.Length is 1 or 2 && slova.All(s => char.IsUpper(s[0]) && s.All(char.IsLetter)))
+                {
+                    Entita.PseudoPrijmeni = slova[^1];
+                    Entita.PseudoJmeno = slova.Length == 2 ? slova[0] : null;
+                    Entita.VlastniNahrada = null;
+                }
+                else Entita.VlastniNahrada = v.Length == 0 ? null : v;
+            }
+        }
+
+        public string? Role
+        {
+            get => Entita.Role;
+            set => Entita.Role = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        }
+
+        public string AkceText => Entita.Akce switch
+        {
+            Akce.Odstranit => "odstranit",
+            Akce.Ponechat => "neanonymizovat",
+            _ => "nahradit",
+        };
+
+        public bool Inicialy
+        {
+            get => Entita.Inicialy;
+            set
+            {
+                if (Entita.Typ != TypUdaje.Osoba || value == Entita.Inicialy) return;
+                Entita.Inicialy = value;
+                zmenaInicial(this);
+            }
+        }
+
+        public string Tvary => string.Join(" · ", Entita.Tvary.Select(t => string.Join(" ", t)).Distinct());
+    }
+
     private void NactiUdaje()
     {
-        SeznamUdaju.ItemsSource = _klic.Entity
-            .OrderBy(e => e.Typ).ThenBy(e => e.Id, StringComparer.Ordinal)
-            .Select(e => new PolozkaUdaje(e)).ToList();
+        // osoby a firmy, pod nimi jejich údaje, nakonec ostatní
+        var radky = new List<RadekTabulky>();
+        void Pridej(Entita e, bool odsazeny) => radky.Add(new RadekTabulky(e, odsazeny, ZmenaInicial));
+        var hlavni = _klic.Entity.Where(e => e.Typ is TypUdaje.Osoba or TypUdaje.Firma)
+            .OrderBy(e => e.Typ).ThenBy(e => e.Id, StringComparer.Ordinal).ToList();
+        foreach (var h in hlavni)
+        {
+            Pridej(h, false);
+            foreach (var u in _klic.Entity.Where(u => u.PatriK == h.Id)) Pridej(u, true);
+        }
+        foreach (var u in _klic.Entity.Where(u => !hlavni.Contains(u) && _klic.Podle(u.PatriK) is null)
+                     .OrderBy(e => e.Typ).ThenBy(e => e.Id, StringComparer.Ordinal))
+            Pridej(u, false);
+        TabulkaUdaju.ItemsSource = radky;
+
+        _nacitamStyl = true;
+        StylOsob.SelectedItem = StylOsob.Items.Cast<ComboBoxItem>().FirstOrDefault(i => (string)i.Tag == _klic.Styl.ToString());
+        _nacitamStyl = false;
+    }
+
+    private bool _nacitamStyl;
+
+    /// <summary>Všechna slova spisu, aby se vymyšlené jméno nepodobalo ničemu ve spisu.</summary>
+    private List<string> SlovaSpisu() => _spis is null ? new()
+        : _spis.Strany.Select(s => Motory.ProZobrazeni(_spis, s)).OfType<VysledekOcr>()
+            .SelectMany(Anonymizator.Slova).ToList();
+
+    private void ZmenaInicial(RadekTabulky radek)
+    {
+        Anonymizator.NovePseudonym(_klic, radek.Entita, SlovaSpisu());
+        Dispatcher.BeginInvoke(new Action(UlozKlicAObnov));
     }
 
     private void SeznamSpisu_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -112,7 +195,7 @@ public partial class HlavniOkno : Window
         _spis = (SeznamSpisu.SelectedItem as PolozkaSpisu)?.Spis;
         _klic = _spis is null ? new Klic() : Anonymizator.NactiKlic(_spis);
         _strana = null;
-        PridatFotky.IsEnabled = NajitUdaje.IsEnabled = Exportovat.IsEnabled = _spis is not null;
+        PridatFotky.IsEnabled = NajitUdaje.IsEnabled = Exportovat.IsEnabled = VratitJmena.IsEnabled = _spis is not null;
         NactiUdaje();
         NactiStrany();
     }
@@ -255,7 +338,7 @@ public partial class HlavniOkno : Window
             : slovo.Sporne ? BarvaSporne
             : null;
         var popis = new List<string>();
-        if (udaj is not null) popis.Add($"{udaj.Nahrada}  ({Nazvy.Typ(udaj.Typ)})");
+        if (udaj is not null) popis.Add($"{udaj.TextNahrady}  ({Nazvy.Typ(udaj.Typ)}{(udaj.Role is null ? "" : ", " + udaj.Role)})");
         if (slovo.Oprava is not null) popis.Add($"Opraveno, OCR četlo: {slovo.Text}");
         if (slovo.Sporne) popis.Add("Druhý motor zde četl něco jiného.");
         if (slovo.Jistota is float j) popis.Add($"Jistota OCR {j:P0}");
@@ -369,12 +452,11 @@ public partial class HlavniOkno : Window
         UlozKlicAObnov();
     }
 
-    private Entita? VybranyUdaj => (SeznamUdaju.SelectedItem as PolozkaUdaje)?.Entita;
+    private List<Entita> VybraneUdaje() => TabulkaUdaju.SelectedItems.OfType<RadekTabulky>().Select(r => r.Entita).ToList();
 
     private void NastavAkci(Akce akce)
     {
-        if (VybranyUdaj is not { } e) return;
-        e.Akce = akce;
+        foreach (var e in VybraneUdaje()) e.Akce = akce;
         UlozKlicAObnov();
     }
 
@@ -382,26 +464,71 @@ public partial class HlavniOkno : Window
     private void UdajOdstranit_Click(object sender, RoutedEventArgs e) => NastavAkci(Akce.Odstranit);
     private void UdajPonechat_Click(object sender, RoutedEventArgs e) => NastavAkci(Akce.Ponechat);
 
-    private void UdajRole_Click(object sender, RoutedEventArgs e)
+    private void UdajNoveJmeno_Click(object sender, RoutedEventArgs e)
     {
-        if (VybranyUdaj is not { } u) return;
-        var role = VstupDialog.Zeptej(this, "Role ve věci",
-            $"Role pro {u.Id}, např. žalobce, žalovaný, svědek. Claude ji uvidí, skutečné jméno ne:", u.Role ?? "");
-        if (role is null) return;
-        u.Role = string.IsNullOrWhiteSpace(role) ? null : role.Trim();
+        var slova = SlovaSpisu();
+        foreach (var u in VybraneUdaje().Where(u => u.Typ == TypUdaje.Osoba)) Anonymizator.NovePseudonym(_klic, u, slova);
         UlozKlicAObnov();
     }
 
     private void UdajSmazat_Click(object sender, RoutedEventArgs e)
     {
-        if (VybranyUdaj is not { } u) return;
-        _klic.Entity.Remove(u);
+        foreach (var u in VybraneUdaje())
+        {
+            _klic.Entity.Remove(u);
+            foreach (var z in _klic.Entity.Where(z => z.PatriK == u.Id)) z.PatriK = null;
+        }
         UlozKlicAObnov();
+    }
+
+    private void TabulkaUdaju_CellEditEnding(object? sender, DataGridCellEditEndingEventArgs e)
+    {
+        if (e.EditAction != DataGridEditAction.Commit) return;
+        // hodnota se do řádku zapíše až po události, uložit hned potom
+        Dispatcher.BeginInvoke(new Action(UlozKlicAObnov), System.Windows.Threading.DispatcherPriority.Background);
+    }
+
+    private void StylOsob_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_nacitamStyl || _spis is null || StylOsob.SelectedItem is not ComboBoxItem { Tag: string tag }) return;
+        var styl = Enum.Parse<StylPseudonymu>(tag);
+        if (styl == _klic.Styl) return;
+        _klic.Styl = styl;
+        foreach (var o in _klic.Entity.Where(o => o.Typ == TypUdaje.Osoba && o.VlastniNahrada is null))
+            o.PseudoJmeno = o.PseudoPrijmeni = null;
+        Anonymizator.DoplnOsoby(_klic, SlovaSpisu());
+        UlozKlicAObnov();
+    }
+
+    private void Prevzit_Click(object sender, RoutedEventArgs e)
+    {
+        if (_spis is null) return;
+        var jine = _uloziste.Spisy().Where(s => s.Id != _spis.Id).ToList();
+        if (jine.Count == 0) { MessageBox.Show(this, "Jiný spis zatím není.", "Koncipient"); return; }
+        var zdroj = VyberDialog.Vyber(this, "Převzít z jiného spisu",
+            "Stejné osoby a údaje dostanou stejné náhrady jako ve vybraném spisu:", jine,
+            s => string.IsNullOrWhiteSpace(s.Nazev) ? s.Id : $"{s.Id}  {s.Nazev}");
+        if (zdroj is null) return;
+        var (prevzato, pridano) = Anonymizator.Prevezmi(_klic, Anonymizator.NactiKlic(zdroj));
+        UlozKlicAObnov();
+        Stav.Text = $"Převzato {prevzato} údajů, přidáno {pridano} osob a údajů, které se zatím v tomto spisu nevyskytly.";
+    }
+
+    private void Zalozky_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.OriginalSource == Zalozky && Zalozky.SelectedIndex == 1) NactiUdaje();
+    }
+
+    private void VratitJmena_Click(object sender, RoutedEventArgs e)
+    {
+        if (_spis is null) return;
+        new ZpetneOkno(_spis, _klic) { Owner = this }.Show();
     }
 
     private void UlozKlicAObnov()
     {
         if (_spis is null) return;
+        TabulkaUdaju.CommitEdit(DataGridEditingUnit.Row, true);
         Anonymizator.UlozKlic(_spis, _klic);
         int od = _vyberOd, @do = _vyberDo;
         NactiUdaje();

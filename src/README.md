@@ -18,6 +18,8 @@
 4. **Spustit přepis.** Poprvé se zeptá na stažení modelů. Přepíše všechny strany bez přepisu PaddleOCR i Tesseractem. Počítač mezitím neusne, přerušený přepis po dalším spuštění pokračuje.
 5. Klikni na stranu vlevo. Klik na slovo v textu ukáže jeho místo na fotce, klik do fotky najde slovo v textu. Oranžově jsou místa, která Tesseract přečetl jinak než PaddleOCR. Dvojklik na slovo ho opraví, opravy se ukládají zvlášť a jsou zeleně. Ctrl + kolečko mění zvětšení fotky.
 
+Záložka **Osoby a údaje** ukazuje osoby a k nim jejich údaje, vlevo skutečnost, vpravo náhradu pro Clauda, obojí jde upravit. Osoby dostávají vymyšlená jména se stejným rodem a skloňováním (`Anonymizace/Pseudonymy.cs`, `Sklonovani.cs`). **Vrátit jména do výstupu od Clauda…** vrátí skutečná jména do dokumentu od Clauda a uloží ho jako Word (`ZpetneDosazeni.cs`, `Word.cs`).
+
 Anonymizace: **Najít údaje** (po přepisu proběhne samo) označí fialově jména, adresy, telefony, e-maily, účty, IČO, spisové značky a parcely. Pravým tlačítkem na slově se údaj doplní nebo označí jako necitlivý, v seznamu vlevo dole jde u údaje změnit akci a roli. Po zaškrtnutí **Strana zkontrolována** u všech stran zapíše **Exportovat pro Clauda…** text do `Dokumenty\Koncipient\ProClaude`. Postup testování je v [docs/testovani.md](../docs/testovani.md).
 
 Spisy leží v `Dokumenty\Koncipient\Spisy`. Každý spis má `spis.json`, fotky v `fotky/`, přepisy v `ocr/<motor>/0001.json`, ruční opravy v `ocr/opraveno/` a klíč pseudonymů v `klic.json`. Nic se nešifruje, ochranu dává oddělený počítač bez Claude Code.

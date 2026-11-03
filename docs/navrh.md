@@ -50,19 +50,31 @@ Program bude v C# na .NET s rozhraním WPF, vyvíjený ve Visual Studiu, které 
 | Hledání údajů | Pravidla (rodné číslo, IČO, účet, telefon, e-mail) a seznam českých jmen | Funguje bez modelu a licencí |
 | Odolnost vůči chybám OCR | Porovnání bez diakritiky a s tolerancí jednoho až dvou znaků | Když je jinde ve spisu „Míček“, začerní se i „Miček“ nebo „Mícek“. Zbylé chyby OCR nikdy nebudou nulové |
 | Hledání jmen, rozšíření | Místní NER model, například NameTag 3 | Modely jsou nekomerční, pro CNEC 2.0 [nabízí ÚFAL komerční licenci](https://ufal.mff.cuni.cz/node/3032) |
-| Sjednocení jmen | Novák, Nováka i Novákovi se sloučí na jednu `OSOBA_001` | Nutné kvůli českému skloňování |
+| Sjednocení jmen | Novák, Nováka i Novákovi se sloučí na jednu osobu | Nutné kvůli českému skloňování |
+| Karty osob | Údaje na stejném nebo dalším řádku za jménem (adresa, datum narození, telefon) patří k osobě, role se pozná z hlavičky („Žalobce:“) | Tabulka Osoby a údaje: vlevo skutečnost, vpravo náhrada, obojí jde upravit |
 
 Navržené výchozí zacházení s údaji, advokátka si ho může změnit:
 
 | Údaj | Výchozí akce |
 | --- | --- |
-| Jména osob a firem | Pseudonym s rolí (`OSOBA_001`, žalobce) |
+| Jména osob | Vymyšlené jméno se stejným rodem a skloňováním (téma stromy nebo zvířata), volitelně se stejnými iniciálami, nebo kód `[OSOBA_001]` |
+| Firmy | Kód `[FIRMA_001]`, advokátka může napsat vlastní náhradu |
 | Rodné číslo, datum narození, doklady, účty, kontakty | Odstranit |
 | Adresy | Pseudonym, volitelně ponechat obec |
 | Spisové značky, IČO | Pseudonym |
 | Data úkonů a lhůt, částky, paragrafy | Ponechat, jsou potřeba k právní práci |
 
-Výstup z Claude Code si program umí vzít zpět a dosadit skutečná jména. Tvar jména podle pádu zkontroluje advokátka, protože automatické skloňování bude chybovat.
+Tlačítko **Tohle neanonymizovat** nechá údaj v textu pro Clauda tak, jak je ve spisu, bez označení (soudy, úřady, obce, veřejní úředníci). V seznamu náhrad pro Clauda je uvedený jako ponechaný.
+
+Klíč pseudonymů má každý spis vlastní, aby Claude nemohl spisy propojit. Advokátka může náhrady převzít z jiného spisu, pak stejná osoba dostane stejné vymyšlené jméno.
+
+### Vymyšlená jména
+
+S kódy jako `[OSOBA_001]` Claude neumí skloňovat a výstup je toporný. Proto mají osoby vymyšlená česká jména: méně častá křestní jména a příjmení odvozená od tématu (Jasaník, Habrovská…). Vymyšlené jméno má stejný rod a podobný vzor skloňování jako skutečné, takže se dá skloňovat oběma směry. Program kontroluje, že se nepodobá žádnému slovu ve spisu ani jinému pseudonymu.
+
+### Zpětné dosazení
+
+Claude ukládá výstupy do `ProClaude/S-0001/vystup/`. Advokátka je přenese zpět a program do nich vrátí skutečná jména ve stejném pádě. Nikdy nenahrazuje naslepo. Co neumí skloňovat, doplní v 1. pádě a označí ke kontrole. Odstraněné údaje a nové osoby (`[NOVÁ OSOBA: …]`) označí k doplnění a jména, která v klíči nejsou, ke kontrole. Výsledek jde upravit a uložit jako Word (.docx).
 
 ## Výsledky prvního testu OCR
 
@@ -123,7 +135,7 @@ Tato struktura je datová složka programu u advokátky, ne složka tohoto repoz
 1. **Test OCR.** První kolo je hotové, viz výsledky výše. Obě OCR v C# dávají stejné výsledky jako Python. Zbývá vyzkoušet rukopis, spustit `Koncipient.OcrTest` na Matějově notebooku (rychlost na Windows, Windows OCR). Advokátka pak spustí srovnání na pár skutečných fotkách u sebe, aby se nic neposílalo ven.
 2. **Prohlížeč.** Import fotek, noční OCR, rozdělené zobrazení a oprava textu. První verze je hotová (`src/Koncipient.App`), v cloudu přeložená a s otestovaným jádrem, čeká na vyzkoušení na Windows. Zatím zobrazuje výsledek PaddleOCR a oranžově místa, kde Tesseract četl jinak. Sloučení přes slovník přijde později.
 3. **Anonymizace a export.** Návrhy údajů, schvalování, klíč pseudonymů, složka `ProClaude` a kontrola před zápisem. První verze je hotová (`src/Koncipient.Jadro/Anonymizace`): pravidla a seznam křestních jmen, porovnání odolné vůči skloňování a chybám OCR, ruční označení v prohlížeči, kontrola každé strany a závěrečná kontrola exportu. NER model zatím není.
-4. **Propojení s Claude Code.** `CLAUDE.md`, pravidla přístupu a dosazení skutečných jmen zpět do výstupu.
+4. **Propojení s Claude Code.** `CLAUDE.md`, pravidla přístupu a dosazení skutečných jmen zpět do výstupu. První verze je hotová: pravidla pro Clauda v `ProClaude/PRAVIDLA-KONCIPIENT.md`, zpětné dosazení se skloňováním a uložení jako Word.
 5. **Instalátor a předání.** Instalace na počítači se spisy, návod na přenos exportu na počítač s Claude Code, záloha složky `Spisy` a krátký návod.
 
 ## Rizika

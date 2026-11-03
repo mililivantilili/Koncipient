@@ -48,6 +48,30 @@ public static class Detektor
             .ToHashSet();
     }
 
+    /// <summary>Je normalizované slovo přímo v seznamu jmen (tedy v 1. pádě)?</summary>
+    public static bool JeVSeznamuJmen(string slovo) => KrestniJmena.Value.Contains(Text.Normalizuj(slovo));
+
+    /// <summary>Označení role před jménem v hlavičce, např. „Žalobce:“.</summary>
+    public static string? Role(string slovo)
+    {
+        var n = Text.Normalizuj(slovo).TrimEnd(':');
+        return Role_.TryGetValue(n, out var r) ? r : null;
+    }
+
+    private static readonly Dictionary<string, string> Role_ = new()
+    {
+        ["zalobce"] = "žalobce", ["zalobkyne"] = "žalobkyně", ["zalovany"] = "žalovaný", ["zalovana"] = "žalovaná",
+        ["navrhovatel"] = "navrhovatel", ["navrhovatelka"] = "navrhovatelka", ["odpurce"] = "odpůrce", ["odpurkyne"] = "odpůrkyně",
+        ["svedek"] = "svědek", ["svedkyne"] = "svědkyně", ["obvineny"] = "obviněný", ["obvinena"] = "obviněná",
+        ["obzalovany"] = "obžalovaný", ["obzalovana"] = "obžalovaná", ["poskozeny"] = "poškozený", ["poskozena"] = "poškozená",
+        ["opravneny"] = "oprávněný", ["opravnena"] = "oprávněná", ["povinny"] = "povinný", ["povinna"] = "povinná",
+        ["kupujici"] = "kupující", ["prodavajici"] = "prodávající", ["pronajimatel"] = "pronajímatel", ["najemce"] = "nájemce",
+        ["dluznik"] = "dlužník", ["dluznice"] = "dlužnice", ["veritel"] = "věřitel", ["veritelka"] = "věřitelka",
+        ["zamestnavatel"] = "zaměstnavatel", ["zamestnanec"] = "zaměstnanec", ["zamestnankyne"] = "zaměstnankyně",
+        ["zastupce"] = "zástupce", ["zastoupen"] = "zástupce", ["zastoupena"] = "zástupce", ["investor"] = "investor",
+        ["stavebnik"] = "stavebník", ["zadatel"] = "žadatel", ["zadatelka"] = "žadatelka", ["projektant"] = "projektant",
+    };
+
     /// <summary>Je slovo (v libovolném pádě) běžné české křestní jméno?</summary>
     public static bool JeKrestniJmeno(string slovo)
     {

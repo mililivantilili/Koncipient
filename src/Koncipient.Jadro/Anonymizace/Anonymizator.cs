@@ -83,27 +83,157 @@ public static class Anonymizator
 
     /// <summary>
     /// Projde všechny přepsané strany, nalezené údaje přiřadí k existujícím entitám
-    /// (i v jiném pádě nebo s chybou OCR), nové založí. Vrátí počet nových entit.
+    /// (i v jiném pádě nebo s chybou OCR), nové založí, seskupí údaje k osobám
+    /// a doplní role a vymyšlená jména. Vrátí počet nových entit.
     /// </summary>
     public static int AktualizujKlic(Spis spis, Klic klic)
     {
         int nove = 0;
+        var vsechnaSlova = new List<string>();
         foreach (var strana in spis.Strany)
         {
             var v = Motory.ProZobrazeni(spis, strana);
             if (v is null) continue;
             var slova = Slova(v);
-            foreach (var n in Detektor.Najdi(slova, Radky(v)))
+            var radky = Radky(v);
+            vsechnaSlova.AddRange(slova);
+            Entita? posledniOsoba = null;
+            int radekOsoby = -10;
+            foreach (var n in Detektor.Najdi(slova, radky))
             {
                 var usek = slova.Skip(n.Od).Take(n.Do - n.Od + 1).ToList();
                 if (usek.All(s => klic.Vyjimky.Contains(Text.Normalizuj(s)))) continue;
                 var e = NajdiEntitu(klic, n.Typ, slova, n.Od, n.Do);
-                if (e is null) { klic.Nova(n.Typ, usek); nove++; }
+                if (e is null) { e = klic.Nova(n.Typ, usek); nove++; }
                 else if (!e.Tvary.Any(t => t.Count == usek.Count && t.Zip(usek).All(p => p.First == Text.Ocisti(p.Second))))
                     e.Tvary.Add(usek.Select(Text.Ocisti).ToList());
+
+                if (n.Typ is TypUdaje.Osoba or TypUdaje.Firma)
+                {
+                    // role stojí v hlavičce těsně před jménem: „Žalobce: Jan …“
+                    if (e.Role is null)
+                        for (int i = n.Od - 1; i >= Math.Max(0, n.Od - 3) && radky[i] == radky[n.Od]; i--)
+                            if (Detektor.Role(slova[i]) is { } role) { e.Role = role; break; }
+                    posledniOsoba = e;
+                    radekOsoby = radky[n.Od];
+                }
+                else if (posledniOsoba is not null && e.PatriK is null && radky[n.Od] - radekOsoby <= 1
+                    && n.Typ is not TypUdaje.SpisovaZnacka and not TypUdaje.Nemovitost)
+                {
+                    // údaj na stejném nebo dalším řádku za osobou patří k ní (hlavička podání)
+                    e.PatriK = posledniOsoba.Id;
+                }
             }
         }
+        DoplnOsoby(klic, vsechnaSlova);
         return nove;
+    }
+
+    /// <summary>
+    /// U osob odvodí z tvarů jméno a příjmení v 1. pádě a rod a vybere vymyšlené
+    /// jméno, které se nepodobá žádnému slovu spisu ani jinému pseudonymu.
+    /// </summary>
+    public static void DoplnOsoby(Klic klic, IEnumerable<string> slovaSpisu)
+    {
+        var obsazene = new HashSet<string>();
+        foreach (var s in slovaSpisu.Where(Text.ZacinaVelkym)) obsazene.UnionWith(Text.Kmeny(Text.Normalizuj(s)));
+        foreach (var t in klic.Entity.SelectMany(e => e.Tvary).SelectMany(t => t)) obsazene.UnionWith(Text.Kmeny(Text.Normalizuj(t)));
+        foreach (var e in klic.Entity)
+            foreach (var s in new[] { e.PseudoJmeno, e.PseudoPrijmeni }.OfType<string>())
+                obsazene.UnionWith(Text.Kmeny(Text.Normalizuj(s)));
+        bool JeZakazane(string s) => Text.Kmeny(Text.Normalizuj(s)).Overlaps(obsazene);
+
+        foreach (var e in klic.Entity.Where(e => e.Typ == TypUdaje.Osoba))
+        {
+            UrciJmeno(e);
+            if (e.Prijmeni is null || e.PseudoPrijmeni is not null || klic.Styl == StylPseudonymu.Kody) continue;
+            var (jmeno, prijmeni) = Pseudonymy.Vyber(klic.Styl, e.Rod ?? Rod.Muz, e.Jmeno, e.Prijmeni, e.Inicialy, JeZakazane,
+                klic.Semeno ^ StabilniHash(e.Id));
+            e.PseudoJmeno = jmeno;
+            e.PseudoPrijmeni = prijmeni;
+            foreach (var s in new[] { jmeno, prijmeni }.OfType<string>()) obsazene.UnionWith(Text.Kmeny(Text.Normalizuj(s)));
+        }
+    }
+
+    /// <summary>Hash, který je stejný při každém spuštění (string.GetHashCode není).</summary>
+    private static int StabilniHash(string s)
+    {
+        unchecked
+        {
+            uint h = 2166136261;
+            foreach (var c in s) h = (h ^ c) * 16777619;
+            return (int)h;
+        }
+    }
+
+    /// <summary>Nové vymyšlené jméno pro osobu (třeba po zapnutí iniciál).</summary>
+    public static void NovePseudonym(Klic klic, Entita e, IEnumerable<string> slovaSpisu)
+    {
+        var stare = (e.PseudoJmeno, e.PseudoPrijmeni);
+        e.PseudoJmeno = e.PseudoPrijmeni = null;
+        e.VlastniNahrada = null;
+        // staré jméno se nesmí vybrat znovu
+        DoplnOsoby(klic, slovaSpisu.Concat(new[] { stare.PseudoJmeno, stare.PseudoPrijmeni }.OfType<string>()));
+    }
+
+    private static void UrciJmeno(Entita e)
+    {
+        var slova = e.Tvary.SelectMany(t => t).Select(Text.Ocisti).Where(s => s.Length > 0).ToList();
+        var krestni = slova.Where(Detektor.JeKrestniJmeno).ToList();
+        var prijmeni = slova.Where(s => !Detektor.JeKrestniJmeno(s)).ToList();
+        if (prijmeni.Count == 0 && krestni.Count > 0) { prijmeni = krestni; krestni = new(); }
+        if (prijmeni.Count == 0) return;
+
+        // rod: příjmení na -ová/-á je jasné, jinak podle křestního jména v 1. pádě ze seznamu
+        string? jmeno = null;
+        Rod rod = prijmeni.Any(p => p.EndsWith("ová") || (p.EndsWith("á") && p.Length > 3)) ? Anonymizace.Rod.Zena : Anonymizace.Rod.Muz;
+        if (krestni.Count > 0)
+        {
+            var vSeznamu = krestni.Distinct().Where(Detektor.JeVSeznamuJmen).ToList();
+            jmeno = vSeznamu
+                .OrderByDescending(k => { var r = Sklonovani.UrciRod(k, null); var v = Vzor.Urci(k, r); return krestni.Count(x => v.UrciPad(x) is not null); })
+                .ThenBy(k => k.Length)
+                .FirstOrDefault() ?? Sklonovani.ZakladniTvar(krestni, rod);
+            if (!prijmeni.Any(p => p.EndsWith("ová"))) rod = Sklonovani.UrciRod(jmeno, null);
+        }
+        e.Rod = rod;
+        e.Jmeno = jmeno;
+        e.Prijmeni = Sklonovani.ZakladniTvar(prijmeni, rod);
+    }
+
+    /// <summary>
+    /// Převezme pseudonymy z klíče jiného spisu: stejná osoba (podle tvarů jména)
+    /// dostane stejné vymyšlené jméno nebo náhradu a roli. Osoby, které ve spisu
+    /// zatím nejsou, se přidají, aby je program poznal v budoucích dokumentech.
+    /// Vrátí počet převzatých a přidaných entit.
+    /// </summary>
+    public static (int Prevzato, int Pridano) Prevezmi(Klic cil, Klic zdroj)
+    {
+        int prevzato = 0, pridano = 0;
+        foreach (var z in zdroj.Entity.Where(z => z.Akce != Akce.Ponechat))
+        {
+            var shoda = cil.Entity.FirstOrDefault(c => c.Typ == z.Typ && z.Tvary.Any(tz => c.Tvary.Any(tc =>
+                tz.Count == tc.Count && tz.Zip(tc).All(p => Nazvy.JeCiselny(c.Typ)
+                    ? Text.JenCislice(p.First) == Text.JenCislice(p.Second)
+                    : Text.StejneSlovo(p.First, p.Second)))));
+            if (shoda is null)
+            {
+                shoda = cil.Nova(z.Typ, z.Tvary[0]);
+                shoda.Tvary = z.Tvary.Select(t => t.ToList()).ToList();
+                shoda.Akce = z.Akce;
+                pridano++;
+            }
+            else prevzato++;
+            shoda.PseudoJmeno = z.PseudoJmeno;
+            shoda.PseudoPrijmeni = z.PseudoPrijmeni;
+            shoda.VlastniNahrada = z.VlastniNahrada;
+            shoda.Inicialy = z.Inicialy;
+            shoda.Role ??= z.Role;
+            shoda.Jmeno ??= z.Jmeno;
+            shoda.Prijmeni ??= z.Prijmeni;
+            shoda.Rod ??= z.Rod;
+        }
+        return (prevzato, pridano);
     }
 
     /// <summary>Ruční označení slov jako údaje. Připojí je k existující entitě, nebo založí novou.</summary>
@@ -151,6 +281,50 @@ public static class Anonymizator
         return vysledek.OrderBy(v => v.Od).ToList();
     }
 
+    /// <summary>
+    /// Náhrada konkrétního výskytu. U vymyšleného jména ve stejném pádě jako v textu
+    /// (Nováka → Jasaníka), jinak <see cref="Entita.TextNahrady"/>.
+    /// </summary>
+    public static string NahradaVyskytu(Entita e, IReadOnlyList<string> slova, int od, int @do)
+    {
+        if (!e.MaVymysleneJmeno) return e.TextNahrady;
+        var rod = e.Rod ?? Rod.Muz;
+        var skutJ = e.Jmeno is null ? null : Vzor.Urci(e.Jmeno, rod);
+        var skutP = Vzor.Urci(e.Prijmeni!, rod);
+        var pseudoJ = e.PseudoJmeno is null ? null : Vzor.Urci(e.PseudoJmeno, rod);
+        var pseudoP = Vzor.Urci(e.PseudoPrijmeni!, rod);
+        var casti = new List<string>();
+        for (int i = od; i <= @do; i++)
+        {
+            var slovo = Text.Ocisti(slova[i]);
+            if (skutJ is not null && pseudoJ is not null && skutJ.UrciPad(slovo) is Pad pj && !(skutP.UrciPad(slovo) is not null && i == @do))
+                casti.Add(pseudoJ.Tvar(pj));
+            else if (skutP.UrciPad(slovo) is Pad pp)
+                casti.Add(pseudoP.Tvar(pp));
+            else if (pseudoJ is not null && e.Jmeno is not null && Text.StejneSlovo(e.Jmeno, slovo) && i < @do)
+                casti.Add(pseudoJ.Tvar(Pad.N));
+            else
+                casti.Add(pseudoP.Tvar(Pad.N)); // tvar neznáme, zůstane 1. pád
+        }
+        return string.Join(" ", casti);
+    }
+
+    /// <summary>Je slovo tvarem některého vymyšleného jména nebo vlastní náhrady z klíče?</summary>
+    public static bool JePseudonym(Klic klic, string slovo)
+    {
+        var c = Text.Ocisti(slovo);
+        foreach (var e in klic.Entity)
+        {
+            var rod = e.Rod ?? Rod.Muz;
+            if (e.PseudoJmeno is not null && Vzor.Urci(e.PseudoJmeno, rod).UrciPad(c) is not null) return true;
+            if (e.PseudoPrijmeni is not null && Vzor.Urci(e.PseudoPrijmeni, rod).UrciPad(c) is not null) return true;
+            if (!string.IsNullOrWhiteSpace(e.VlastniNahrada) &&
+                e.VlastniNahrada.Split(' ', StringSplitOptions.RemoveEmptyEntries).Any(s => Text.StejneSlovo(s, c))) return true;
+            if (e.Akce == Akce.Ponechat && e.Tvary.Any(t => t.Any(s => Text.StejneSlovo(s, c)))) return true;
+        }
+        return false;
+    }
+
     /// <summary>Anonymizovaný text strany, řádky zůstávají zachované.</summary>
     public static string AnonymizovanyText(VysledekOcr v, Klic klic)
     {
@@ -166,7 +340,7 @@ public static class Anonymizator
             var konec = posledni[(Math.Max(0, posledni.IndexOf(ocistene, StringComparison.Ordinal)) + ocistene.Length)..];
             var zacatek = slova[x.Od];
             var pred = zacatek[..Math.Max(0, zacatek.IndexOf(Text.Ocisti(zacatek), StringComparison.Ordinal))];
-            nahrada[x.Od] = pred + x.Entita.Nahrada + (konec.Length <= 2 ? konec : "");
+            nahrada[x.Od] = pred + NahradaVyskytu(x.Entita, slova, x.Od, x.Do) + (konec.Length <= 2 ? konec : "");
             for (int i = x.Od + 1; i <= x.Do; i++) vynechat[i] = true;
         }
 

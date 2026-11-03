@@ -44,6 +44,8 @@ public static class Export
 
         var cil = Path.Combine(koren, spis.Id);
         var docasna = cil + ".zapisuje";
+        // výstupy od Clauda z minula zůstanou
+        var vystupy = Path.Combine(cil, "vystup");
         if (Directory.Exists(docasna)) Directory.Delete(docasna, recursive: true);
         Directory.CreateDirectory(Path.Combine(docasna, "strany"));
 
@@ -51,8 +53,17 @@ public static class Export
             File.WriteAllText(Path.Combine(docasna, "strany", $"{strana.Cislo:D4}.md"),
                 $"# {spis.Id}, strana {strana.Cislo}\n\n{text}", new UTF8Encoding(false));
 
-        var entity = klic.Entity.Where(e => e.Akce == Akce.Pseudonym)
-            .Select(e => new { id = e.Id, typ = Nazvy.Typ(e.Typ), role = e.Role });
+        // jen náhrady a role, nikdy skutečné hodnoty (kromě údajů, které advokátka ponechala)
+        var entity = klic.Entity.Where(e => e.Akce != Akce.Odstranit)
+            .Select(e => new
+            {
+                nahrada = e.TextNahrady,
+                typ = Nazvy.Typ(e.Typ),
+                rod = e.Typ == TypUdaje.Osoba && e.Rod is { } r ? (r == Rod.Zena ? "žena" : "muž") : null,
+                role = e.Role,
+                patri_k = klic.Podle(e.PatriK)?.TextNahrady,
+                ponechano = e.Akce == Akce.Ponechat ? true : (bool?)null,
+            });
         File.WriteAllText(Path.Combine(docasna, "entity.json"),
             JsonSerializer.Serialize(new { spis = spis.Id, entity }, Json), new UTF8Encoding(false));
         File.WriteAllText(Path.Combine(docasna, "manifest.json"),
@@ -64,6 +75,8 @@ public static class Export
             }, Json), new UTF8Encoding(false));
 
         // celý spis se vymění najednou, aby v ProClaude nezůstaly staré strany
+        if (Directory.Exists(vystupy)) Directory.Move(vystupy, Path.Combine(docasna, "vystup"));
+        else Directory.CreateDirectory(Path.Combine(docasna, "vystup"));
         if (Directory.Exists(cil)) Directory.Delete(cil, recursive: true);
         Directory.Move(docasna, cil);
         ZapisPravidla(koren);
@@ -97,10 +110,13 @@ public static class Export
 
         foreach (var n in Detektor.Najdi(slova, radky))
         {
-            var usek = string.Join(" ", slova.Skip(n.Od).Take(n.Do - n.Od + 1));
+            var usekSlova = slova.Skip(n.Od).Take(n.Do - n.Od + 1).ToList();
+            var usek = string.Join(" ", usekSlova);
             if (n.Do == n.Od && klic.Vyjimky.Contains(Text.Normalizuj(usek))) continue;
             if (klic.Entity.Any(e => e.Akce == Akce.Ponechat && e.Tvary.Any(t => Text.Normalizuj(string.Join(" ", t)) == Text.Normalizuj(usek))))
                 continue;
+            // vymyšlená jména a vlastní náhrady jsou v pořádku
+            if (usekSlova.All(s => Anonymizator.JePseudonym(klic, s) || klic.Vyjimky.Contains(Text.Normalizuj(s)))) continue;
             if (Nove(n.Od, n.Do)) problemy.Add($"zůstal nerozpoznaný údaj ({Nazvy.Typ(n.Typ)}): „{usek}“");
         }
         foreach (var x in Anonymizator.Vyskyty(slova, klic))
@@ -108,25 +124,67 @@ public static class Export
         return problemy;
     }
 
+    /// <summary>
+    /// Zapíše pravidla pro Clauda. PRAVIDLA-KONCIPIENT.md se přepisuje při každém
+    /// exportu, CLAUDE.md jen vytvoří a odkáže na ně, aby si ho advokátka mohla doplnit.
+    /// </summary>
     private static void ZapisPravidla(string koren)
     {
-        var cesta = Path.Combine(koren, "CLAUDE.md");
-        if (File.Exists(cesta)) return;
-        File.WriteAllText(cesta, """
-            # Anonymizované spisy
+        File.WriteAllText(Path.Combine(koren, "PRAVIDLA-KONCIPIENT.md"), Pravidla, new UTF8Encoding(false));
+        var claude = Path.Combine(koren, "CLAUDE.md");
+        if (!File.Exists(claude))
+            File.WriteAllText(claude, """
+                # Práce se spisy advokátní kanceláře
 
-            Každá podsložka `S-0001` je jeden spis, každá strana je v `strany/0001.md`.
+                @PRAVIDLA-KONCIPIENT.md
 
-            - Osoby, firmy, adresy, nemovitosti a spisové značky jsou nahrazené pseudonymy
-              v hranatých závorkách, např. `[OSOBA_001]`. Stejný pseudonym znamená stejnou
-              osobu ve všech stranách spisu. Role osob jsou v `entity.json`, pokud je
-              advokátka vyplnila.
-            - `[ODSTRANĚNO: telefon]` a podobně znamená, že údaj byl úplně vynechán.
-            - Pseudonymy ve výstupu zachovej přesně, včetně závorek. Advokátka je pak
-              v programu Koncipient nahradí skutečnými jmény. Skloňuj okolní text,
-              pseudonym samotný neměň.
-            - Nepokoušej se zjistit, kdo se za pseudonymem skrývá.
-            - Text vznikl z fotek automatickým přepisem (OCR), může obsahovat překlepy.
-            """, new UTF8Encoding(false));
+                Sem si můžeš dopsat vlastní pokyny (styl podání, oblíbené formulace…).
+                """, new UTF8Encoding(false));
     }
+
+    public const string Pravidla = """
+        # Pravidla pro práci s anonymizovanými spisy
+
+        Tyto soubory připravil program Koncipient. Spisy pocházejí z advokátní kanceláře
+        a jsou anonymizované: skutečná jména, adresy a další údaje zůstaly na jiném
+        počítači. Pracuješ jako koncipient české advokátky podle českého práva.
+
+        ## Kde co je
+
+        - Každá podsložka `S-0001`, `S-0002`… je jeden spis. Číslo spisu je pseudonym.
+        - `strany/0001.md` je text jedné strany spisu, přepsaný z fotky automaticky (OCR).
+          Může obsahovat překlepy a chybějící diakritiku. Když je místo nečitelné nebo
+          nejasné, napiš to, nedomýšlej si ho.
+        - `entity.json` vyjmenovává náhrady použité ve spisu, jejich typ, rod a roli ve věci
+          (žalobce, svědek…) a ke komu patří adresy a další údaje.
+        - Výstupy ukládej do `vystup/` v příslušném spisu jako Markdown (`.md`). Odtud si je
+          advokátka přenese zpět a program do nich vrátí skutečná jména a uloží je jako Word.
+
+        ## Náhrady jmen a údajů
+
+        - Osoby mají vymyšlená jména (např. Bohdan Jasaník, Radmila Habráková). Jsou to
+          pseudonymy, ne skutečná jména. Používej je přesně v této podobě a normálně je
+          skloňuj podle češtiny, rod odpovídá skutečné osobě.
+        - Některé údaje jsou nahrazené kódy v hranatých závorkách, např. `[ADRESA_001]`,
+          `[FIRMA_002]` nebo `[OSOBA_003]`. Kódy přepisuj přesně, včetně závorek, a neskloňuj
+          je. Stejný kód znamená stejnou věc ve všech stranách spisu.
+        - `[ODSTRANĚNO: telefon]` a podobně znamená, že údaj byl úplně vynechán. Nevymýšlej ho.
+        - Údaje, které anonymizované nejsou (soudy, úřady, obce, data, částky, paragrafy),
+          jsou skutečné.
+        - Nepokoušej se zjistit, kdo se za pseudonymem skrývá, a nespojuj pseudonymy
+          z různých spisů. Stejné vymyšlené jméno ve dvou spisech nemusí být stejný člověk.
+
+        ## Nové osoby a údaje
+
+        Když potřebuješ zmínit osobu, místo nebo údaj, který ve spisu není (advokátka ti ho
+        řekla v zadání, nebo jde o místo k doplnění), nepiš vymyšlené jméno. Napiš značku
+        `[NOVÁ OSOBA: popis]`, `[NOVÉ MÍSTO: popis]` nebo `[DOPLNIT: co]`, např.
+        `[NOVÁ OSOBA: znalec z oboru stavebnictví]`. Advokátka je při zpětném zpracování
+        doplní.
+
+        ## Odkazy na spis
+
+        Při odkazu na podklady uváděj spis a stranu, např. „(S-0001, s. 3)“, aby advokátka
+        místo rychle našla na původní fotce.
+        """;
 }
