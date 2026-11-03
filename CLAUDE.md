@@ -6,7 +6,7 @@ Komunikuj česky. Úplný návrh je v [docs/navrh.md](docs/navrh.md).
 
 ## Stav
 
-K 2026-11-02 proběhlo první kolo testu OCR (skripty v `ocr_test/`, výsledky v návrhu). Doporučení: vyrovnání osvětlení, Tesseract a PaddleOCR sloučené přes český slovník, dávkové zpracování přes noc. Program bude v C# ve Visual Studiu. Návrh čeká na Matějovo schválení.
+K 2026-11-02 proběhlo první kolo testu OCR (skripty v `ocr_test/`, výsledky v návrhu). Doporučení: vyrovnání osvětlení, Tesseract a PaddleOCR sloučené přes český slovník, dávkové zpracování přes noc. Program bude v C# ve Visual Studiu. K 2026-11-03 existuje knihovna `src/Koncipient.Ocr` a konzolový test `src/Koncipient.OcrTest`, ověřené v cloudu proti Python skriptům. Čeká se na spuštění testu na Matějově notebooku a na vzorky rukopisu.
 
 Test běžel na fotkách z Matějova vlastního archivu stavebního úřadu, které dal výslovně k dispozici. Nejsou to spisy advokátky a do repozitáře nepatří ani ony, ani jejich přepisy.
 

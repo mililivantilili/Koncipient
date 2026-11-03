@@ -39,10 +39,10 @@ Program bude v C# na .NET s rozhraním WPF, vyvíjený ve Visual Studiu, které 
 | --- | --- | --- |
 | Úprava fotky | Vyrovnání osvětlení (odečtení odhadnutého pozadí) | V testu snížila chyby Tesseractu z 16–25 % na 1–3 % znaků |
 | OCR, motor 1 | Tesseract s češtinou | Rychlý (sekundy na stranu), nejméně chyb v souvislém textu, ztrácí desetinné čárky a levý okraj šikmých fotek |
-| OCR, motor 2 | PaddleOCR PP-OCRv6, česky | Pomalý (desítky sekund na stranu), přesná čísla a tabulky, občas ztratí čárku nad í |
+| OCR, motor 2 | PaddleOCR PP-OCRv6, česky | Pomalejší (v C# kolem 10–15 s na stranu na 4 jádrech), přesná čísla a tabulky, občas ztratí čárku nad í |
 | Sloučení | Shodná slova platí, sporná rozhodne český slovník, u čísel má přednost PaddleOCR | V testu nejvíc přesně přepsaných citlivých údajů (33 z 34) |
-| Dávkové zpracování | Import fotek a OCR na pozadí, třeba přes noc | Na slabém počítači advokátky je PaddleOCR pomalý, čas ale nevadí |
-| OCR v C# | Tesseract přes knihovnu pro .NET, PaddleOCR přes ONNX Runtime | Je třeba ověřit, že české modely PP-OCRv6 běží v C# stejně jako v Pythonu. Záložní řešení je přibalený pomocný program v Pythonu |
+| Dávkové zpracování | Import fotek a OCR na pozadí, třeba přes noc | Na slabém počítači advokátky může PaddleOCR trvat i desítky sekund na stranu, čas ale nevadí |
+| OCR v C# | Tesseract přes NuGet `Tesseract`, PaddleOCR přes ONNX Runtime s oficiálními ONNX modely PP-OCRv6 | Ověřeno 2026-11-03 v cloudu: stejné výsledky jako Python, PaddleOCR 9–16 s na stranu místo 60–80 s. Kód je v `src/Koncipient.Ocr` |
 | Windows OCR | Možný třetí motor | Ověřit na Matějově notebooku, v cloudu ho nejde spustit |
 | Rukopis | Zatím jen označení „nutné přepsat ručně“ | Vzorky rukopisu zatím chybí, spolehlivé místní řešení pro český rukopis nenalezeno |
 | Rozdělené zobrazení | Text vlevo, fotka vpravo, zoom, kliknutí propojí slovo a místo na fotce | Sporná místa ze sloučení a slova s nízkou jistotou jsou podbarvená |
@@ -119,7 +119,7 @@ Tato struktura je datová složka programu u advokátky, ne složka tohoto repoz
 
 ## Plán po etapách
 
-1. **Test OCR.** První kolo je hotové, viz výsledky výše. Zbývá vyzkoušet rukopis, ověřit PaddleOCR a Tesseract v C# na Matějově notebooku a porovnat s Windows OCR. Advokátka pak spustí srovnání na pár skutečných fotkách u sebe, aby se nic neposílalo ven.
+1. **Test OCR.** První kolo je hotové, viz výsledky výše. Obě OCR v C# dávají stejné výsledky jako Python. Zbývá vyzkoušet rukopis, spustit `Koncipient.OcrTest` na Matějově notebooku (rychlost na Windows, Windows OCR). Advokátka pak spustí srovnání na pár skutečných fotkách u sebe, aby se nic neposílalo ven.
 2. **Prohlížeč.** Import fotek, noční OCR, rozdělené zobrazení a oprava textu.
 3. **Anonymizace a export.** Návrhy údajů, schvalování, klíč pseudonymů, složka `ProClaude` a kontrola před zápisem.
 4. **Propojení s Claude Code.** `CLAUDE.md`, pravidla přístupu a dosazení skutečných jmen zpět do výstupu.
@@ -131,7 +131,6 @@ Tato struktura je datová složka programu u advokátky, ne složka tohoto repoz
 - Složka `Spisy` není šifrovaná. Ochranu dává jen to, že na počítači A neběží Claude Code ani jiný cloudový nástroj. Při krádeži počítače pomůže šifrování disku ve Windows (BitLocker), které je mimo program.
 - Druhý počítač je pro advokátku náklad navíc. Pokud ho mít nebude, Koncipient funguje i na jednom počítači, jen bez téhle ochrany.
 - Matějův notebook má 8 GB RAM. To na lehké OCR stačí, na místní jazykový model spíš ne. Advokátka nemá silný počítač, přesné parametry nejsou známé. PaddleOCR na něm může trvat i minutu na stranu, proto dávkové zpracování přes noc.
-- Převod PaddleOCR do C# nemusí dát stejnou přesnost jako v Pythonu. Ověří se jako první krok vývoje.
 - Žádné OCR nepřepíše všechno správně. Chybně přečtené jméno může projít anonymizací, proto hledání údajů toleruje chyby a advokátka export schvaluje.
 
 ## Zdroje
