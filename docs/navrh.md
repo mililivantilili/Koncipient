@@ -114,6 +114,21 @@ Citlivé údaje jsou jména, adresy, čísla parcel, telefon, e-mail, data a č�
 - PaddleOCR umí na Windows počítat na grafické kartě přes DirectML (funguje i s integrovanou grafikou). Program zkusí nejvýkonnější kartu a jinak počítá na procesoru. Na Matějově notebooku (GTX 1050 a Intel UHD 630) trvala strana na procesoru 13–22 s, na grafice 6–11 s, text se od procesoru lišil v 0,7 % slov. Jedna z grafik selhala pro nedostatek paměti až během výpočtu, proto se motor při chybě grafiky přepne na procesor a stranu zopakuje. Automatická volba použila NVIDIA GTX 1050 (podle Správce úloh naplno vytížená, Intel ne). Pořadí grafik v DirectML neodpovídá číslování ve Správci úloh, proto se má používat automatická volba, ne číslo grafiky.
 - Test neotáčí fotky, takže strana vyfocená vzhůru nohama vyšla nečitelná. Prohlížeč ji před přepisem otočí.
 
+## Měření anonymizace na vymyšlené sadě (2026-11-03)
+
+Šest vymyšlených dokumentů (žaloba, rozsudek, kupní smlouva, plná moc, předvolání, výpis z obchodního rejstříku) s 87 vyznačenými údaji, vytištěných jako fotky z telefonu (`vzory/`). Měřeno nástrojem `tools/Koncipient.MereniAnonymizace`:
+
+| | Uniklo údajů před úpravou | Uniklo po úpravě |
+| --- | --- | --- |
+| Bezchybný text (jen detektor) | 16 z 87 | 0 z 87 |
+| OCR z fotek (PaddleOCR a Tesseract v cloudu) | nezměřeno | 0 z 87 |
+
+- Úniky byly hlavně ulice s číslem domu, čísla jednací úřadů, data narození s měsícem slovy, evidenční číslo advokáta, SPZ, číslo dokladu a rodné příjmení („rozená …“).
+- Vážná chyba, kterou měření našlo: manželé Pokusný a Pokusná se sloučili do jedné osoby, protože porovnání bez diakritiky nerozlišilo rod. Teď se muž a žena podle koncovky (-ý, -ého, -ovi × -á, -ová, -ovou) nikdy nesloučí.
+- Přes OCR unikaly adresy rozdělené zalomením řádku na fotce. Pravidla teď přecházejí přes konec řádku mezi PSČ a obcí, za „k. ú.“ a mezi ulicí a číslem.
+- Nahrazená navíc jsou jen jména soudkyně a úřednice. Program jim dá roli „veřejná osoba“, advokátka je nechá neanonymizované.
+- Dokumenty i pravidla psal stejný autor, výsledek je proto spíš horní odhad. Automatický test hlídá, že se detektor na sadě nezhorší. Měření s Windows OCR musí proběhnout na Windows.
+
 ## Struktura složek a formát dat
 
 Spisy a export jsou dvě oddělené složky. Na počítač s Claude Code se přenáší jen export, Claude Code se spouští v něm. Každá strana je samostatný Markdown.

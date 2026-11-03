@@ -63,6 +63,32 @@ public static class Text
         return false;
     }
 
+    /// <summary>
+    /// Rod podle koncovky příjmení nebo jména, když je jednoznačný: -ová, -ové, -ovou, -á je žena,
+    /// -ý, -ého, -ému, -ým, -ovi, -em je muž. Jinak null.
+    /// </summary>
+    public static Rod? RodPodleKoncovky(string slovo)
+    {
+        var s = Ocisti(slovo).ToLowerInvariant();
+        if (s.Length < 3) return null;
+        if (s.EndsWith("ová") || s.EndsWith("ové") || s.EndsWith("ovou") || s.EndsWith("á")) return Rod.Zena;
+        if (s.EndsWith("ý") || s.EndsWith("ého") || s.EndsWith("ému") || s.EndsWith("ým") || s.EndsWith("ovi") || s.EndsWith("em"))
+            return Rod.Muz;
+        return null;
+    }
+
+    /// <summary>
+    /// Stejné jméno osoby: stejné slovo (viz <see cref="StejneSlovo"/>) a nesmí jít o muže a ženu,
+    /// jinak by se sloučili třeba manželé Pokusný a Pokusná.
+    /// </summary>
+    public static bool StejneJmenoOsoby(string a, string b)
+    {
+        if (!StejneSlovo(a, b)) return false;
+        var ra = RodPodleKoncovky(a);
+        var rb = RodPodleKoncovky(b);
+        return ra is null || rb is null || ra == rb;
+    }
+
     public static int Levenshtein(string a, string b)
     {
         var predchozi = new int[b.Length + 1];

@@ -1,0 +1,131 @@
+{
+ "text": "Okresnímu soudu ve Vymyšlenicích\nSmyšlená 1, 999 01 Vymyšlenice\n\nŽalobce: Ing. Petr Pokusný, nar. 12. 3. 1975, bytem Fiktivní 123/4, 999 02 Lhota u Nikde\nzastoupen advokátkou JUDr. Hana Smyšlenková, ev. č. ČAK 99999, se sídlem Neexistující 7, 999 01 Vymyšlenice\n\nŽalovaná: Pokusné stavby s.r.o., IČO 99887766, se sídlem Zkušební 45, 999 03 Nikdov\n\nŽaloba o zaplacení 245 000 Kč s příslušenstvím\n\nI.\nŽalobce uzavřel dne 5. 1. 2026 se žalovanou smlouvu o dílo, jejímž předmětem byla rekonstrukce rodinného domu žalobce na pozemku parc. č. 1234/5 v k. ú. Lhota u Nikde. Cena díla činila 1 200 000 Kč.\n\nII.\nŽalobce zaplatil zálohu 245 000 Kč na účet žalované č. 123456789/0000. Žalovaná dílo nedokončila. Jednatel žalované pan Karel Vzoreček žalobci dne 2. 3. 2026 telefonicky z čísla +420 999 123 456 sdělil, že práce nebudou pokračovat. Svědkem hovoru byla manželka žalobce paní Jana Pokusná.\n\nIII.\nŽalobce vyzval žalovanou k vrácení zálohy dopisem ze dne 10. 3. 2026, který byl panu Vzorečkovi doručen i e-mailem na adresu karel.vzorecek@example.cz. Na výzvu žalovaná nereagovala.\n\nDůkazy: smlouva o dílo, výpis z účtu, výslech svědkyně Jany Pokusné, výslech Karla Vzorečka.\n\nŽalobce navrhuje, aby soud vydal tento rozsudek: Žalovaná je povinna zaplatit žalobci částku 245 000 Kč spolu s úrokem z prodlení do tří dnů od právní moci rozsudku.\n\nVe Vymyšlenicích dne 1. 4. 2026\nJUDr. Hana Smyšlenková, advokátka\n",
+ "udaje": [
+  {
+   "typ": "adresa",
+   "hodnota": "999 01 Vymyšlenice",
+   "od": 45,
+   "do": 63
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Ing. Petr Pokusný",
+   "od": 74,
+   "do": 91
+  },
+  {
+   "typ": "narozeni",
+   "hodnota": "12. 3. 1975",
+   "od": 98,
+   "do": 109
+  },
+  {
+   "typ": "adresa",
+   "hodnota": "Fiktivní 123/4, 999 02 Lhota u Nikde",
+   "od": 117,
+   "do": 153
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "JUDr. Hana Smyšlenková",
+   "od": 175,
+   "do": 197
+  },
+  {
+   "typ": "jiny",
+   "hodnota": "99999",
+   "od": 210,
+   "do": 215
+  },
+  {
+   "typ": "adresa",
+   "hodnota": "Neexistující 7, 999 01 Vymyšlenice",
+   "od": 227,
+   "do": 261
+  },
+  {
+   "typ": "firma",
+   "hodnota": "Pokusné stavby s.r.o.",
+   "od": 273,
+   "do": 294
+  },
+  {
+   "typ": "ico",
+   "hodnota": "99887766",
+   "od": 300,
+   "do": 308
+  },
+  {
+   "typ": "adresa",
+   "hodnota": "Zkušební 45, 999 03 Nikdov",
+   "od": 320,
+   "do": 346
+  },
+  {
+   "typ": "nemovitost",
+   "hodnota": "parc. č. 1234/5",
+   "od": 528,
+   "do": 543
+  },
+  {
+   "typ": "adresa",
+   "hodnota": "k. ú. Lhota u Nikde",
+   "od": 546,
+   "do": 565
+  },
+  {
+   "typ": "ucet",
+   "hodnota": "123456789/0000",
+   "od": 658,
+   "do": 672
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Karel Vzoreček",
+   "od": 723,
+   "do": 737
+  },
+  {
+   "typ": "telefon",
+   "hodnota": "+420 999 123 456",
+   "od": 781,
+   "do": 797
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Jana Pokusná",
+   "od": 877,
+   "do": 889
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Vzorečkovi",
+   "od": 982,
+   "do": 992
+  },
+  {
+   "typ": "email",
+   "hodnota": "karel.vzorecek@example.cz",
+   "od": 1022,
+   "do": 1047
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Jany Pokusné",
+   "od": 1136,
+   "do": 1148
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Karla Vzorečka",
+   "od": 1158,
+   "do": 1172
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "JUDr. Hana Smyšlenková",
+   "od": 1374,
+   "do": 1396
+  }
+ ]
+}

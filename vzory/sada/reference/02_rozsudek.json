@@ -1,0 +1,77 @@
+{
+ "text": "12 C 345/2026-87\n\nČESKÁ REPUBLIKA\nROZSUDEK\nJMÉNEM REPUBLIKY\n\nOkresní soud ve Vymyšlenicích rozhodl samosoudkyní Mgr. Alenou Soudnou ve věci\nžalobce: Ing. Petr Pokusný, narozený 12. 3. 1975, bytem Fiktivní 123/4, 999 02 Lhota u Nikde,\nzastoupený advokátkou JUDr. Hanou Smyšlenkovou,\nproti žalované: Pokusné stavby s.r.o., IČO 99887766, sídlem Zkušební 45, 999 03 Nikdov,\no zaplacení 245 000 Kč s příslušenstvím\n\ntakto:\n\nI. Žalovaná je povinna zaplatit žalobci částku 245 000 Kč s úrokem z prodlení ve výši 8,75 % ročně od 15. 3. 2026 do zaplacení, a to do tří dnů od právní moci tohoto rozsudku.\n\nII. Žalovaná je povinna zaplatit žalobci na náhradě nákladů řízení částku 48 520 Kč k rukám advokátky JUDr. Hany Smyšlenkové.\n\nOdůvodnění:\nŽalobce se žalobou domáhal vrácení zálohy na cenu díla. Soud provedl výslech svědkyně Jany Pokusné, která potvrdila, že jednatel žalované Karel Vzoreček žalobci sdělil ukončení prací. Soud vyslechl také Karla Vzorečka, jehož výpověď považoval za účelovou. Podle § 2586 občanského zákoníku je zhotovitel povinen dílo provést. Žalovaná dílo neprovedla a zálohu nevrátila, proto soud žalobě vyhověl.\n\nPoučení: Proti tomuto rozsudku lze podat odvolání do 15 dnů ode dne doručení ke Krajskému soudu v Pokusově prostřednictvím soudu podepsaného.\n\nVe Vymyšlenicích dne 20. 6. 2026\nMgr. Alena Soudná, samosoudkyně\n",
+ "udaje": [
+  {
+   "typ": "znacka",
+   "hodnota": "12 C 345/2026",
+   "od": 0,
+   "do": 13
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Ing. Petr Pokusný",
+   "od": 149,
+   "do": 166
+  },
+  {
+   "typ": "narozeni",
+   "hodnota": "12. 3. 1975",
+   "od": 177,
+   "do": 188
+  },
+  {
+   "typ": "adresa",
+   "hodnota": "Fiktivní 123/4, 999 02 Lhota u Nikde",
+   "od": 196,
+   "do": 232
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "JUDr. Hanou Smyšlenkovou",
+   "od": 256,
+   "do": 280
+  },
+  {
+   "typ": "firma",
+   "hodnota": "Pokusné stavby s.r.o.",
+   "od": 298,
+   "do": 319
+  },
+  {
+   "typ": "ico",
+   "hodnota": "99887766",
+   "od": 325,
+   "do": 333
+  },
+  {
+   "typ": "adresa",
+   "hodnota": "Zkušební 45, 999 03 Nikdov",
+   "od": 342,
+   "do": 368
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "JUDr. Hany Smyšlenkové",
+   "od": 698,
+   "do": 720
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Jany Pokusné",
+   "od": 821,
+   "do": 833
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Karel Vzoreček",
+   "od": 873,
+   "do": 887
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Karla Vzorečka",
+   "od": 938,
+   "do": 952
+  }
+ ]
+}

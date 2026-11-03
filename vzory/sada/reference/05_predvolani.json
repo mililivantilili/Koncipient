@@ -1,0 +1,65 @@
+{
+ "text": "Městský úřad Vymyšlenice\nodbor dopravy\nSmyšlená 1, 999 01 Vymyšlenice\n\nČ. j.: MUVY 12345/2026\nSpis. zn.: S-MUVY 678/2026/DOP\nVyřizuje: Bc. Ivana Úřední, tel. 999 000 111\n\nPan\nOndřej Zkoušek\nPokusná 3, 999 06 Fikcov\n\nPŘEDVOLÁNÍ\n\nSprávní orgán Vás předvolává jako obviněného z přestupku k ústnímu jednání, které se bude konat dne 10. 9. 2026 v 9:00 hodin v kanceláři č. 112.\n\nDne 3. 8. 2026 jste řídil osobní automobil RZ 9X9 9999 a překročil nejvyšší dovolenou rychlost. Přestupek zjistila hlídka Policie ČR. Jako svědek bude vyslechnut pan Pavel Svědomitý, bytem Lesní 8, 999 06 Fikcov.\n\nPokud se nemůžete dostavit, omluvte se předem na e-mailu podatelna@example.cz nebo do datové schránky. K jednání si přineste občanský průkaz č. 999888777.\n\nUpozorňujeme pana Zkouška, že se může dát zastoupit.\n\nBc. Ivana Úřední, referentka\n",
+ "udaje": [
+  {
+   "typ": "znacka",
+   "hodnota": "MUVY 12345/2026",
+   "od": 78,
+   "do": 93
+  },
+  {
+   "typ": "znacka",
+   "hodnota": "S-MUVY 678/2026/DOP",
+   "od": 105,
+   "do": 124
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Ondřej Zkoušek",
+   "od": 175,
+   "do": 189
+  },
+  {
+   "typ": "adresa",
+   "hodnota": "Pokusná 3, 999 06 Fikcov",
+   "od": 190,
+   "do": 214
+  },
+  {
+   "typ": "jiny",
+   "hodnota": "9X9 9999",
+   "od": 420,
+   "do": 428
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Pavel Svědomitý",
+   "od": 540,
+   "do": 555
+  },
+  {
+   "typ": "adresa",
+   "hodnota": "Lesní 8, 999 06 Fikcov",
+   "od": 563,
+   "do": 585
+  },
+  {
+   "typ": "email",
+   "hodnota": "podatelna@example.cz",
+   "od": 645,
+   "do": 665
+  },
+  {
+   "typ": "jiny",
+   "hodnota": "999888777",
+   "od": 732,
+   "do": 741
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Zkouška",
+   "od": 762,
+   "do": 769
+  }
+ ]
+}

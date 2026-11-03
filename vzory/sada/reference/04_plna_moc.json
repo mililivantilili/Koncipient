@@ -1,0 +1,65 @@
+{
+ "text": "PLNÁ MOC\n\nJá, níže podepsaný Tomáš Pokusník, nar. 1. 1. 1980, bytem Dubová 22, 999 05 Vzorov,\n\nzmocňuji\n\nadvokátku JUDr. Hanu Smyšlenkovou, ev. č. ČAK 99999, IČO 99112233, se sídlem Neexistující 7, 999 01 Vymyšlenice,\n\naby mě zastupovala ve všech právních věcech, zejména ve věci koupě nemovitosti od paní Marie Nevšední, a to před soudy, správními orgány i jinými osobami.\n\nZmocněnkyně je oprávněna ustanovit za sebe zástupce. Tato plná moc se uděluje podle § 25 zákona č. 99/1963 Sb., občanský soudní řád.\n\nVe Vzorově dne 20. 5. 2026\n\nTomáš Pokusník, zmocnitel\n\nPlnou moc přijímám.\nJUDr. Hana Smyšlenková, advokátka\n",
+ "udaje": [
+  {
+   "typ": "osoba",
+   "hodnota": "Tomáš Pokusník",
+   "od": 29,
+   "do": 43
+  },
+  {
+   "typ": "narozeni",
+   "hodnota": "1. 1. 1980",
+   "od": 50,
+   "do": 60
+  },
+  {
+   "typ": "adresa",
+   "hodnota": "Dubová 22, 999 05 Vzorov",
+   "od": 68,
+   "do": 92
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "JUDr. Hanu Smyšlenkovou",
+   "od": 115,
+   "do": 138
+  },
+  {
+   "typ": "jiny",
+   "hodnota": "99999",
+   "od": 151,
+   "do": 156
+  },
+  {
+   "typ": "ico",
+   "hodnota": "99112233",
+   "od": 162,
+   "do": 170
+  },
+  {
+   "typ": "adresa",
+   "hodnota": "Neexistující 7, 999 01 Vymyšlenice",
+   "od": 182,
+   "do": 216
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Marie Nevšední",
+   "od": 306,
+   "do": 320
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Tomáš Pokusník",
+   "od": 537,
+   "do": 551
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "JUDr. Hana Smyšlenková",
+   "od": 584,
+   "do": 606
+  }
+ ]
+}

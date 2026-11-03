@@ -1,0 +1,25 @@
+Okresnímu soudu ve Vymyšlenicích
+Smyšlená 1, [[adresa|999 01 Vymyšlenice]]
+
+Žalobce: [[osoba|Ing. Petr Pokusný]], nar. [[narozeni|12. 3. 1975]], bytem [[adresa|Fiktivní 123/4, 999 02 Lhota u Nikde]]
+zastoupen advokátkou [[osoba|JUDr. Hana Smyšlenková]], ev. č. ČAK [[jiny|99999]], se sídlem [[adresa|Neexistující 7, 999 01 Vymyšlenice]]
+
+Žalovaná: [[firma|Pokusné stavby s.r.o.]], IČO [[ico|99887766]], se sídlem [[adresa|Zkušební 45, 999 03 Nikdov]]
+
+Žaloba o zaplacení 245 000 Kč s příslušenstvím
+
+I.
+Žalobce uzavřel dne 5. 1. 2026 se žalovanou smlouvu o dílo, jejímž předmětem byla rekonstrukce rodinného domu žalobce na pozemku [[nemovitost|parc. č. 1234/5]] v [[adresa|k. ú. Lhota u Nikde]]. Cena díla činila 1 200 000 Kč.
+
+II.
+Žalobce zaplatil zálohu 245 000 Kč na účet žalované č. [[ucet|123456789/0000]]. Žalovaná dílo nedokončila. Jednatel žalované pan [[osoba|Karel Vzoreček]] žalobci dne 2. 3. 2026 telefonicky z čísla [[telefon|+420 999 123 456]] sdělil, že práce nebudou pokračovat. Svědkem hovoru byla manželka žalobce paní [[osoba|Jana Pokusná]].
+
+III.
+Žalobce vyzval žalovanou k vrácení zálohy dopisem ze dne 10. 3. 2026, který byl panu [[osoba|Vzorečkovi]] doručen i e-mailem na adresu [[email|karel.vzorecek@example.cz]]. Na výzvu žalovaná nereagovala.
+
+Důkazy: smlouva o dílo, výpis z účtu, výslech svědkyně [[osoba|Jany Pokusné]], výslech [[osoba|Karla Vzorečka]].
+
+Žalobce navrhuje, aby soud vydal tento rozsudek: Žalovaná je povinna zaplatit žalobci částku 245 000 Kč spolu s úrokem z prodlení do tří dnů od právní moci rozsudku.
+
+Ve Vymyšlenicích dne 1. 4. 2026
+[[osoba|JUDr. Hana Smyšlenková]], advokátka

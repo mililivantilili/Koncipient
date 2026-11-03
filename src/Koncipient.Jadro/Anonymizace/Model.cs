@@ -49,6 +49,9 @@ public sealed class Entita
 
     public Rod? Rod { get; set; }
 
+    /// <summary>Rod podle okolních slov (paní, rozená, svědkyně…), když ho jméno samo neprozradí.</summary>
+    public Rod? RodZOkoli { get; set; }
+
     /// <summary>Vymyšlené jméno a příjmení, vybrané jednou a pak stálé.</summary>
     public string? PseudoJmeno { get; set; }
     public string? PseudoPrijmeni { get; set; }

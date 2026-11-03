@@ -50,7 +50,8 @@ public static class Anonymizator
             var slovo = slova[od + k];
             // jména osob a první slovo firmy se píšou velkým písmenem (Malý vs. malý)
             if ((e.Typ == TypUdaje.Osoba || (e.Typ == TypUdaje.Firma && k == 0)) && !Text.ZacinaVelkym(slovo)) return false;
-            if (!Text.StejneSlovo(tvar[k], slovo)) return false;
+            bool stejne = e.Typ == TypUdaje.Osoba ? Text.StejneJmenoOsoby(tvar[k], slovo) : Text.StejneSlovo(tvar[k], slovo);
+            if (!stejne) return false;
         }
         return true;
     }
@@ -108,6 +109,8 @@ public static class Anonymizator
                 else if (!e.Tvary.Any(t => t.Count == usek.Count && t.Zip(usek).All(p => p.First == Text.Ocisti(p.Second))))
                     e.Tvary.Add(usek.Select(Text.Ocisti).ToList());
 
+                if (n.Typ == TypUdaje.Osoba && n.Od > 0 && Detektor.RodZOkoli(slova[n.Od - 1]) is { } rodOkoli)
+                    e.RodZOkoli ??= rodOkoli;
                 if (n.Typ is TypUdaje.Osoba or TypUdaje.Firma)
                 {
                     // role stojí v hlavičce těsně před jménem: „Žalobce: Jan …“
@@ -213,6 +216,10 @@ public static class Anonymizator
                 .FirstOrDefault() ?? Sklonovani.ZakladniTvar(krestni, rod);
             if (!prijmeni.Any(p => p.EndsWith("ová"))) rod = Sklonovani.UrciRod(jmeno, null);
         }
+        else if (!prijmeni.Any(p => Text.RodPodleKoncovky(p) is not null) && e.RodZOkoli is { } okoli)
+        {
+            rod = okoli; // „rozená Zkušební“: koncovka -í rod neprozradí, slovo před jménem ano
+        }
         e.Rod = rod;
         e.Jmeno = jmeno;
         e.Prijmeni = Sklonovani.ZakladniTvar(prijmeni, rod);
@@ -232,7 +239,7 @@ public static class Anonymizator
             var shoda = cil.Entity.FirstOrDefault(c => c.Typ == z.Typ && z.Tvary.Any(tz => c.Tvary.Any(tc =>
                 tz.Count == tc.Count && tz.Zip(tc).All(p => Nazvy.JeCiselny(c.Typ)
                     ? Text.JenCislice(p.First) == Text.JenCislice(p.Second)
-                    : Text.StejneSlovo(p.First, p.Second)))));
+                    : c.Typ == TypUdaje.Osoba ? Text.StejneJmenoOsoby(p.First, p.Second) : Text.StejneSlovo(p.First, p.Second)))));
             if (shoda is null)
             {
                 shoda = cil.Nova(z.Typ, z.Tvary[0]);
@@ -355,6 +362,8 @@ public static class Anonymizator
             var posledni = slova[x.Do];
             var ocistene = Text.Ocisti(posledni);
             var konec = posledni[(Math.Max(0, posledni.IndexOf(ocistene, StringComparison.Ordinal)) + ocistene.Length)..];
+            // „s.r.o.,“: tečka patří ke zkratce, ne za náhradu
+            if (konec.StartsWith('.') && ocistene.Contains('.')) konec = konec[1..];
             var zacatek = slova[x.Od];
             var pred = zacatek[..Math.Max(0, zacatek.IndexOf(Text.Ocisti(zacatek), StringComparison.Ordinal))];
             nahrada[x.Od] = pred + NahradaVyskytu(x.Entita, slova, x.Od, x.Do) + (konec.Length <= 2 ? konec : "");

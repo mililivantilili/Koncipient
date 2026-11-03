@@ -16,6 +16,7 @@ Návod pro Matěje. V cloudové relaci jde program jen přeložit a otestovat j�
 | Test 3: fotky bez otočení | ✅ hotovo, otočení funguje (zbývá jedna drobná kontrola, viz níže) |
 | Test 4: anonymizace a export | ⬜ čeká |
 | Test 5: vrácení jmen a Word | ⬜ čeká |
+| Test 6: měření anonymizace s Windows OCR | ⬜ čeká, nepovinný, 5 minut |
 
 Hotové testy (✅) přeskoč, jejich postup je sbalený.
 
@@ -158,6 +159,15 @@ Místo skutečného Clauda stačí dokument napsat ručně.
 5. Otevři `ProClaude\PRAVIDLA-KONCIPIENT.md` a přečti si pravidla pro Clauda. [ ] Dávají smysl, nic nechybí?
 
 **Poslat:** co se vrátilo špatně (v jakém pádě a jaké jméno, klidně vymyšlené) a připomínky k pravidlům pro Clauda.
+
+## Test 6: měření anonymizace s Windows OCR (nepovinný, 5 minut)
+
+V repozitáři je vymyšlená sada šesti dokumentů vyfocených jako z telefonu (`vzory/sada`). Nástroj je prožene celým programem a spočítá, kolik vyznačených údajů proklouzlo do textu pro Clauda. V cloudu to jde jen s PaddleOCR a Tesseractem, u Tebe se zapojí i Windows OCR, tedy hlavní motor.
+
+1. Nastav `Koncipient.MereniAnonymizace` jako spouštěný projekt a stiskni F5. Nic nezadávej, nástroj sadu najde sám.
+2. Po dokončení vypíše tabulku podle typů údajů a seznam úniků. Výsledky uloží do `%TEMP%\koncipient-mereni`.
+
+**Poslat:** soubor `%TEMP%\koncipient-mereni\vysledek-ocr.txt` a tabulku z okna. Data jsou vymyšlená, takže poslat jde všechno, i anonymizované texty `anonymizovano-ocr-*.md`.
 
 ## Kde jsou data
 

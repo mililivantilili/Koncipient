@@ -92,6 +92,26 @@ public class VymyslenaJmenaTesty
     }
 
     [Fact]
+    public void ManzeleSeNeslouci()
+    {
+        var ocr = Vzor.Ocr("Žalobce Ing. Petr Pokusný a jeho manželka Jana Pokusná.\nPan Pokusný a paní Pokusná, svědkyně Jany Pokusné.\nJednatel Karel Vzoreček, panu Vzorečkovi, společnice Eva Vzorečková.");
+        var klic = new Klic();
+        var slova = Anonymizator.Slova(ocr);
+        foreach (var n in Detektor.Najdi(slova, Anonymizator.Radky(ocr)))
+            if (Anonymizator.NajdiEntitu(klic, n.Typ, slova, n.Od, n.Do) is null)
+                klic.Nova(n.Typ, slova.Skip(n.Od).Take(n.Do - n.Od + 1));
+        Anonymizator.DoplnOsoby(klic, slova);
+        var osoby = klic.Entity.Where(e => e.Typ == TypUdaje.Osoba).Select(e => e.Popis).OrderBy(p => p).ToList();
+        Assert.Equal(new[] { "Eva Vzorečková", "Jana Pokusná", "Karel Vzoreček", "Petr Pokusný" }, osoby);
+
+        var text = Anonymizator.AnonymizovanyText(ocr, klic);
+        var petr = klic.Entity.Single(e => e.Prijmeni == "Pokusný");
+        Assert.Contains($"Ing. {petr.PseudoJmeno} {petr.PseudoPrijmeni} a", text);
+        Assert.DoesNotContain("Pokusn", text);
+        Assert.DoesNotContain("Vzoreč", text);
+    }
+
+    [Fact]
     public void IniciályZustanou()
     {
         var klic = new Klic();

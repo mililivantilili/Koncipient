@@ -20,6 +20,7 @@ public static class Detektor
         "ing", "mgr", "judr", "mudr", "mvdr", "bc", "phdr", "rndr", "paeddr", "doc", "prof", "ph.d", "csc", "dis",
         "pan", "paní", "pana", "panu", "panem", "slečna", "p", "sp",
         "npor", "por", "kpt", "prap", "pprap", "mjr", "pplk", "plk", "nstržm", "stržm", "ppor", "šstržm",
+        "rozená", "rozený", "roz",
     };
 
     private static readonly HashSet<string> PravniFormy = new(StringComparer.OrdinalIgnoreCase)
@@ -70,6 +71,25 @@ public static class Detektor
         ["zamestnavatel"] = "zaměstnavatel", ["zamestnanec"] = "zaměstnanec", ["zamestnankyne"] = "zaměstnankyně",
         ["zastupce"] = "zástupce", ["zastoupen"] = "zástupce", ["zastoupena"] = "zástupce", ["investor"] = "investor",
         ["stavebnik"] = "stavebník", ["zadatel"] = "žadatel", ["zadatelka"] = "žadatelka", ["projektant"] = "projektant",
+        ["jednatel"] = "jednatel", ["jednatelka"] = "jednatelka", ["spolecnik"] = "společník", ["spolecnice"] = "společnice",
+        ["zmocnitel"] = "zmocnitel", ["zmocnenec"] = "zmocněnec",
+        // veřejné osoby: advokátka je obvykle nechá neanonymizované
+        ["samosoudkyni"] = "samosoudkyně (veřejná osoba)", ["samosoudkyne"] = "samosoudkyně (veřejná osoba)",
+        ["samosoudcem"] = "samosoudce (veřejná osoba)", ["samosoudce"] = "samosoudce (veřejná osoba)",
+        ["soudkyne"] = "soudkyně (veřejná osoba)", ["soudce"] = "soudce (veřejná osoba)",
+        ["vyrizuje"] = "úřední osoba (veřejná osoba)", ["referent"] = "referent (veřejná osoba)", ["referentka"] = "referentka (veřejná osoba)",
+    };
+
+    /// <summary>Rod osoby podle slova těsně před jménem (paní, rozená, svědkyně…), jinak null.</summary>
+    public static Rod? RodZOkoli(string slovo) => Text.Normalizuj(slovo).TrimEnd(':') switch
+    {
+        "pani" or "rozena" or "svedkyne" or "zalovana" or "zalobkyne" or "navrhovatelka" or "odpurkyne" or "dluznice"
+            or "veritelka" or "obvinena" or "poskozena" or "opravnena" or "povinna" or "zadatelka" or "jednatelka"
+            or "spolecnice" or "zmocnenkyne" or "advokatka" or "manzelka" or "dcera" or "matka" => Rod.Zena,
+        "pan" or "pana" or "panu" or "panem" or "rozeny" or "svedek" or "zalovany" or "zalobce" or "navrhovatel"
+            or "odpurce" or "dluznik" or "veritel" or "obvineny" or "jednatel" or "spolecnik" or "zmocnenec"
+            or "advokat" or "manzel" or "syn" or "otec" => Rod.Muz,
+        _ => null,
     };
 
     /// <summary>Je slovo (v libovolném pádě) běžné české křestní jméno?</summary>
@@ -96,21 +116,33 @@ public static class Detektor
 
     // ---------- Pravidla nad celým textem strany ----------
 
+    private const string Mesice = "ledna|února|března|dubna|května|června|července|srpna|září|října|listopadu|prosince";
+
     private static readonly (Regex Vzor, TypUdaje Typ)[] Pravidla =
     {
         (new Regex(@"\b\d{2}[0156]\d[0-3]\d\s?/\s?\d{3,4}\b"), TypUdaje.RodneCislo),
-        (new Regex(@"(?:nar\.|narozen[aáý]?|datum narození:?)\s*(?<u>\d{1,2}\.\s?\d{1,2}\.\s?\d{4})", RegexOptions.IgnoreCase), TypUdaje.DatumNarozeni),
+        (new Regex(@"(?:nar\.|narozen[aáý]?|datum narození:?)\s*(?<u>\d{1,2}\.\s?(?:\d{1,2}\.|" + Mesice + @")\s?\d{4})", RegexOptions.IgnoreCase), TypUdaje.DatumNarozeni),
         (new Regex(@"\b(?:IČO?|DIČ)\s*:?\s*(?<u>(?:CZ)?\d{8,10})\b"), TypUdaje.Ico),
         (new Regex(@"\b(?:\d{1,6}-)?\d{6,10}/\d{4}\b"), TypUdaje.Ucet),
         (new Regex(@"(?:\+420 ?)?\b[1-9]\d{2} ?\d{3} ?\d{3}\b"), TypUdaje.Telefon),
         (new Regex(@"[\w.+-]+@[\w-]+\.[\w.-]*\w"), TypUdaje.Email),
         (new Regex(@"\b\d{1,3}\s?[A-Z][A-Za-z]{0,3}\s?\d{1,6}/\d{4}\b"), TypUdaje.SpisovaZnacka),
-        (new Regex(@"(?:č\.\s?j\.|čj\.)\s*:?\s*(?<u>[\w/-]*\d[\w/-]*)", RegexOptions.IgnoreCase), TypUdaje.SpisovaZnacka),
+        (new Regex(@"(?:č\.\s?j\.|čj\.|sp\.\s?zn\.|spis\.\s?zn\.|spisová značka|značka)\s*:?\s*(?<u>(?:\p{Lu}[\p{Lu}-]* )?[\w/-]*\d[\w/-]*(?: [\w/-]*\d[\w/-]*)?)", RegexOptions.IgnoreCase), TypUdaje.SpisovaZnacka),
+        (new Regex(@"\bvložka\s*(?<u>\d+)", RegexOptions.IgnoreCase), TypUdaje.SpisovaZnacka),
+        (new Regex(@"\bev\.\s?č\.(?:\s?ČAK)?\s*(?<u>\d+)", RegexOptions.IgnoreCase), TypUdaje.Jiny),
+        (new Regex(@"\b(?:RZ|SPZ)\s*:?\s*(?<u>\d[A-Z][A-Z0-9] ?\d{4})\b"), TypUdaje.Jiny),
+        (new Regex(@"(?:občansk\w+ průkaz\w*|\bOP|cestovní\w* pas\w*)\s*(?:č\.)?\s*(?<u>\d{6,10})\b", RegexOptions.IgnoreCase), TypUdaje.Jiny),
         (new Regex(@"parc\.?\s*č\.?\s*(?<u>\d+(?:/\d+)?)", RegexOptions.IgnoreCase), TypUdaje.Nemovitost),
         (new Regex(@"\bLV\s*č\.?\s*(?<u>\d+)"), TypUdaje.Nemovitost),
-        (new Regex(@"\bk\. ?ú\. *(?<u>\p{Lu}[\p{L}-]*(?: (?:u|nad|pod|v|na)? ?\p{Lu}[\p{L}-]*){0,3})"), TypUdaje.Adresa),
-        (new Regex(@"(?<u>\b\d{3} ?\d{2} (?<obec>\p{Lu}[\p{L}]+)(?:(?: (?:u|nad|pod|v|na))?[ -]\p{Lu}[\p{L}]+){0,3})"), TypUdaje.Adresa),
-        (new Regex(@"(?<u>\b(?<obec>\p{Lu}\p{Ll}+(?:ská|cká|ova|ovo|ní|ého|ká)) \d{1,5}(?:/\d{1,5})?[a-z]?\b)"), TypUdaje.Adresa),
+        // U adres se smí přejít přes konec řádku tam, kde je to jednoznačné:
+        // mezi PSČ a obcí, za „k. ú.“ a mezi ulicí a číslem domu (zalomení na fotce).
+        (new Regex(@"\bk\. ?ú\.[ \n]*(?<u>\p{Lu}[\p{L}-]*(?: (?:u|nad|pod|v|na)? ?\p{Lu}[\p{L}-]*){0,3})"), TypUdaje.Adresa),
+        (new Regex(@"(?<u>\b\d{3} ?\d{2}[ \n](?<obec>\p{Lu}[\p{L}]+)(?:(?: (?:u|nad|pod|v|na))?[ -]\p{Lu}[\p{L}]+){0,3})"), TypUdaje.Adresa),
+        // ulice s číslem a za ní PSČ (Lipová 9, 999 04 Smyšlov), nebo ulice s typickou koncovkou
+        (new Regex(@"(?<u>\b(?<obec>\p{Lu}\p{Ll}+(?: \p{Ll}+)?)[ \n]\d{1,5}(?:/\d{1,5})?[a-z]?,[ \n]?\d{3} ?\d{2}[ \n]\p{Lu}\p{L}+(?:(?: (?:u|nad|pod|v|na))?[ -]\p{Lu}\p{L}+){0,3})"), TypUdaje.Adresa),
+        (new Regex(@"(?<u>\b(?<obec>\p{Lu}\p{Ll}+(?:ská|cká|ová|ova|ovo|ní|ící|ého|ká|ná))[ \n]\d{1,5}(?:/\d{1,5})?[a-z]?\b)"), TypUdaje.Adresa),
+        // za slovy bytem, sídlem apod. až do čárky před dalším údajem
+        (new Regex(@"(?:bytem|sídlem|bydlištěm|bydliště:|trvale bytem|trvalý pobyt:?)\s+(?<u>\p{Lu}[^\n,]{0,40}?[ \n]\d{1,5}(?:/\d{1,5})?[a-z]?(?:,[ \n]?\d{3} ?\d{2}[ \n][^\n,]+)?)(?=,|\n|$)", RegexOptions.IgnoreCase), TypUdaje.Adresa),
     };
 
     /// <param name="radky">Číslo řádku každého slova. Jména a adresy nepřecházejí přes konec řádku.</param>

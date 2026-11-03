@@ -1,0 +1,125 @@
+{
+ "text": "KUPNÍ SMLOUVA\nuzavřená podle § 2079 a násl. zákona č. 89/2012 Sb., občanský zákoník\n\nProdávající: Marie Nevšední, rozená Zkušební, r. č. 655218/0000, bytem Lipová 9, 999 04 Smyšlov\nKupující: Tomáš Pokusník, r. č. 800101/0000, bytem Dubová 22, 999 05 Vzorov, tel. 999 456 789, e-mail tomas.pokusnik@example.cz\n\nI. Předmět koupě\nProdávající je vlastníkem pozemku parc. č. 4321/1, jehož součástí je stavba rodinného domu č. p. 56, zapsaného na LV č. 789 pro k. ú. Smyšlov u Katastrálního úřadu pro Vymyšlený kraj.\n\nII. Kupní cena\nKupní cena činí 3 450 000 Kč. Kupující ji uhradí na účet prodávající č. 19-2000145399/0000 do 30 dnů od podpisu smlouvy. Paní Nevšední potvrzuje, že nemovitost není zatížena.\n\nIII. Prohlášení\nKupující pan Pokusník prohlašuje, že se se stavem nemovitosti seznámil. Prodávající Marii Nevšední zastupuje při podpisu její syn Jiří Nevšední, nar. 4. 7. 1990, na základě plné moci.\n\nVe Smyšlově dne 15. 5. 2026\n\nMarie Nevšední                Tomáš Pokusník\n",
+ "udaje": [
+  {
+   "typ": "osoba",
+   "hodnota": "Marie Nevšední",
+   "od": 98,
+   "do": 112
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Zkušební",
+   "od": 121,
+   "do": 129
+  },
+  {
+   "typ": "rc",
+   "hodnota": "655218/0000",
+   "od": 137,
+   "do": 148
+  },
+  {
+   "typ": "adresa",
+   "hodnota": "Lipová 9, 999 04 Smyšlov",
+   "od": 156,
+   "do": 180
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Tomáš Pokusník",
+   "od": 191,
+   "do": 205
+  },
+  {
+   "typ": "rc",
+   "hodnota": "800101/0000",
+   "od": 213,
+   "do": 224
+  },
+  {
+   "typ": "adresa",
+   "hodnota": "Dubová 22, 999 05 Vzorov",
+   "od": 232,
+   "do": 256
+  },
+  {
+   "typ": "telefon",
+   "hodnota": "999 456 789",
+   "od": 263,
+   "do": 274
+  },
+  {
+   "typ": "email",
+   "hodnota": "tomas.pokusnik@example.cz",
+   "od": 283,
+   "do": 308
+  },
+  {
+   "typ": "nemovitost",
+   "hodnota": "parc. č. 4321/1",
+   "od": 361,
+   "do": 376
+  },
+  {
+   "typ": "nemovitost",
+   "hodnota": "LV č. 789",
+   "od": 441,
+   "do": 450
+  },
+  {
+   "typ": "adresa",
+   "hodnota": "k. ú. Smyšlov",
+   "od": 455,
+   "do": 468
+  },
+  {
+   "typ": "ucet",
+   "hodnota": "19-2000145399/0000",
+   "od": 599,
+   "do": 617
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Nevšední",
+   "od": 653,
+   "do": 661
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Pokusník",
+   "od": 732,
+   "do": 740
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Marii Nevšední",
+   "od": 803,
+   "do": 817
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Jiří Nevšední",
+   "od": 849,
+   "do": 862
+  },
+  {
+   "typ": "narozeni",
+   "hodnota": "4. 7. 1990",
+   "od": 869,
+   "do": 879
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Marie Nevšední",
+   "od": 933,
+   "do": 947
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Tomáš Pokusník",
+   "od": 963,
+   "do": 977
+  }
+ ]
+}

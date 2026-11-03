@@ -1,0 +1,89 @@
+{
+ "text": "Výpis z obchodního rejstříku, vedeného Krajským soudem v Pokusově, oddíl C, vložka 99999\n\nDatum vzniku a zápisu: 1. února 2015\nSpisová značka: C 99999 vedená u Krajského soudu v Pokusově\nObchodní firma: Pokusné stavby s.r.o.\nSídlo: Zkušební 45, 999 03 Nikdov\nIdentifikační číslo: 99887766\nPrávní forma: Společnost s ručením omezeným\nPředmět podnikání: provádění staveb, jejich změn a odstraňování\n\nStatutární orgán:\njednatel: Karel Vzoreček, dat. nar. 8. září 1970\nHorní 15, 999 03 Nikdov\nDen vzniku funkce: 1. února 2015\n\nSpolečníci:\nSpolečník: Karel Vzoreček, dat. nar. 8. září 1970\nHorní 15, 999 03 Nikdov\nPodíl: vklad 100 000 Kč, splaceno 100 %\n\nSpolečník: Eva Vzorečková, dat. nar. 21. května 1974\nHorní 15, 999 03 Nikdov\nPodíl: vklad 100 000 Kč, splaceno 100 %\n\nZákladní kapitál: 200 000 Kč\n",
+ "udaje": [
+  {
+   "typ": "znacka",
+   "hodnota": "99999",
+   "od": 83,
+   "do": 88
+  },
+  {
+   "typ": "znacka",
+   "hodnota": "C 99999",
+   "od": 143,
+   "do": 150
+  },
+  {
+   "typ": "firma",
+   "hodnota": "Pokusné stavby s.r.o.",
+   "od": 203,
+   "do": 224
+  },
+  {
+   "typ": "adresa",
+   "hodnota": "Zkušební 45, 999 03 Nikdov",
+   "od": 232,
+   "do": 258
+  },
+  {
+   "typ": "ico",
+   "hodnota": "99887766",
+   "od": 280,
+   "do": 288
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Karel Vzoreček",
+   "od": 426,
+   "do": 440
+  },
+  {
+   "typ": "narozeni",
+   "hodnota": "8. září 1970",
+   "od": 452,
+   "do": 464
+  },
+  {
+   "typ": "adresa",
+   "hodnota": "Horní 15, 999 03 Nikdov",
+   "od": 465,
+   "do": 488
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Karel Vzoreček",
+   "od": 546,
+   "do": 560
+  },
+  {
+   "typ": "narozeni",
+   "hodnota": "8. září 1970",
+   "od": 572,
+   "do": 584
+  },
+  {
+   "typ": "adresa",
+   "hodnota": "Horní 15, 999 03 Nikdov",
+   "od": 585,
+   "do": 608
+  },
+  {
+   "typ": "osoba",
+   "hodnota": "Eva Vzorečková",
+   "od": 661,
+   "do": 675
+  },
+  {
+   "typ": "narozeni",
+   "hodnota": "21. května 1974",
+   "od": 687,
+   "do": 702
+  },
+  {
+   "typ": "adresa",
+   "hodnota": "Horní 15, 999 03 Nikdov",
+   "od": 703,
+   "do": 726
+  }
+ ]
+}

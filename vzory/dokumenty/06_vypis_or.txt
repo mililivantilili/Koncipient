@@ -1,0 +1,25 @@
+Výpis z obchodního rejstříku, vedeného Krajským soudem v Pokusově, oddíl C, vložka [[znacka|99999]]
+
+Datum vzniku a zápisu: 1. února 2015
+Spisová značka: [[znacka|C 99999]] vedená u Krajského soudu v Pokusově
+Obchodní firma: [[firma|Pokusné stavby s.r.o.]]
+Sídlo: [[adresa|Zkušební 45, 999 03 Nikdov]]
+Identifikační číslo: [[ico|99887766]]
+Právní forma: Společnost s ručením omezeným
+Předmět podnikání: provádění staveb, jejich změn a odstraňování
+
+Statutární orgán:
+jednatel: [[osoba|Karel Vzoreček]], dat. nar. [[narozeni|8. září 1970]]
+[[adresa|Horní 15, 999 03 Nikdov]]
+Den vzniku funkce: 1. února 2015
+
+Společníci:
+Společník: [[osoba|Karel Vzoreček]], dat. nar. [[narozeni|8. září 1970]]
+[[adresa|Horní 15, 999 03 Nikdov]]
+Podíl: vklad 100 000 Kč, splaceno 100 %
+
+Společník: [[osoba|Eva Vzorečková]], dat. nar. [[narozeni|21. května 1974]]
+[[adresa|Horní 15, 999 03 Nikdov]]
+Podíl: vklad 100 000 Kč, splaceno 100 %
+
+Základní kapitál: 200 000 Kč
