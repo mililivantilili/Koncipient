@@ -130,6 +130,23 @@ Citlivé údaje jsou jména, adresy, čísla parcel, telefon, e-mail, data a č�
 - Nahrazená navíc jsou jen jména soudkyně a úřednice. Program jim dá roli „veřejná osoba“, advokátka je nechá neanonymizované.
 - Dokumenty i pravidla psal stejný autor, výsledek je proto spíš horní odhad. Automatický test hlídá, že se detektor na sadě nezhorší. Měření s Windows OCR musí proběhnout na Windows.
 
+## Měření na korpusu soudních rozhodnutí (2026-11-03)
+
+Šest vlastních vzorů nestačí, detektor byl na ně „ušitý“. Proto vznikl větší korpus (`vzory/soudni/`, data mimo repozitář):
+
+- **161 skutečných rozhodnutí** z otevřených dat rozhodnuti.justice.cz. Jsou oficiálně anonymizovaná a každé anonymizované místo nese typ (Jméno žalovaného, Adresa žalobkyně, IČO, SPZ…). Skript na tato místa dosadí vymyšlené osoby, firmy, adresy a čísla a vyznačí je, takže výsledek má skutečný právní jazyk i přesně známé polohy údajů. Data a částky, které soudy také anonymizují, se dosazují bez vyznačení, protože je Koncipient záměrně ponechává.
+- **16 vymyšlených dokumentů jiných typů** (policejní záznam, protokol o výslechu, nájemní a darovací smlouva, faktura, e-maily, lékařská zpráva, exekuční příkaz, pracovní smlouva, znalecký posudek, notářský zápis…), které napsali levnější agenti (Claude Haiku) podle zadání se značkováním údajů.
+- Celkem 2039 vyznačených údajů, 363 stran vytištěných jako fotky s různými písmy. Rozdělení 70:30 na vývojovou část (na té se pravidla ladí) a kontrolní část (jen pro měření, proti přeučení).
+
+Úniky z bezchybného textu:
+
+| | Vývojová část (1439 údajů) | Kontrolní část (600 údajů) |
+| --- | --- | --- |
+| Před úpravami | 184 (12,8 %) | 61 (10,2 %) |
+| Po úpravách | 25 (1,7 %) | 17 (2,8 %) |
+
+Zbývající úniky jsou hlavně samotné názvy obcí v běžném textu, údaje bez jakékoli nápovědy v okolí a chyby generátoru. Nahrazeno navíc je asi 2,5 % (jména soudců a úředníků, ta program označí jako veřejné osoby). Citovaná judikatura vyšších soudů se ponechává. Měření přes OCR z fotek v cloudu běží jen s PaddleOCR a Tesseractem; s Windows OCR je třeba ho zopakovat na Windows (test 6).
+
 ## Dokumenty ve spisu
 
 Spis se skládá z dokumentů, každá strana patří k jednomu. Dokumenty vznikají:
