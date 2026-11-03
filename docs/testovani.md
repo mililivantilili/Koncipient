@@ -13,7 +13,7 @@ Návod pro Matěje. V cloudové relaci jde program jen přeložit a otestovat j�
 | Test 1: OCR a rychlost | ✅ hotovo, výsledky v [návrhu](navrh.md) |
 | Test 1b: grafická karta | ✅ hotovo, grafika asi 2× rychlejší než procesor |
 | Test 2: prohlížeč | ✅ hotovo, vše funguje, PaddleOCR na grafice znatelně rychlejší |
-| Test 3: fotky bez otočení | ⬜ čeká |
+| Test 3: fotky bez otočení | ✅ hotovo, otočení funguje (zbývá jedna drobná kontrola, viz níže) |
 | Test 4: anonymizace a export | ⬜ čeká |
 | Test 5: vrácení jmen a Word | ⬜ čeká |
 
@@ -100,7 +100,14 @@ PaddleOCR umí počítat na grafické kartě (DirectML). Notebook má dvě, Inte
 
 </details>
 
-## Test 3: fotky bez údaje o otočení (5 minut)
+## ✅ Test 3: fotky bez otočení: hotovo 2026-11-03
+
+Po Matějově připomínce se přepis při ručním otočení nemaže, ale odloží. Při otočení zpět se vrátí i s opravami. Mimochodem při testu 4 zkus:
+
+- [ ] Stranu otoč ⟳ a zase ⟲ zpět. Text se objeví hned, bez nového přepisu, i s ručními opravami.
+
+<details>
+<summary>Původní postup (pro případné zopakování)</summary>
 
 Fotky z foťáku často nemají údaj o otočení. Program ho pozná z textu.
 
@@ -110,6 +117,8 @@ Fotky z foťáku často nemají údaj o otočení. Program ho pozná z textu.
 4. Tlačítky ⟲ a ⟳ zkus stranu otočit ručně. [ ] Přepis strany se smaže a při dalším spuštění přepisu se udělá znovu.
 
 **Poslat:** jestli se otočení poznalo správně.
+
+</details>
 
 ## Test 4: anonymizace a export (etapa 3, 20 minut)
 

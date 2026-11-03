@@ -38,7 +38,7 @@ Program bude v C# na .NET s rozhraním WPF, vyvíjený ve Visual Studiu, které 
 | Část | Návrh | Poznámka |
 | --- | --- | --- |
 | Úprava fotky | Vyrovnání osvětlení (odečtení odhadnutého pozadí) | V testu snížila chyby Tesseractu z 16–25 % na 1–3 % znaků |
-| Otočení fotky | Podle údaje z telefonu (EXIF), a když chybí (foťák), podle textu: tvar řádků a čtení nejdelších řádků normálně a vzhůru nohama | V testu 20 z 20 otočení správně, asi 6 s na stranu. Ruční otočení v prohlížeči jako záloha |
+| Otočení fotky | Podle údaje z telefonu (EXIF), a když chybí (foťák), podle textu: tvar řádků a čtení nejdelších řádků normálně a vzhůru nohama | V testu 20 z 20 otočení správně, asi 6 s na stranu, ověřeno i na Windows. Ruční otočení v prohlížeči jako záloha: původní fotka zůstává beze změny a přepis každého natočení se odkládá, takže otočení zpět nic nepřepočítává |
 | OCR, motor 1 | Tesseract s češtinou | Rychlý (sekundy na stranu), nejméně chyb v souvislém textu, ztrácí desetinné čárky a levý okraj šikmých fotek |
 | OCR, motor 2 | PaddleOCR PP-OCRv6, česky | Pomalejší (v C# kolem 10–15 s na stranu na 4 jádrech), přesná čísla a tabulky, občas ztratí čárku nad í |
 | Sloučení | Shodná slova platí, sporná rozhodne český slovník, u čísel má přednost PaddleOCR | V testu nejvíc přesně přepsaných citlivých údajů (33 z 34) |
@@ -111,7 +111,7 @@ Citlivé údaje jsou jména, adresy, čísla parcel, telefon, e-mail, data a č�
 - PaddleOCR zůstává kontrolním motorem: nejlépe čte čísla a jména a jeho odlišné čtení označí sporná místa. Údaje se hledají ve výstupech obou motorů.
 - PaddleOCR byl na fotkách z telefonu pomalý kvůli hledání řádků v plném rozlišení. Hledání řádků teď běží na kopii zmenšené na 2000 bodů: v cloudu dvakrát rychlejší při stejné přesnosti.
 - Tesseract je jen záloha pro počítač, kde Windows OCR nemá češtinu.
-- PaddleOCR umí na Windows počítat na grafické kartě přes DirectML (funguje i s integrovanou grafikou). Program zkusí nejvýkonnější kartu a jinak počítá na procesoru. Na Matějově notebooku (GTX 1050 a Intel UHD 630) trvala strana na procesoru 13–22 s, na grafice 6–11 s, text se od procesoru lišil v 0,7 % slov. Jedna z grafik selhala pro nedostatek paměti až během výpočtu, proto se motor při chybě grafiky přepne na procesor a stranu zopakuje.
+- PaddleOCR umí na Windows počítat na grafické kartě přes DirectML (funguje i s integrovanou grafikou). Program zkusí nejvýkonnější kartu a jinak počítá na procesoru. Na Matějově notebooku (GTX 1050 a Intel UHD 630) trvala strana na procesoru 13–22 s, na grafice 6–11 s, text se od procesoru lišil v 0,7 % slov. Jedna z grafik selhala pro nedostatek paměti až během výpočtu, proto se motor při chybě grafiky přepne na procesor a stranu zopakuje. Automatická volba použila NVIDIA GTX 1050 (podle Správce úloh naplno vytížená, Intel ne). Pořadí grafik v DirectML neodpovídá číslování ve Správci úloh, proto se má používat automatická volba, ne číslo grafiky.
 - Test neotáčí fotky, takže strana vyfocená vzhůru nohama vyšla nečitelná. Prohlížeč ji před přepisem otočí.
 
 ## Struktura složek a formát dat

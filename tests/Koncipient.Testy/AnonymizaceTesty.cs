@@ -227,12 +227,26 @@ public class OtoceniTesty
         spis.UlozOcr(strana, new VysledekOcr { Motor = Motory.Paddle });
         spis.UlozOcr(strana, new VysledekOcr { Motor = Motory.Paddle }, Spis.Opraveno);
 
-        spis.OtocStranu(strana, 90);
+        var puvodniFotka = File.ReadAllBytes(spis.CestaFotky(strana));
 
-        using var fotka = Cv2.ImRead(spis.CestaFotky(strana));
-        Assert.Equal(new Size(400, 300), fotka.Size());
+        Assert.False(spis.OtocStranu(strana, 90));
+        using (var fotka = Cv2.ImRead(spis.CestaFotky(strana)))
+            Assert.Equal(new Size(400, 300), fotka.Size());
         Assert.False(spis.MaOcr(strana, Motory.Paddle));
         Assert.False(spis.MaOcr(strana, Spis.Opraveno));
         Assert.True(Spis.Nacti(spis.Slozka).Strany[0].Narovnano);
+
+        // přepis otočené strany, pak zpět: vrátí se původní přepis i oprava a fotka je původní
+        spis.UlozOcr(strana, new VysledekOcr { Motor = Motory.Windows });
+        Assert.True(spis.OtocStranu(strana, 270));
+        Assert.True(spis.MaOcr(strana, Motory.Paddle));
+        Assert.True(spis.MaOcr(strana, Spis.Opraveno));
+        Assert.False(spis.MaOcr(strana, Motory.Windows));
+        Assert.Equal(puvodniFotka, File.ReadAllBytes(spis.CestaFotky(strana)));
+
+        // a znovu na 90°: vrátí se přepis otočené strany
+        Assert.True(spis.OtocStranu(strana, 90));
+        Assert.True(spis.MaOcr(strana, Motory.Windows));
+        Assert.Equal(90, Spis.Nacti(spis.Slozka).Strany[0].Otoceni);
     }
 }

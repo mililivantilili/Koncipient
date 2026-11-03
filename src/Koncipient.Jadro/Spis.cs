@@ -19,6 +19,12 @@ public sealed class Strana
     /// <summary>Otočení už je vyřešené (automaticky při přepisu, nebo ručně).</summary>
     public bool Narovnano { get; set; }
 
+    /// <summary>
+    /// O kolik stupňů po směru hodinových ručiček je strana otočená proti importované fotce
+    /// (0, 90, 180, 270). Původní fotka zůstává beze změny, otočená kopie se dělá z ní.
+    /// </summary>
+    public int Otoceni { get; set; }
+
     /// <summary>Advokátka stranu zkontrolovala pro export. Změna údajů ve spisu kontrolu nezruší, export ji ale ověří znovu.</summary>
     public bool Zkontrolovano { get; set; }
 }
@@ -69,7 +75,24 @@ public sealed class Spis
         File.Move(cil + ".tmp", cil, overwrite: true);
     }
 
-    public string CestaFotky(Strana s) => Path.Combine(Slozka, s.Fotka);
+    /// <summary>Fotka strany v aktuálním natočení. Otočenou kopii vytvoří z původní fotky, když chybí.</summary>
+    public string CestaFotky(Strana s)
+    {
+        var puvodni = Path.Combine(Slozka, s.Fotka);
+        if (s.Otoceni == 0) return puvodni;
+        var otocena = CestaOtocene(s, s.Otoceni);
+        if (!File.Exists(otocena))
+        {
+            var docasna = Path.ChangeExtension(otocena, ".tmp.jpg"); // OpenCV pozná formát podle přípony
+            File.Copy(puvodni, docasna, overwrite: true);
+            Otoceni.OtocSoubor(docasna, s.Otoceni);
+            File.Move(docasna, otocena, overwrite: true);
+        }
+        return otocena;
+    }
+
+    private string CestaOtocene(Strana s, int stupne) =>
+        Path.Combine(Slozka, Path.GetDirectoryName(s.Fotka) ?? "", $"{s.Cislo:D4}_otoceno{stupne}.jpg");
 
     /// <summary>
     /// Přidá fotky jako nové strany, seřazené podle názvu souboru. Fotku otočí podle
@@ -121,19 +144,44 @@ public sealed class Spis
     }
 
     /// <summary>
-    /// Otočí fotku strany a smaže její přepisy včetně ručních oprav, protože polohy
-    /// slov přestanou platit. Stranu označí jako narovnanou.
+    /// Otočí stranu. Přepisy a ruční opravy dosavadního natočení se odloží (polohy slov
+    /// by neseděly) a když strana v novém natočení už přepsaná byla, vrátí se tehdejší
+    /// přepis, takže otočení tam a zpět nic nepřepočítává. Vrátí, jestli se přepis obnovil.
     /// </summary>
-    public void OtocStranu(Strana s, int stupne)
+    public bool OtocStranu(Strana s, int stupne)
     {
-        Otoceni.OtocSoubor(CestaFotky(s), stupne);
+        int stare = s.Otoceni;
+        int nove = (((stare + stupne) % 360) + 360) % 360;
         var ocr = Path.Combine(Slozka, "ocr");
-        if (Directory.Exists(ocr))
-            foreach (var soubor in Directory.GetFiles(ocr, $"{s.Cislo:D4}.*", SearchOption.AllDirectories))
-                File.Delete(soubor);
+        string Odlozene(int r) => Path.Combine(ocr, "otoceni", r.ToString());
+
+        // přepisy, opravy i upravenou fotku tohoto natočení odložit, nic se nemaže
+        PresunStranu(s, ocr, Odlozene(stare), vynechat: Path.Combine(ocr, "otoceni"));
+        if (stare != 0 && File.Exists(CestaOtocene(s, stare))) File.Delete(CestaOtocene(s, stare));
+        s.Otoceni = nove;
+        // když už strana v novém natočení byla přepsaná, vrátí se tehdejší přepis
+        bool obnoveno = PresunStranu(s, Odlozene(nove), ocr, vynechat: null);
+
         s.Narovnano = true;
-        s.Zkontrolovano = false;
+        if (!obnoveno) s.Zkontrolovano = false;
         Uloz();
+        return obnoveno;
+    }
+
+    /// <summary>Přesune soubory strany (0001.*) ze složky do složky se zachováním podsložek. Vrátí, jestli něco přesunul.</summary>
+    private static bool PresunStranu(Strana s, string odkud, string kam, string? vynechat)
+    {
+        if (!Directory.Exists(odkud)) return false;
+        bool neco = false;
+        foreach (var soubor in Directory.GetFiles(odkud, $"{s.Cislo:D4}.*", SearchOption.AllDirectories))
+        {
+            if (vynechat is not null && soubor.StartsWith(vynechat + Path.DirectorySeparatorChar)) continue;
+            var cil = Path.Combine(kam, Path.GetRelativePath(odkud, soubor));
+            Directory.CreateDirectory(Path.GetDirectoryName(cil)!);
+            File.Move(soubor, cil, overwrite: true);
+            neco = true;
+        }
+        return neco;
     }
 
     /// <summary>Upravená fotka pro OCR, ukládá se mezi výsledky, aby se nepočítala znovu.</summary>

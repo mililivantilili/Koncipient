@@ -672,14 +672,12 @@ public partial class HlavniOkno : Window
     private void OtocStranu(int stupne)
     {
         if (_spis is null || _strana is null || _zruseni is not null) return;
-        if (_spis.MaOcr(_strana, Spis.Opraveno) &&
-            MessageBox.Show(this, "Otočením se smažou ruční opravy na této straně. Pokračovat?", "Koncipient",
-                MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
-            return;
-        _spis.OtocStranu(_strana, stupne);
+        bool obnoveno = _spis.OtocStranu(_strana, stupne);
         NactiStrany();
         ZobrazStranu(posunoutFotku: true);
-        Stav.Text = "Strana otočena. Přepis se udělá znovu při příštím spuštění přepisu.";
+        Stav.Text = obnoveno
+            ? "Strana otočena, přepis i opravy pro toto natočení se vrátily."
+            : "Strana otočena. Přepis tohoto natočení se udělá při příštím spuštění přepisu, dosavadní zůstává odložený.";
     }
 
     // ---------- Zvětšení ----------
