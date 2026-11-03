@@ -31,6 +31,16 @@ Když sestavení selže, otevři Zobrazit → Seznam chyb.
 
 **Poslat:** soubor `vysledky-ocr.zip` (jen texty a časy, žádné fotky). Do zprávy napiš, kolik má notebook paměti a jaký procesor.
 
+## Test 1b: grafická karta (10 minut)
+
+PaddleOCR umí počítat na grafické kartě (DirectML). Notebook má dvě, Intel UHD 630 a NVIDIA GTX 1050, a test zjistí, která je rychlejší.
+
+1. Spusť `Koncipient.OcrTest` (F5), přetáhni složku s fotkami a na otázku „Co spustit?“ napiš **2**.
+2. Program přepíše prvních 5 fotek PaddleOCR čtyřikrát: na procesoru, na nejvýkonnější grafice, na grafice 0 a na grafice 1. U každého vypíše, kde skutečně počítal.
+3. První fotka na grafice bývá pomalejší (grafika se „zahřívá“), rozhodují další.
+
+**Poslat:** nový `vysledky-ocr.zip`. Jestli program napíše „grafická karta nejde použít“, opiš i text chyby.
+
 ## Test 2: prohlížeč (etapa 2, 15 minut)
 
 1. Nastav `Koncipient.App` jako spouštěný projekt a stiskni F5.

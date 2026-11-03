@@ -10,6 +10,18 @@ namespace Koncipient.Ocr;
 /// Napodobuje výchozí nastavení PaddleOCR 3.7: detekce řádků (DB), výřez
 /// každého řádku a rozpoznání textu (CTC). Pomalý, ale nejlepší na čísla.
 /// </summary>
+/// <summary>Kde PaddleOCR počítá.</summary>
+public enum ZarizeniOcr
+{
+    /// <summary>Podle proměnné KONCIPIENT_GPU, jinak nejvýkonnější grafika.</summary>
+    Automaticky,
+    Procesor,
+    /// <summary>Grafická karta, kterou Windows označí jako nejvýkonnější (u notebooků samostatná).</summary>
+    NejvykonnejsiGrafika,
+    Grafika0,
+    Grafika1,
+}
+
 public sealed class PaddleMotor : IOcrMotor, IUrceniOtoceni
 {
     // Výchozí hodnoty z paddlex/configs/pipelines/OCR.yaml
@@ -31,12 +43,89 @@ public sealed class PaddleMotor : IOcrMotor, IUrceniOtoceni
     /// Složka se soubory det.onnx, rec.onnx a rec.yml
     /// (z Hugging Face: PaddlePaddle/PP-OCRv6_medium_det_onnx a _rec_onnx).
     /// </param>
-    public PaddleMotor(string slozkaModelu)
+    /// <param name="zarizeni">
+    /// Kde počítat. Výchozí <see cref="ZarizeniOcr.Automaticky"/> zkusí na Windows nejvýkonnější
+    /// grafickou kartu přes DirectML, a když to nejde, počítá na procesoru.
+    /// </param>
+    public PaddleMotor(string slozkaModelu, ZarizeniOcr zarizeni = ZarizeniOcr.Automaticky)
     {
-        var volby = new SessionOptions { GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL };
-        _detekce = new InferenceSession(Path.Combine(slozkaModelu, "det.onnx"), volby);
-        _rozpoznani = new InferenceSession(Path.Combine(slozkaModelu, "rec.onnx"), volby);
+        if (zarizeni == ZarizeniOcr.Automaticky) zarizeni = ZarizeniZProstredi();
+        _detekce = VytvorSezeni(Path.Combine(slozkaModelu, "det.onnx"), zarizeni, out var popis);
+        _rozpoznani = VytvorSezeni(Path.Combine(slozkaModelu, "rec.onnx"), zarizeni, out _);
+        PouziteZarizeni = popis;
+        NaGrafice = !popis.StartsWith("procesor");
         _znaky = NactiZnaky(Path.Combine(slozkaModelu, "rec.yml"));
+    }
+
+    /// <summary>Popis zařízení, na kterém motor skutečně počítá (pro protokol a stavový řádek).</summary>
+    public string PouziteZarizeni { get; }
+
+    /// <summary>Motor počítá na grafické kartě.</summary>
+    public bool NaGrafice { get; }
+
+    /// <summary>Zaokrouhlovat šířku řádků v dávce (na grafice zapnuto, pro srovnání jde vynutit proměnnou KONCIPIENT_ZAOKROUHLIT=1).</summary>
+    private bool ZaokrouhlitSirku => NaGrafice || Environment.GetEnvironmentVariable("KONCIPIENT_ZAOKROUHLIT") == "1";
+
+    /// <summary>
+    /// Proměnná KONCIPIENT_GPU: „ne“ = jen procesor, „0“ nebo „1“ = grafická karta podle pořadí
+    /// ve Windows, jinak automaticky nejvýkonnější.
+    /// </summary>
+    private static ZarizeniOcr ZarizeniZProstredi() => Environment.GetEnvironmentVariable("KONCIPIENT_GPU")?.Trim().ToLowerInvariant() switch
+    {
+        "ne" or "cpu" or "procesor" => ZarizeniOcr.Procesor,
+        "0" => ZarizeniOcr.Grafika0,
+        "1" => ZarizeniOcr.Grafika1,
+        _ => ZarizeniOcr.NejvykonnejsiGrafika,
+    };
+
+    private static InferenceSession VytvorSezeni(string cesta, ZarizeniOcr zarizeni, out string popis)
+    {
+#if WINDOWS
+        if (zarizeni != ZarizeniOcr.Procesor)
+        {
+            try
+            {
+                // DirectML vyžaduje sekvenční běh a vypnuté plánování paměti
+                var g = new SessionOptions
+                {
+                    GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL,
+                    EnableMemoryPattern = false,
+                    ExecutionMode = ExecutionMode.ORT_SEQUENTIAL,
+                };
+                if (zarizeni == ZarizeniOcr.NejvykonnejsiGrafika)
+                {
+                    try
+                    {
+                        g.AppendExecutionProvider("DML", new Dictionary<string, string>
+                        {
+                            ["performance_preference"] = "high_performance",
+                            ["device_filter"] = "gpu",
+                        });
+                        popis = "grafická karta (nejvýkonnější, DirectML)";
+                    }
+                    catch (Exception)
+                    {
+                        g.AppendExecutionProvider_DML(0);
+                        popis = "grafická karta 0 (DirectML)";
+                    }
+                }
+                else
+                {
+                    int cislo = zarizeni == ZarizeniOcr.Grafika1 ? 1 : 0;
+                    g.AppendExecutionProvider_DML(cislo);
+                    popis = $"grafická karta {cislo} (DirectML)";
+                }
+                return new InferenceSession(cesta, g);
+            }
+            catch (Exception e)
+            {
+                popis = $"procesor (grafická karta nejde použít: {e.Message})";
+                return new InferenceSession(cesta, new SessionOptions { GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL });
+            }
+        }
+#endif
+        popis = "procesor";
+        return new InferenceSession(cesta, new SessionOptions { GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL });
     }
 
     /// <summary>
@@ -47,7 +136,8 @@ public sealed class PaddleMotor : IOcrMotor, IUrceniOtoceni
     public int MaxStranaDetekce { get; init; } =
         int.TryParse(Environment.GetEnvironmentVariable("KONCIPIENT_DETEKCE"), out var n) && n >= 640 ? n : 2000;
 
-    public string Nazev => "paddle-cs";
+    /// <summary>Název výstupní složky; pro srovnání zařízení v konzolovém testu jde změnit.</summary>
+    public string Nazev { get; init; } = "paddle-cs";
     public bool ChceUpravenouFotku => true;
 
     public VysledekOcr Rozpoznej(string cestaKFotce)
@@ -311,6 +401,9 @@ public sealed class PaddleMotor : IOcrMotor, IUrceniOtoceni
             foreach (var i in davka)
                 maxPomer = Math.Max(maxPomer, (double)vyrezy[i].Cols / vyrezy[i].Rows);
             int sirka = (int)(VyskaRadku * maxPomer);
+            // Grafická karta překládá výpočet pro každý nový rozměr vstupu znovu, proto se
+            // šířka zaokrouhlí nahoru na násobek 160 bodů (přidané místo je prázdné jako v PaddleOCR).
+            if (ZaokrouhlitSirku) sirka = (sirka + 159) / 160 * 160;
 
             var vstup = new DenseTensor<float>(new[] { davka.Length, 3, VyskaRadku, sirka });
             var sirkyRadku = new int[davka.Length];

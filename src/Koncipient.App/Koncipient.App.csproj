@@ -17,4 +17,9 @@
     <ProjectReference Include="..\Koncipient.Jadro\Koncipient.Jadro.csproj" />
   </ItemGroup>
 
+  <!-- DirectML.dll pro výpočet na grafické kartě se kopíruje jen do projektu, který balíček odkazuje přímo. -->
+  <ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+    <PackageReference Include="Microsoft.AI.DirectML" Version="1.15.4" />
+  </ItemGroup>
+
 </Project>

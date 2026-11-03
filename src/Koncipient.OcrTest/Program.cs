@@ -21,10 +21,12 @@ Console.OutputEncoding = Encoding.UTF8;
 string? slozka = null;
 string? jenMotor = null;
 bool nahled = false;
+bool srovnaniGrafiky = false;
 for (int i = 0; i < args.Length; i++)
 {
     if (args[i] == "--motor" && i + 1 < args.Length) jenMotor = args[++i];
     else if (args[i] == "--nahled") nahled = true;
+    else if (args[i] == "--grafika") srovnaniGrafiky = true;
     else slozka = args[i];
 }
 var Json = new JsonSerializerOptions { WriteIndented = false, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
@@ -55,6 +57,15 @@ if (fotky.Count == 0)
     return 1;
 }
 
+if (jenMotor is null && !srovnaniGrafiky && !Console.IsInputRedirected)
+{
+    Console.WriteLine("Co spustit?");
+    Console.WriteLine("  1 nebo Enter = všechny motory na všech fotkách");
+    Console.WriteLine("  2 = srovnání PaddleOCR na procesoru a na grafických kartách (prvních 5 fotek)");
+    srovnaniGrafiky = Console.ReadLine()?.Trim() == "2";
+}
+if (srovnaniGrafiky) fotky = fotky.Take(5).ToList();
+
 var vystup = Path.Combine(slozka, "vystup");
 var upravene = Path.Combine(vystup, "upravene");
 Console.WriteLine($"Nalezeno {fotky.Count} fotek. Výsledky půjdou do {vystup}");
@@ -63,6 +74,15 @@ await Koncipient.Jadro.Motory.StahniAsync(new Progress<string>(Console.WriteLine
 var modely = Koncipient.Jadro.Motory.SlozkaModelu;
 
 var motory = new List<Func<IOcrMotor>>();
+if (srovnaniGrafiky)
+{
+    // stejný model na různých zařízeních, každé do vlastní složky
+    motory.Add(() => new PaddleMotor(modely, ZarizeniOcr.Procesor) { Nazev = "paddle-procesor" });
+    motory.Add(() => new PaddleMotor(modely, ZarizeniOcr.NejvykonnejsiGrafika) { Nazev = "paddle-grafika" });
+    motory.Add(() => new PaddleMotor(modely, ZarizeniOcr.Grafika0) { Nazev = "paddle-grafika0" });
+    motory.Add(() => new PaddleMotor(modely, ZarizeniOcr.Grafika1) { Nazev = "paddle-grafika1" });
+    jenMotor = "jen srovnání";
+}
 if (jenMotor is null or "tesseract") motory.Add(() => new TesseractMotor(modely));
 if (jenMotor is null or "paddle") motory.Add(() => new PaddleMotor(modely));
 #if WINDOWS
@@ -94,7 +114,9 @@ foreach (var vytvor in motory)
     {
         var cil = Path.Combine(vystup, motor.Nazev);
         Directory.CreateDirectory(cil);
-        Console.WriteLine($"\n== {motor.Nazev}");
+        var zarizeni = motor is PaddleMotor pm ? $" ({pm.PouziteZarizeni})" : "";
+        Console.WriteLine($"\n== {motor.Nazev}{zarizeni}");
+        protokol.AppendLine($"== {motor.Nazev}{zarizeni}");
         foreach (var fotka in fotky)
         {
             var stopky = Stopwatch.StartNew();

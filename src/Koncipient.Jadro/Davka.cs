@@ -53,7 +53,8 @@ public static class Davka
             {
                 zruseni.ThrowIfCancellationRequested();
                 var (spis, strana) = zbyva[i];
-                prubeh?.Report(new StavDavky(i, zbyva.Count, $"{motor.Nazev}: {spis.Id} strana {strana.Cislo}"));
+                var kde = motor is PaddleMotor pm ? $" na {pm.PouziteZarizeni}" : "";
+                prubeh?.Report(new StavDavky(i, zbyva.Count, $"{motor.Nazev}{kde}: {spis.Id} strana {strana.Cislo}"));
                 var vstup = motor.ChceUpravenouFotku ? spis.UpravenaFotka(strana) : spis.CestaFotky(strana);
                 spis.UlozOcr(strana, motor.Rozpoznej(vstup));
             }
