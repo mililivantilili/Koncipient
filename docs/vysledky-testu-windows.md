@@ -252,3 +252,61 @@ Opraveno 2026-11-04 podle návrhu, s automatickými testy (celkem 431):
 
 Navrhování názvů z reklamního sloganu na první straně zatím zůstává, název jde přejmenovat ručně.
 
+## Kontrola nových funkcí, 2026-11-04 (commit 9d8bf75)
+
+Instalátor a oprava prázdné stránky fungují. **Před předáním advokátce je potřeba vyřešit 2 věci: u skenu s textovou doložkou PDF potichu zmizí celý obsah strany a rychlá ani závěrečná kontrola neodhalí všechny údaje, zatímco návod tvrdí opak.** Automatické testy 437 z 437. Příklady jsou přepsané na vymyšlené.
+
+| Co | Výsledek |
+| --- | --- |
+| Přepis spisu s prázdnou stránkou | Opraveno, dávka doběhne, export prošel |
+| Test 8: instalátor | Prošel, 189 MB, instalace 32 s, bez práv správce, zástupce, odinstalace nechá spisy |
+| Přepis z nainstalovaného programu | Prošel s modely z instalace (`modely`), žádné spojení TCP ani s blokovanou sítí přes proxy |
+| PDF s textem a sken | Text se převezme, přepíše se jen sken |
+| Název PDF se jménem | Nahrazený v názvu souboru i manifestu |
+| Prázdná strana v PDF | Přepíše se, nespadne |
+| Rychlá kontrola v okně | OK, N, O, U a Strany bez nálezů fungují, strany se označují správně |
+
+### 1. Závažné: sken s doložkou v textové vrstvě ztratí obsah strany
+
+`SpisPdf.TextStrany` bere text z PDF, kdykoli má stránka aspoň 20 písmen. Vyzkoušeno na PDF, kde je celá strana naskenovaný obrázek a dole je textová doložka o elektronickém podpisu nebo konverzi. Výsledek: přepis `pdf-text` obsahuje jen doložku, OCR se pro stranu nespustí a Claude dostane jen tu větu. Program nic nehlásí a rychlá kontrola stranu nabídne mezi **Strany bez nálezů**. Fotka vpravo přitom ukazuje celý text, takže si toho člověk snadno nevšimne.
+
+U dokumentů z datové schránky jde o realistický případ, ověřit na skutečném PDF je ale ještě potřeba. Návrh: vzít text z PDF, jen když stránka nemá velký obrázek přes většinu plochy, nebo text porovnat s pokrytím stránky. Jinak stranu poslat přes OCR.
+
+### 2. Závažné: co kontroly nezachytí
+
+Na 17 stranách z archivu po celé kontrole programu zůstalo v exportu:
+
+| Zůstalo v exportu | Závěrečná kontrola | Rychlá kontrola |
+| --- | --- | --- |
+| Jméno malými písmeny v hlavičce vytištěného e-mailu (`petra smyšlená`, sloupce popisků a hodnot) | Nezastaví | **Nenabídne**, hlídá jen velké počáteční písmeno |
+| Název firmy bez právní formy velkými písmeny (`FIKTIVA`) | Nezastaví | Nabídne jako podezřelé |
+| Samostatný název obce z adresy (`Lhota`) | Nezastaví, minule zastavila | Nabídne jako podezřelé |
+| Parcelní čísla ve výkresech (`9999/1`) | Nezastaví | Nabídne jako podezřelé |
+
+Rychlá kontrola schválně neukazuje zbytek textu, takže jméno v obecném tvaru nebo příjmení, které je ve slovníku (Malý, Černý), nemusí nikdo vidět. Návod přitom říká `Pokud v něm zůstalo skutečné jméno nebo číslo, export zastaví`, což neplatí. Doporučení:
+
+- Upravit návod: export zastaví jen to, co program pozná. Před exportem je potřeba projít Náhled pro Clauda, aspoň u důležitých stran.
+- Přidat do rychlé kontroly slova malými písmeny, která nejsou ve slovníku, a dvojice slov vypadající jako jméno v hlavičkách.
+- Rozhodnutí pro Matěje a advokátku: smí se strana považovat za zkontrolovanou, když člověk viděl jen vybraná místa? Pravidlo projektu `Nic se neexportuje bez schválení člověkem` to splňuje jen částečně.
+
+### Střední chyby
+
+| Chyba | Projev |
+| --- | --- |
+| Falešné osoby z hlaviček e-mailu | `Dobrý den`, `FW`, `Roundcube Webmail` se berou jako osoby. Pozdrav pak v textu pro Clauda nahradí vymyšlené jméno, text je zavádějící. |
+| Jedna klávesa N odkryje osobu ve všech stranách | N u nahrazené osoby nastaví Ponechat bez potvrzení. Skutečné jméno pak jde do exportu a kontrola neprotestuje. U osob a čísel by mělo být potvrzení. |
+| Příliš mnoho míst na výkresech | 293 míst na 17 stranách (144 nahrazených, 149 podezřelých), hlavně čísla parcel a popisy z výkresů. Tím se kontrola mění v Enter, Enter, Enter. Pomohlo by sloučit stejné údaje napříč stranami. |
+| `ICO 99887766` bez háčku | V PDF bez diakritiky zůstane číslo v exportu. Rychlá kontrola ho nabídne. |
+| Město jako firma | `Velkoměsto a.s` z delší firmy pak nahradí i samotné město ve větě. |
+| Rozbité PDF | Hláška `Koncipient: chyba` anglicky a stav zůstane na `Přidávám 1 fotek…`. Program nespadne. Heslem chráněné PDF jsem nezkoušel. CLI v tomto případě skončí neošetřenou výjimkou. |
+
+### Návod pro advokátku
+
+Je srozumitelný a odpovídá programu, až na tvrzení o exportu výše. Dále: `Nechte počítač zapnutý v síti` může znít jako připojení k internetu, přitom jde o nabíječku. Správně by mělo být `zapojený do zásuvky`.
+
+### Instalátor: co neověřeno
+
+- Síť jsem nevypínal, protože by se přerušila tato relace. Běh jsem hlídal blokací přes proxy a sledováním spojení procesu `koncipient-cli`, okno jsem jen spustil.
+- Čistý počítač bez Visual Studia zbývá, stejně jako Windows bez české sady OCR. Ty program řeší přechodem na Tesseract, ale nezkoušel jsem to.
+- Velikost po instalaci je 465 MB.
+- Skutečné PDF z datové schránky jsem neměl k dispozici.
