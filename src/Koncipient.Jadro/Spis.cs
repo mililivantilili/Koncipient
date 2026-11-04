@@ -240,6 +240,30 @@ public sealed partial class Spis
         return neco;
     }
 
+    /// <summary>
+    /// Nahradí fotku strany novou (přefocenou). Starý přepis, ruční opravy a otočení se zahodí,
+    /// strana se při dalším přepisu přepíše znovu a musí se znovu zkontrolovat.
+    /// </summary>
+    public void NahradFotku(Strana s, string cesta)
+    {
+        using (var obrazek = Cv2.ImRead(cesta, ImreadModes.Color)) // otočí podle EXIF, uloží bez metadat
+        {
+            if (obrazek.Empty()) throw new InvalidDataException($"Soubor {cesta} není fotka, kterou jde načíst.");
+            Cv2.ImWrite(Path.Combine(Slozka, s.Fotka), obrazek, new ImageEncodingParam(ImwriteFlags.JpegQuality, 95));
+        }
+        var ocr = Path.Combine(Slozka, "ocr");
+        if (Directory.Exists(ocr))
+            foreach (var soubor in Directory.GetFiles(ocr, $"{s.Cislo:D4}.*", SearchOption.AllDirectories)) File.Delete(soubor);
+        foreach (var r in new[] { 90, 180, 270 })
+            if (File.Exists(CestaOtocene(s, r))) File.Delete(CestaOtocene(s, r));
+        s.PuvodniNazev = Path.GetFileName(cesta);
+        s.Otoceni = 0;
+        s.Narovnano = false;
+        s.Zkontrolovano = false;
+        s.ZkontrolovanoNatoceni.Clear();
+        Uloz();
+    }
+
     /// <summary>Upravená fotka pro OCR, ukládá se mezi výsledky, aby se nepočítala znovu.</summary>
     public string UpravenaFotka(Strana s) =>
         UpravaFotky.UlozUpravenou(CestaFotky(s), Path.Combine(Slozka, "ocr", "upravene"));

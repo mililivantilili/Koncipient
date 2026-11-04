@@ -24,6 +24,7 @@ Testy může dělat i agent (Claude Code), postup pro něj je v [agent.md](agent
 | Test 9: rychlá kontrola a PDF | nový |
 | Test 10: hledání, PDF pro archiv, export vybraných dokumentů | nový |
 | Test 11: přenos přes flash disk | nový |
+| Test 12: stránky k přefocení a potvrzení celé strany | nový |
 
 Hotové testy (✅) přeskoč, jejich postup je sbalený.
 
@@ -47,7 +48,7 @@ Hotové testy (✅) přeskoč, jejich postup je sbalený.
 1. Otevři **řešení**, ne jen složku: Soubor → Otevřít → Projekt/řešení… → `Koncipient.sln`. Bez toho se nabídka Test ani testy neukážou.
 2. Počkej, až se stáhnou balíčky (vlevo dole), a sestav řešení: Sestavení → Sestavit řešení (Ctrl+Shift+B).
 3. Otevři Test → Průzkumník testů (Ctrl+E, T), anglicky *Test Explorer*.
-4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 453, všechny zelené.
+4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 457, všechny zelené.
 
 Když sestavení selže, otevři Zobrazit → Seznam chyb.
 
@@ -261,6 +262,17 @@ Na spisu s několika dokumenty a hotovým přepisem:
    - [ ] Podruhé program napíše, že nové výstupy nejsou.
 
 **Poslat:** co nesedělo a jestli program poznal flash disk (některé disky se hlásí jako pevné, pak je nevidí).
+
+## Test 12: stránky k přefocení a potvrzení celé strany (10 minut)
+
+1. Nafoť mobilem 4 stránky: jednu normálně, jednu rozmazaně (pohyb), jednu potmě a jednu s uříznutým okrajem textu. Přidej je do nového spisu a spusť přepis.
+   - [ ] Po přepisu se program zeptá na stránky k přefocení. Normální stránka v seznamu není, ostatní ano se srozumitelným důvodem.
+   - [ ] **Nahradit novou fotkou…** vymění fotku, náhled se změní. Po dalším přepisu strana zmizí ze seznamu **K přefocení…**.
+   - [ ] Prázdná stránka (papír na stole) v seznamu není.
+2. Rychlá kontrola na tomto spisu:
+   - [ ] Po vyřízení míst strany se objeví „celá strana k potvrzení“ s celým textem pro Clauda a fotkou vpravo. Strana je zkontrolovaná až po Enteru na ní.
+
+**Poslat:** které stránky program nahlásil a které ne, a jestli nějaká dobrá stránka byla v seznamu zbytečně.
 
 ## Kde jsou data
 

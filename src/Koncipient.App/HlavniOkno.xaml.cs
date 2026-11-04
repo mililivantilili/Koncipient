@@ -897,6 +897,7 @@ public partial class HlavniOkno : Window
         }
 
         _zruseni = new CancellationTokenSource();
+        bool prepisDobehl = false;
         Title = "Koncipient – přepis běží…";
         SpustitPrepis.IsEnabled = false;
         Zastavit.IsEnabled = true;
@@ -915,6 +916,7 @@ public partial class HlavniOkno : Window
             var chyby = (await Davka.ZpracujAsync(spisy, Motory.ProDavku(), prubeh, _zruseni.Token, Motory.Narovnani())).ToList();
 
             // po přepisu rovnou najít údaje, ať jsou ráno připravené ke kontrole
+            prepisDobehl = true;
             Stav.Text = "Hledám údaje…";
             await Task.Run(() =>
             {
@@ -971,6 +973,7 @@ public partial class HlavniOkno : Window
         }
         _spis = null; // znovu načíst spis a klíč z disku
         NactiSpisy(SeznamSpisu.SelectedItem is PolozkaSpisu p ? p.Spis.Id : null);
+        if (prepisDobehl) NabidniPrefoceni();
     }
 
     private void Zastavit_Click(object sender, RoutedEventArgs e)

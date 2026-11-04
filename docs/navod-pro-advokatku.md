@@ -34,6 +34,8 @@ Klikněte na **Spustit přepis**. Program fotky narovná, převede na text a naj
 
 Když je hotovo, uvidíte v titulku okna „přepis dokončen“ a čas. Pokud se některá strana nepřepsala, program napíše, která. Stačí přepis spustit znovu.
 
+**Stránky k přefocení:** po přepisu program nabídne strany, které vyšly špatně (rozmazané, tmavé, uříznuté u okraje nebo s nejistým přepisem), i s náhledem. Přefoťte je, dokud máte spis v ruce, a tlačítkem **Nahradit novou fotkou…** je vyměňte. Nová fotka se přepíše při dalším spuštění přepisu. Seznam ukáže kdykoli i tlačítko **K přefocení…**.
+
 ## 4. Kontrola: hlavní práce
 
 Automatika nikdy nenajde všechno, proto nic neodejde bez vaší kontroly.

@@ -170,6 +170,11 @@ Fotky se řadí přirozeně (IMG_2 před IMG_10). Strany se číslují v pořad�
 - **PDF pro archiv** (`ArchivPdf.cs`) skládá fotky stran (šířka A4) s neviditelnou textovou vrstvou z přepisu (PdfPig, písmo Arial z Windows). Velikost písma každého slova odpovídá šířce slova na fotce, aby označení v prohlížeči PDF sedělo. Dokumenty jsou záložky. PDF obsahuje skutečné údaje a zůstává v počítači se spisy.
 - **Export vybraných dokumentů:** export může obsahovat jen vybrané dokumenty, kontrolují se jen jejich strany. Soubory mají stálá čísla podle pořadí ve spisu, `manifest.json` má `cely_spis` a pravidla pro Clauda vysvětlují, že ostatní dokumenty nedostal. Dokument si pamatuje čas posledního exportu, takže po doplnění spisu jde vybrat jen nové.
 
+## Stránky k přefocení a přenos přes flash disk
+
+- **Přefocení** (`KvalitaFotek.cs`): po přepisu program nabídne strany, které vyšly špatně. Rozmazaná je fotka s ostrostí (rozptyl Laplaceova operátoru na šířce 1000 px) pod 60; fotky z mobilu v Matějově archivu mají 445 až 1583, rozmazané pod 20. Strana bez textu (prázdný papír) se na ostrost nehodnotí. Dál tmavá fotka (jas pod 80), text u okraje (aspoň 3 slova do 0,6 % od okraje) a nejistý přepis (přes 35 % sporných slov). Nová fotka nahradí starou na stejném místě, přepis i kontrola strany se zahodí.
+- **Flash disk** (`Prenos.cs`): na disk jde jen obsah `ProClaude` po kontrole, že v něm nejsou fotky, PDF, Word, klíč ani data spisu. Výstupy od Clauda na disku zůstanou. Zpátky se načtou jen nové `.md` a `.txt` ze složek `vystup` a rovnou se otevřou k vrácení jmen.
+
 ## Struktura složek a formát dat
 
 Spisy a export jsou dvě oddělené složky. Na počítač s Claude Code se přenáší jen export, Claude Code se spouští v něm. Každá strana je samostatný Markdown.

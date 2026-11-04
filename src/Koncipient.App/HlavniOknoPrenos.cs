@@ -77,3 +77,45 @@ public partial class HlavniOkno
         okno.OtevriSoubor(vybrany.Soubor);
     }
 }
+
+/// <summary>Stránky k přefocení: tlačítko a nabídka po přepisu.</summary>
+public partial class HlavniOkno
+{
+    private void KPrefoceni_Click(object sender, RoutedEventArgs e)
+    {
+        if (_spis is null) return;
+        var strany = KvalitaFotek.Najdi(_spis);
+        if (strany.Count == 0)
+        {
+            MessageBox.Show(this, "Všechny strany vypadají dobře, není co přefotit.", "Stránky k přefocení",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+        UkazPrefoceni(_spis, strany);
+    }
+
+    private void UkazPrefoceni(Spis spis, IReadOnlyList<StranaKPrefoceni> strany)
+    {
+        var (nahrazeno, otevrit) = PrefoceniDialog.Ukaz(this, spis, strany);
+        if (nahrazeno > 0) Stav.Text = $"Nahrazeno {nahrazeno} fotek. Přepíšou se tlačítkem Spustit přepis.";
+        if (_spis?.Id != spis.Id) return;
+        var vybrana = otevrit ?? _strana;
+        NactiStrany();
+        if (vybrana is not null)
+            SeznamStran.SelectedItem = SeznamStran.Items.OfType<PolozkaStrany>().FirstOrDefault(p => p.Strana == vybrana);
+        if (otevrit is not null) Zalozky.SelectedIndex = 0;
+    }
+
+    /// <summary>Po přepisu: když některé strany vyšly špatně, nabídne je k přefocení.</summary>
+    private void NabidniPrefoceni()
+    {
+        if (_spis is null) return;
+        var strany = KvalitaFotek.Najdi(_spis);
+        if (strany.Count == 0) return;
+        if (MessageBox.Show(this,
+                $"{strany.Count} stran ve spisu vyšlo špatně (rozmazané, tmavé, uříznuté nebo s nejistým přepisem). "
+                + "Ukázat je, ať je jde přefotit, dokud máš spis v ruce?",
+                "Stránky k přefocení", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            UkazPrefoceni(_spis, strany);
+    }
+}

@@ -311,6 +311,21 @@ try
                 : Vypis(new { uspech = false, problemy = vysledek.Problemy });
         }
 
+        case "kvalita":
+        {
+            // strany k přefocení (jen důvody, žádný obsah)
+            var spis = NajdiSpis(argumenty[0]);
+            return Vypis(new { kPrefoceni = KvalitaFotek.Najdi(spis).Select(k => new { strana = spis.Poradi(k.Strana), soubor = k.Strana.PuvodniNazev, duvody = k.Duvody }) });
+        }
+
+        case "nahrad-fotku":
+        {
+            var spis = NajdiSpis(argumenty[0]);
+            var strana = NajdiStranu(spis, argumenty[1]);
+            spis.NahradFotku(strana, argumenty[2]);
+            return Vypis(StavStrany(spis, strana));
+        }
+
         case "na-disk":
         {
             // kopie ProClaude na flash disk (nebo do zadané složky) s kontrolou, že tam nejsou fotky ani klíč
@@ -409,6 +424,8 @@ static int Napoveda()
           zkontroluj <spis> [<strana>...|vse] [--zrusit]
           export <spis> [--cil <složka>] [--dokumenty 1,3|nove]   zápis pro Clauda (jen po kontrole stran)
           pdf <spis> <soubor.pdf> [--dokumenty 1,3]   prohledatelné PDF pro archiv (skutečné údaje)
+          kvalita <spis>                          strany k přefocení (rozmazané, tmavé, uříznuté, nejistý přepis)
+          nahrad-fotku <spis> <strana> <soubor>   přefocená strana: nová fotka, přepis se zahodí
           na-disk <kořen disku> [--proclaude <složka>]  ProClaude na flash disk (ověří, že tam nejsou fotky ani klíč)
           z-disku <kořen disku> [--proclaude <složka>]  nové výstupy od Clauda z disku
           hledej <spis> <slovo nebo fráze>        *  hledání ve všech stranách
