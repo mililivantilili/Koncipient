@@ -182,7 +182,9 @@ Hrany: `Canny(60, 180)` na obrázku zmenšeném na šířku 800 px, podíl hrano
 
 Protože mobil advokátky může dát jiný výsledek a nesprávně zahozená strana by v právním spisu vadila, navrhuji: **nemazat oddělovač potichu.** Po importu ukázat, kolik fotek se bere jako oddělovač, s náhledem a možností vrátit je mezi strany. Rozhodnutí, jestli je to potřeba, je na Matějovi.
 
-Omezení: jen 3 snímky z jednoho mobilu a v archivu není žádný snímek prázdné stránky, takže horní mez jasu je zatím odhad.
+Doplnění 2026-11-04: Matěj dodal 3 fotky prázdného papíru na stole, stejný mobil. Jas 144 až 164, odchylka 63 až 84, hrany 0,54 až 5,29 %, tedy aspoň desetkrát nad navrženou mezí. Navržené pravidlo na všech dostupných snímcích rozhoduje správně: oddělovače 3 ze 3, prázdné stránky 0 ze 3, dokumenty 0 z 95. Stávající `JeCerna` prázdné stránky také nezahazuje.
+
+Omezení: oddělovače i prázdné stránky jsou z jednoho mobilu a mobil advokátky se zatím testovat nebude. Na všech třech snímcích prázdného papíru je vidět okraj papíru a stůl. Prázdný papír přes celý záběr by hrany mít nemusel, před zahozením ho chrání jen mez jasu, a ta zatím není ověřená. I proto dává smysl oddělovače po importu ukázat a nemazat je potichu.
 
 ### Co tentokrát neověřeno
 
