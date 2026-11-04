@@ -226,10 +226,10 @@ Instalátor je jeden soubor `.exe`, který advokátka spustí dvojklikem. Obsahu
 3. **Spustit přepis.** [ ] Přepíše se jen naskenovaná strana, strana s textem ne.
 4. Záložka **Rychlá kontrola**:
    - [ ] Seznam ukazuje nahrazené údaje (údaj → náhrada, počet) a žlutá podezřelá slova, dole je kousek textu a výřez fotky.
-   - [ ] Enter posune na další místo. Po vyřízení všech míst strany je strana v seznamu vlevo zkontrolovaná.
+   - [ ] Enter posune na další místo. Po vyřízení všech míst strany se objeví „celá strana k potvrzení“: dole celý text pro Clauda, vpravo fotka. Teprve Enter na ní stranu označí jako zkontrolovanou.
    - [ ] **N** u nahrazeného údaje ho ponechá na všech stranách (v záložce Osoby a údaje má akci Ponechat).
    - [ ] **O** u podezřelého slova z něj udělá osobu s vymyšleným jménem.
-   - [ ] **Strany bez nálezů** se zeptá a označí zbylé strany.
+   - [ ] Strany bez nálezů jsou v seznamu rovnou jako „celá strana k potvrzení“.
 5. Na spisu z archivu odhadni, kolik času ušetří rychlá kontrola proti procházení po stranách, a jestli je podezřelých slov rozumně (ne stovky).
 
 **Poslat:** jak dlouho trvala rychlá kontrola, kolik bylo podezřelých slov a kolik z nich byly opravdu přehlédnuté údaje.

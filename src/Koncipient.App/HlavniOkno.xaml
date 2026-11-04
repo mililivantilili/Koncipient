@@ -177,12 +177,12 @@
                         <WrapPanel DockPanel.Dock="Top" Margin="4">
                             <TextBlock x:Name="RkSouhrn" AutomationProperties.AutomationId="RkSouhrn" VerticalAlignment="Center" Margin="4,0,12,0" TextWrapping="Wrap" MaxWidth="520" />
                             <Button Content="Načíst znovu" Click="RkNacist_Click" Padding="8,3" Margin="0,0,6,0" />
-                            <Button x:Name="RkBezNalezu" AutomationProperties.AutomationId="RkBezNalezu" Click="RkBezNalezu_Click" Padding="8,3"
-                                    ToolTip="Strany, kde program nenašel žádný údaj ani podezřelé slovo. U důležitých stran se vyplatí přesto zapnout Náhled pro Clauda." />
                         </WrapPanel>
                         <Border DockPanel.Dock="Bottom" BorderBrush="LightGray" BorderThickness="0,1,0,0" Padding="8">
                             <StackPanel>
-                                <TextBlock x:Name="RkKontext" AutomationProperties.AutomationId="RkKontext" FontSize="16" TextWrapping="Wrap" Margin="0,0,0,6" />
+                                <ScrollViewer MaxHeight="340" VerticalScrollBarVisibility="Auto" Margin="0,0,0,6">
+                                    <TextBlock x:Name="RkKontext" AutomationProperties.AutomationId="RkKontext" FontSize="16" TextWrapping="Wrap" />
+                                </ScrollViewer>
                                 <Image x:Name="RkVyrez" Height="140" Stretch="Uniform" HorizontalAlignment="Left" Margin="0,0,0,6" />
                                 <WrapPanel>
                                     <Button x:Name="RkOk" AutomationProperties.AutomationId="RkOk" Content="V pořádku (Enter)" Click="RkOk_Click" Padding="8,3" Margin="0,0,6,4" />

@@ -45,9 +45,9 @@ Záložka **Rychlá kontrola** ukáže jen místa, na kterých záleží, s kous
 - **zelené:** údaj, který program nahradí (u každého jednou za stranu, s počtem výskytů),
 - **žluté ⚠:** slovo, které zůstane, ale vypadá jako přehlédnuté jméno nebo číslo.
 
-Stejný údaj se ukáže jen jednou, i když je na více stranách. Projděte je klávesnicí: **Enter** = v pořádku, **N** = není citlivé (soud, úřad, obec; u osob a čísel se program zeptá), **O** = je to osoba, **U** = jiný údaj, odstranit. Stranu, na které máte všechno vyřízené, program sám označí jako zkontrolovanou. Na konci tlačítkem **Strany bez nálezů** potvrďte strany, kde program nenašel nic.
+Stejný údaj se ukáže jen jednou, i když je na více stranách. Projděte je klávesnicí: **Enter** = v pořádku, **N** = není citlivé (soud, úřad, obec; u osob a čísel se program zeptá), **O** = je to osoba, **U** = jiný údaj, odstranit. Když má strana všechna místa vyřízená, objeví se v seznamu **celá strana k potvrzení**: dole je její text přesně tak, jak ho dostane Claude, a vpravo fotka. Přečtěte ho. Jestli v něm zůstalo skutečné jméno nebo číslo, klikněte na **Otevřít stranu** a označte ho. Když je strana v pořádku, potvrďte ji Enterem. Teprve tím je zkontrolovaná. Strany, na kterých program nic nenašel, se ukážou rovnou k potvrzení.
 
-**Pozor:** rychlá kontrola ukazuje jen místa, která program našel. Jméno, které nepoznal (třeba příjmení Malý nebo Černý uprostřed věty), v ní nemusí být. Důležité strany proto před exportem projděte i v **Náhledu pro Clauda**.
+Program totiž nenajde všechno (třeba příjmení Malý nebo Černý uprostřed věty). Proto se každá strana nakonec potvrzuje celá.
 
 ### Kontrola po stranách
 

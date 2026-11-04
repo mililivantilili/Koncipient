@@ -11,16 +11,14 @@ using Koncipient.Ocr;
 namespace Koncipient.App;
 
 /// <summary>
-/// Záložka Rychlá kontrola: místo procházení celých stran jen místa, kde program údaj nahradí,
-/// a slova, která vypadají jako přehlédnutý údaj. Strana, na které je vše vyřízené,
-/// se označí jako zkontrolovaná.
+/// Záložka Rychlá kontrola: nejdřív místa, kde program údaj nahradí, a slova, která vypadají
+/// jako přehlédnutý údaj. Když má strana všechna místa vyřízená, ukáže se celá tak, jak ji
+/// dostane Claude, a teprve potvrzením celé strany je strana zkontrolovaná (Matěj 2026-11-04).
 /// </summary>
 public partial class HlavniOkno
 {
     private List<MistoKontroly> _mista = new();
     private readonly HashSet<string> _vyrizeno = new();
-    /// <summary>Strany, na kterých advokátka v rychlé kontrole něco posoudila.</summary>
-    private readonly HashSet<int> _posouzeneStrany = new();
     private string? _rkSpis;
     private (int Cislo, BitmapSource Obrazek)? _rkFotka;
 
@@ -31,23 +29,30 @@ public partial class HlavniOkno
     private void RkNacti(string? vybrat = null)
     {
         if (_spis is null) return;
-        if (_rkSpis != _spis.Id) { _vyrizeno.Clear(); _posouzeneStrany.Clear(); _rkSpis = _spis.Id; _rkFotka = null; }
+        if (_rkSpis != _spis.Id) { _vyrizeno.Clear(); _rkSpis = _spis.Id; _rkFotka = null; }
         _mista = RychlaKontrola.Najdi(_spis, _klic);
-        // strana, na které jsou všechna místa vyřízená (nebo zmizela po Není citlivé), je hotová
-        OznacHotoveStrany(_spis.Strany.Where(s => _posouzeneStrany.Contains(s.Cislo)));
 
-        RkSeznam.Items.Clear();
+        // pořadí podle stran: místa strany, pak celá strana k potvrzení, jakmile jsou její místa vyřízená
+        var polozky = new List<(int Poradi, int Druh, ListBoxItem Polozka)>();
         foreach (var m in _mista.Where(m => !_vyrizeno.Contains(KlicMista(m))))
-            RkSeznam.Items.Add(new ListBoxItem { Content = PopisMista(m), Tag = m });
-        int bezNalezu = RychlaKontrola.StranyBezNalezu(_spis, _mista).Count(s => !s.Zkontrolovano);
-        RkSouhrn.Text = RkSeznam.Items.Count == 0
-            ? "Všechna místa jsou vyřízená."
-            : $"Ke kontrole {RkSeznam.Items.Count} míst na {_mista.Where(m => !_vyrizeno.Contains(KlicMista(m))).SelectMany(m => m.Strany).Distinct().Count()} stranách. Enter = v pořádku, N = není citlivé, O = osoba, U = jiný údaj. "
-              + "Kontrola ukazuje jen místa, která program našel: důležité strany projdi i v Náhledu pro Clauda.";
-        RkBezNalezu.Content = $"Strany bez nálezů ({bezNalezu}): označit jako zkontrolované";
-        RkBezNalezu.IsEnabled = bezNalezu > 0;
+            polozky.Add((_spis.Poradi(m.Strana), 0, new ListBoxItem { Content = PopisMista(m), Tag = m }));
+        foreach (var s in _spis.Strany.Where(PripravenaKPotvrzeni))
+            polozky.Add((_spis.Poradi(s), 1, new ListBoxItem
+            {
+                Content = $"s. {_spis.Poradi(s)}   ☐ celá strana k potvrzení (jak ji dostane Claude)",
+                Tag = new PotvrzeniStrany(s), FontWeight = FontWeights.SemiBold,
+            }));
+        RkSeznam.Items.Clear();
+        foreach (var p in polozky.OrderBy(p => p.Poradi).ThenBy(p => p.Druh)) RkSeznam.Items.Add(p.Polozka);
 
-        var vyber = RkSeznam.Items.Cast<ListBoxItem>().FirstOrDefault(i => KlicMista((MistoKontroly)i.Tag) == vybrat)
+        int mist = polozky.Count(p => p.Druh == 0), stran = polozky.Count(p => p.Druh == 1);
+        RkSouhrn.Text = RkSeznam.Items.Count == 0
+            ? "Všechny strany jsou zkontrolované."
+            : $"Ke kontrole {mist} míst a {stran} stran k potvrzení. U místa: Enter = v pořádku, N = není citlivé, O = osoba, U = jiný údaj. "
+              + "Celou stranu si přečti a potvrď Enterem, teprve pak je zkontrolovaná.";
+
+        var vyber = RkSeznam.Items.Cast<ListBoxItem>().FirstOrDefault(i => i.Tag is MistoKontroly m && KlicMista(m) == vybrat
+                                                                       || i.Tag is PotvrzeniStrany p && $"S:{p.Strana.Cislo}" == vybrat)
                     ?? RkSeznam.Items.Cast<ListBoxItem>().FirstOrDefault();
         RkSeznam.SelectedItem = vyber;
         if (vyber is null) RkZobraz(null);
@@ -65,12 +70,48 @@ public partial class HlavniOkno
 
     private MistoKontroly? VybraneMisto => (RkSeznam.SelectedItem as ListBoxItem)?.Tag as MistoKontroly;
 
-    private void RkSeznam_SelectionChanged(object sender, SelectionChangedEventArgs e) => RkZobraz(VybraneMisto);
+    /// <summary>Položka seznamu: celá strana k potvrzení.</summary>
+    private sealed record PotvrzeniStrany(Strana Strana);
+
+    private PotvrzeniStrany? VybranaStrana => (RkSeznam.SelectedItem as ListBoxItem)?.Tag as PotvrzeniStrany;
+
+    /// <summary>Strana čeká na potvrzení, když není zkontrolovaná a nemá žádné nevyřízené místo.</summary>
+    private bool PripravenaKPotvrzeni(Strana s) =>
+        !s.Zkontrolovano && Motory.ProZobrazeni(_spis!, s) is not null
+        && !_mista.Any(m => m.Strany.Contains(s) && !_vyrizeno.Contains(KlicMista(m)));
+
+    private void RkSeznam_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (VybranaStrana is { } p) RkZobrazStranu(p.Strana);
+        else RkZobraz(VybraneMisto);
+    }
+
+    /// <summary>Celá strana v textu pro Clauda, fotka strany vpravo.</summary>
+    private void RkZobrazStranu(Strana strana)
+    {
+        RkKontext.Inlines.Clear();
+        RkVyrez.Source = null;
+        RkVyrez.Visibility = Visibility.Collapsed;
+        RkOk.IsEnabled = true;
+        RkOk.Content = "Strana je v pořádku (Enter)";
+        RkNecitlive.IsEnabled = RkOsoba.IsEnabled = RkJiny.IsEnabled = false;
+        var v = Motory.ProZobrazeni(_spis!, strana);
+        if (v is null) return;
+        RkKontext.Inlines.Add(new Run($"Strana {_spis!.Poradi(strana)}, jak ji dostane Claude. Fotka je vpravo. "
+            + "Když v textu zůstalo skutečné jméno nebo číslo, klikni na Otevřít stranu a označ ho.\n\n")
+            { Foreground = Brushes.Gray, FontSize = 13 });
+        RkKontext.Inlines.Add(new Run(Anonymizator.AnonymizovanyText(v, _klic)));
+        // fotka strany vpravo (seznam stran vlevo přepne i fotku)
+        var polozka = SeznamStran.Items.OfType<PolozkaStrany>().FirstOrDefault(x => x.Strana == strana);
+        if (polozka is not null && !ReferenceEquals(SeznamStran.SelectedItem, polozka)) SeznamStran.SelectedItem = polozka;
+    }
 
     private void RkZobraz(MistoKontroly? m)
     {
         RkKontext.Inlines.Clear();
         RkVyrez.Source = null;
+        RkVyrez.Visibility = Visibility.Visible;
+        RkOk.Content = "V pořádku (Enter)";
         RkOk.IsEnabled = RkNecitlive.IsEnabled = m is not null;
         RkOsoba.IsEnabled = RkJiny.IsEnabled = m?.Druh == DruhMista.Podezrele;
         if (m is null || _spis is null) return;
@@ -113,9 +154,8 @@ public partial class HlavniOkno
     private void RkDalsi(MistoKontroly vyrizene)
     {
         _vyrizeno.Add(KlicMista(vyrizene));
-        foreach (var s in vyrizene.Strany) _posouzeneStrany.Add(s.Cislo);
         int i = RkSeznam.SelectedIndex;
-        var dalsi = RkSeznam.Items.Cast<ListBoxItem>().Skip(i + 1).Select(x => (MistoKontroly)x.Tag)
+        var dalsi = RkSeznam.Items.Cast<ListBoxItem>().Skip(i + 1).Select(x => x.Tag).OfType<MistoKontroly>()
             .FirstOrDefault(x => !_vyrizeno.Contains(KlicMista(x)));
         RkNacti(dalsi is null ? null : KlicMista(dalsi));
     }
@@ -123,6 +163,18 @@ public partial class HlavniOkno
     private void RkOk_Click(object sender, RoutedEventArgs e)
     {
         if (VybraneMisto is { } m) RkDalsi(m);
+        else if (VybranaStrana is { } p && _spis is not null)
+        {
+            p.Strana.Zkontrolovano = true;
+            _spis.Uloz();
+            int i = RkSeznam.SelectedIndex;
+            var dalsi = RkSeznam.Items.Cast<ListBoxItem>().Skip(i + 1).Select(x => x.Tag).FirstOrDefault();
+            var vybrana = _strana;
+            NactiStrany();
+            if (vybrana is not null)
+                SeznamStran.SelectedItem = SeznamStran.Items.OfType<PolozkaStrany>().FirstOrDefault(x => x.Strana == vybrana);
+            RkNacti(dalsi switch { MistoKontroly m2 => KlicMista(m2), PotvrzeniStrany p2 => $"S:{p2.Strana.Cislo}", _ => null });
+        }
     }
 
     private void RkNecitlive_Click(object sender, RoutedEventArgs e)
@@ -180,38 +232,5 @@ public partial class HlavniOkno
         if (tlacitko is null || !tlacitko.IsEnabled) return;
         tlacitko.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         e.Handled = true;
-    }
-
-    private void RkBezNalezu_Click(object sender, RoutedEventArgs e)
-    {
-        if (_spis is null) return;
-        var strany = RychlaKontrola.StranyBezNalezu(_spis, _mista).Where(s => !s.Zkontrolovano).ToList();
-        if (MessageBox.Show(this,
-                $"Na {strany.Count} stranách program nenašel žádný údaj ani podezřelé slovo. Označit je jako zkontrolované?\n\n"
-                + "Program nenajde všechno. U důležitých stran se vyplatí přesto zapnout Náhled pro Clauda.",
-                "Rychlá kontrola", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
-        foreach (var s in strany) s.Zkontrolovano = true;
-        _spis.Uloz();
-        NactiStrany();
-        RkNacti();
-    }
-
-    /// <summary>Strany, které měly místa ke kontrole a všechna jsou vyřízená, se označí jako zkontrolované.</summary>
-    private void OznacHotoveStrany(IEnumerable<Strana> strany)
-    {
-        if (_spis is null) return;
-        bool zmena = false;
-        foreach (var s in strany)
-        {
-            if (s.Zkontrolovano || _mista.Any(m => m.Strany.Contains(s) && !_vyrizeno.Contains(KlicMista(m)))) continue;
-            s.Zkontrolovano = true;
-            zmena = true;
-        }
-        if (!zmena) return;
-        _spis.Uloz();
-        var vybrana = _strana;
-        NactiStrany();
-        if (vybrana is not null)
-            SeznamStran.SelectedItem = SeznamStran.Items.OfType<PolozkaStrany>().FirstOrDefault(p => p.Strana == vybrana);
     }
 }

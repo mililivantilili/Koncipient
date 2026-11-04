@@ -325,5 +325,5 @@ Opraveno 2026-11-04 (testy v `PdfTesty`, `RychlaKontrolaTesty`, `WindowsNalezyTe
 8. **Rozbité PDF:** česká hláška (poškozené nebo chráněné heslem), stav se vrátí, CLI vypíše chybu v JSON.
 9. Návod: „zapojený do zásuvky, internet nepotřebuje“.
 
-Otevřené rozhodnutí pro Matěje a advokátku: smí rychlá kontrola označit stranu jako zkontrolovanou, když člověk viděl jen vybraná místa?
+Rozhodnuto Matějem 2026-11-04: rychlá kontrola stranu sama neoznačí. Po vyřízení míst strany ukáže celou stranu v textu pro Clauda vedle fotky a zkontrolovaná je teprve po jejím potvrzení. Hromadné tlačítko Strany bez nálezů zmizelo, takové strany jdou rovnou k potvrzení.
 

@@ -162,7 +162,7 @@ Fotky se řadí přirozeně (IMG_2 před IMG_10). Strany se číslují v pořad�
 
 **PDF** (hlavně z datové schránky) se přidává stejně jako fotky, každé PDF je dokument. Stránky se vykreslí na 200 DPI (PDFium přes PDFtoImage) pro zobrazení. Text se vezme přímo z PDF (PdfPig) i s polohami slov, takže je přesný a stránka se nepřepisuje (motor `pdf-text`, v pořadí zobrazení hned za ruční opravou). Stránka bez textu, s nečitelným kódováním písma nebo otočená jde přes OCR jako fotka. Obě knihovny běží offline.
 
-**Rychlá kontrola** (`RychlaKontrola.cs`, záložka v okně, `koncipient-cli kontrola`) nahrazuje procházení celých stran. Ukáže každý nahrazený údaj jednou za stranu s okolím a výřezem fotky. Dál ukáže slova, která zůstanou, ale vypadají jako přehlédnutý údaj: známé křestní jméno, slovo s velkým písmenem mimo český slovník uprostřed věty, číslo s aspoň pěti číslicemi kromě dat a částek. Strana s vyřízenými místy se označí jako zkontrolovaná, strany bez nálezů potvrdí advokátka jedním tlačítkem s upozorněním, že program nenajde všechno.
+**Rychlá kontrola** (`RychlaKontrola.cs`, záložka v okně, `koncipient-cli kontrola`) nahrazuje procházení celých stran. Ukáže každý nahrazený údaj jednou za stranu s okolím a výřezem fotky. Dál ukáže slova, která zůstanou, ale vypadají jako přehlédnutý údaj: známé křestní jméno, slovo s velkým písmenem mimo český slovník uprostřed věty, číslo s aspoň pěti číslicemi kromě dat a částek. Když má strana všechna místa vyřízená, ukáže se celá v textu pro Clauda vedle fotky a zkontrolovaná je až po potvrzení (Matějovo rozhodnutí 2026-11-04: program nenajde všechno, člověk musí vidět celou stranu).
 
 ## Hledání, PDF pro archiv a doplnění spisu
 
