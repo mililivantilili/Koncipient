@@ -205,3 +205,38 @@ Měření na korpusu (vývojová část 1439 údajů) se nezhoršilo: přes OCR 
 
 Neřešeno: `Jana Velkoměsto` jako osoba a role ve jméně (`Stavebník Jana`), obojí zachytí tabulka Osoby a údaje. Náhled oddělovačů po importu: Matěj souhlasil, hotovo (okno Oddělovače dokumentů, v CLI `oddelovace` a `vrat-oddelovac`).
 
+## Opakování testu 7, 2026-11-04 (commit 769a13e)
+
+Oddělovače fungují, ale test našel **novou blokující chybu: jedna prázdná stránka zastaví celý přepis všech spisů**. Automatické testy 428 z 428. Testováno v oddělené složce spisů přes `koncipient-cli`, okno Oddělovače i v aplikaci.
+
+| Krok testu 7 | Výsledek |
+| --- | --- |
+| Složka s podsložkami, pořadí `IMG_2` před `IMG_10` | Prošlo |
+| Tři zakryté fotky z Pixelu | Prošlo, všechny 3 poznané včetně šedé, dokument se rozdělí |
+| 3 fotky prázdného papíru a fotky dokumentů | Prošlo, žádná není oddělovač |
+| Několik oddělovačů za sebou, na začátku a na konci | Prošlo, prázdný dokument nevznikne, všechny jsou v seznamu oddělovačů |
+| Okno Oddělovače po importu, Hotovo, hláška s počtem | Prošlo |
+| Tlačítko Oddělovače, Je to stránka, vrátit | Prošlo, fotka je na svém místě a dokumenty se spojí |
+| Přesuny, nový dokument, spojení, přejmenování, návrh názvu (přes CLI) | Prošlo |
+| Export se jménem v názvu dokumentu i složky | Prošlo, jméno je nahrazené v názvu souboru i v manifestu, fotky ani klíč v exportu nejsou |
+| Přepis spisu s prázdnou stránkou | **Selhalo**, viz níže |
+| Navržené názvy dokumentů | Částečně: `Účel stanoviska: Povolení stavby stavební režim` je použitelný, věta z reklamního sloganu na první straně ne |
+
+### Blokující: prázdná stránka zastaví přepis
+
+Výsledek na 1 ze 3 fotek prázdného papíru. Windows OCR nepřečetlo nic a PaddleOCR přečetlo v záhybu papíru `1`.
+
+- Chyba: `Slouceni.Sluc` (`Slouceni.cs:73`) sáhne na `hlavni.Radky[skupina.Key]`, ale hlavní motor nemá žádný řádek. Krátké číslo jen z kontrolního motoru se přitom vkládá na řádek 0 (`ZpracujMezeru`, řádek 111).
+- Dopad: `Davka` se zastaví na první takové straně. Další strany **ve všech spisech** se nesloučí, nenavrhnou se názvy dokumentů a nevznikne klíč (po pádu byly bez klíče i spisy, které samy prázdnou stranu nemají).
+- V okně: hláška `Koncipient: chyba` s anglickým textem `Index was out of range…`. Titulek okna zůstane na `přepis běží…` a stav na `Slučuji přepisy…`, i když je tlačítko zase aktivní. Opakované spuštění skončí stejně, spis nejde dokončit.
+- Ochrana dat funguje: export takového spisu se odmítne a vypíše nenahrazené údaje, takže jde o funkční chybu, ne o únik.
+
+Návrh opravy:
+1. V `Sluc` zacházet s prázdným hlavním motorem: vrátit prázdný výsledek, nebo vytvořit řádek z rámečku slova kontrolního motoru.
+2. V dávce zachytit chybu jedné strany, označit ji a pokračovat dalšími, aby jedna strana nezastavila noční dávku.
+3. V okně po chybě vrátit titulek a stav a hlášku napsat česky s číslem spisu a strany.
+4. Přidat test s hlavním přepisem bez řádků a kontrolním `1`.
+
+### Co tentokrát neověřeno
+
+Přesuny stran přes pravé tlačítko jsem v okně neopakoval, jen přes CLI. Mobil advokátky a prázdný papír přes celý záběr dál chybí.
