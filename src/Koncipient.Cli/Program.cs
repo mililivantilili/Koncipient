@@ -311,6 +311,14 @@ try
                 : Vypis(new { uspech = false, problemy = vysledek.Problemy });
         }
 
+        case "zaznam":
+        {
+            // záznam o exportech (jen počty, žádné údaje)
+            var spis = NajdiSpis(argumenty[0]);
+            if (Prepinac("--text")) { Console.WriteLine(ZaznamyExportu.Prehled(spis)); return 0; }
+            return Vypis(new { spis = spis.Id, zaznamy = ZaznamyExportu.Nacti(spis) });
+        }
+
         case "kvalita":
         {
             // strany k přefocení (jen důvody, žádný obsah)
@@ -330,7 +338,7 @@ try
         {
             // kopie ProClaude na flash disk (nebo do zadané složky) s kontrolou, že tam nejsou fotky ani klíč
             var zdroj = Volba("--proclaude") ?? Prenos.MistniSlozka;
-            return Vypis(new { cil = Path.Combine(Path.GetFullPath(argumenty[0]), Prenos.NazevSlozky), souboru = Prenos.NaDisk(zdroj, Path.GetFullPath(argumenty[0])) });
+            return Vypis(new { cil = Path.Combine(Path.GetFullPath(argumenty[0]), Prenos.NazevSlozky), souboru = Prenos.NaDisk(zdroj, Path.GetFullPath(argumenty[0]), uloziste.Spisy()) });
         }
 
         case "z-disku":
@@ -424,6 +432,7 @@ static int Napoveda()
           zkontroluj <spis> [<strana>...|vse] [--zrusit]
           export <spis> [--cil <složka>] [--dokumenty 1,3|nove]   zápis pro Clauda (jen po kontrole stran)
           pdf <spis> <soubor.pdf> [--dokumenty 1,3]   prohledatelné PDF pro archiv (skutečné údaje)
+          zaznam <spis> [--text]                  záznam o exportech pro GDPR (jen počty, žádné údaje)
           kvalita <spis>                          strany k přefocení (rozmazané, tmavé, uříznuté, nejistý přepis)
           nahrad-fotku <spis> <strana> <soubor>   přefocená strana: nová fotka, přepis se zahodí
           na-disk <kořen disku> [--proclaude <složka>]  ProClaude na flash disk (ověří, že tam nejsou fotky ani klíč)

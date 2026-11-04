@@ -235,7 +235,7 @@ public partial class HlavniOkno : Window
         _spis = (SeznamSpisu.SelectedItem as PolozkaSpisu)?.Spis;
         _klic = _spis is null ? new Klic() : Anonymizator.NactiKlic(_spis);
         _strana = null;
-        PridatFotky.IsEnabled = PridatSlozku.IsEnabled = Oddelovace.IsEnabled = PdfArchiv.IsEnabled = NajitUdaje.IsEnabled = Exportovat.IsEnabled = VratitJmena.IsEnabled = _spis is not null;
+        PridatFotky.IsEnabled = PridatSlozku.IsEnabled = Oddelovace.IsEnabled = PdfArchiv.IsEnabled = ZaznamExportu.IsEnabled = NajitUdaje.IsEnabled = Exportovat.IsEnabled = VratitJmena.IsEnabled = _spis is not null;
         NactiUdaje();
         NactiStrany();
     }

@@ -48,7 +48,7 @@ public static class Prenos
     /// přepíšou, výstupy od Clauda, které na disku už jsou, zůstanou. Vrátí počet souborů.
     /// Výstupy od Clauda (.docx se skutečnými jmény) se na disk nekopírují.
     /// </summary>
-    public static int NaDisk(string slozkaProClaude, string korenDisku)
+    public static int NaDisk(string slozkaProClaude, string korenDisku, IEnumerable<Spis>? spisy = null)
     {
         if (!Directory.Exists(slozkaProClaude))
             throw new InvalidOperationException("Zatím není nic exportované. Nejdřív exportuj spis pro Clauda.");
@@ -76,6 +76,10 @@ public static class Prenos
             foreach (var stary in Directory.GetFiles(dokumenty))
                 if (!File.Exists(Path.Combine(spis, "dokumenty", Path.GetFileName(stary)))) File.Delete(stary);
         }
+        // záznam do každého spisu, který na disk odešel
+        foreach (var spis in spisy ?? Enumerable.Empty<Spis>())
+            if (Directory.Exists(Path.Combine(slozkaProClaude, spis.Id)))
+                ZaznamyExportu.Pridej(spis, new ZaznamExportu { Kdy = DateTime.Now, Akce = "flash disk", Kdo = Environment.UserName, Cil = cil });
         return pocet;
     }
 

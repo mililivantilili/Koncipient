@@ -25,6 +25,7 @@ Testy může dělat i agent (Claude Code), postup pro něj je v [agent.md](agent
 | Test 10: hledání, PDF pro archiv, export vybraných dokumentů | nový |
 | Test 11: přenos přes flash disk | nový |
 | Test 12: stránky k přefocení a potvrzení celé strany | nový |
+| Test 13: záznam o exportech | nový |
 
 Hotové testy (✅) přeskoč, jejich postup je sbalený.
 
@@ -48,7 +49,7 @@ Hotové testy (✅) přeskoč, jejich postup je sbalený.
 1. Otevři **řešení**, ne jen složku: Soubor → Otevřít → Projekt/řešení… → `Koncipient.sln`. Bez toho se nabídka Test ani testy neukážou.
 2. Počkej, až se stáhnou balíčky (vlevo dole), a sestav řešení: Sestavení → Sestavit řešení (Ctrl+Shift+B).
 3. Otevři Test → Průzkumník testů (Ctrl+E, T), anglicky *Test Explorer*.
-4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 457, všechny zelené.
+4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 458, všechny zelené.
 
 Když sestavení selže, otevři Zobrazit → Seznam chyb.
 
@@ -273,6 +274,15 @@ Na spisu s několika dokumenty a hotovým přepisem:
    - [ ] Po vyřízení míst strany se objeví „celá strana k potvrzení“ s celým textem pro Clauda a fotkou vpravo. Strana je zkontrolovaná až po Enteru na ní.
 
 **Poslat:** které stránky program nahlásil a které ne, a jestli nějaká dobrá stránka byla v seznamu zbytečně.
+
+## Test 13: záznam o exportech (5 minut)
+
+1. Na spisu, který už byl exportovaný, exportuj ještě jednou jen jeden dokument a zkopíruj na flash disk.
+2. **Záznam o exportech…**
+   - [ ] Jsou tam oba exporty (celý spis a jeden dokument) a kopie na flash disk, s časem a jménem uživatele Windows.
+   - [ ] U exportu jsou počty nahrazených údajů podle typu a jestli byly strany zkontrolované.
+   - [ ] V záznamu není žádné skutečné jméno, adresa ani název dokumentu.
+3. **Uložit jako Word…** [ ] Dokument jde otevřít ve Wordu.
 
 ## Kde jsou data
 

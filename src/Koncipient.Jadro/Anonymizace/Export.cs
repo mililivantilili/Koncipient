@@ -111,6 +111,8 @@ public static class Export
         ZapisPravidla(koren);
         foreach (var d in exportovane) d.Exportovano = DateTime.Now;
         spis.Uloz();
+        // doklad pro advokátku, co odešlo (jen počty, žádné údaje); zůstává ve spisu
+        ZaznamyExportu.Pridej(spis, ZaznamyExportu.ZExportu(spis, klic, vybrane, cil));
         return new VysledekExportu(true, cil, Array.Empty<string>());
     }
 

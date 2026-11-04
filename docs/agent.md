@@ -36,6 +36,7 @@ Nebo přímo `src\Koncipient.Cli\bin\Release\net10.0-windows10.0.19041.0\koncipi
 | 10 hledání, PDF, výběr dokumentů | `hledej <spis> <slovo>` (jen s testovacími daty), `pdf <spis> <soubor.pdf>`, `export <spis> --dokumenty 2` nebo `--dokumenty nove` |
 | 11 flash disk | `na-disk <složka jako disk>`, `z-disku <složka jako disk>` (místo disku jde použít libovolnou složku) |
 | 12 přefocení | `kvalita <spis>`, `nahrad-fotku <spis> <strana> <soubor>`, pak `prepis` |
+| 13 záznam | `zaznam <spis>` nebo `zaznam <spis> --text` po `export` a `na-disk` |
 | 3 otočení | `otoc <spis> <strana> 90`, pak `otoc … 270` a `strany`: `prepis` se nemá ztratit |
 | 4 anonymizace a export | `udaje`, `text <spis> <strana> --slova`, `oznac`, `necitlive`, `udaj … --akce/--role/--nahrada`, `styl`, `zkontroluj … vse`, `export --cil <složka>` |
 | 5 vrácení jmen | napiš `.md` s vymyšlenými jmény z exportu, `vrat-jmena <spis> <soubor> --docx <výstup>` |

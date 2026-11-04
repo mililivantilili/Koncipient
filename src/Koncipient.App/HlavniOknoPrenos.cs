@@ -30,7 +30,7 @@ public partial class HlavniOkno
         if (disk is null) return;
         try
         {
-            int pocet = Prenos.NaDisk(Prenos.MistniSlozka, disk.RootDirectory.FullName);
+            int pocet = Prenos.NaDisk(Prenos.MistniSlozka, disk.RootDirectory.FullName, _uloziste.Spisy());
             Stav.Text = $"Na {disk.Name} zkopírováno {pocet} souborů pro Clauda.";
             MessageBox.Show(this,
                 $"Na disk {disk.Name} jsem zkopíroval složku ProClaude ({pocet} souborů). Fotky ani klíč v ní nejsou, ověřil jsem to.\n\n"
@@ -117,5 +117,48 @@ public partial class HlavniOkno
                 + "Ukázat je, ať je jde přefotit, dokud máš spis v ruce?",
                 "Stránky k přefocení", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             UkazPrefoceni(_spis, strany);
+    }
+}
+
+/// <summary>Záznam o exportech (doklad pro GDPR).</summary>
+public partial class HlavniOkno
+{
+    private void ZaznamExportu_Click(object sender, RoutedEventArgs e)
+    {
+        if (_spis is null) return;
+        var spis = _spis;
+        var text = ZaznamyExportu.Prehled(spis);
+        var pole = new System.Windows.Controls.TextBox
+        {
+            Text = text, IsReadOnly = true, TextWrapping = TextWrapping.Wrap, FontSize = 13,
+            VerticalScrollBarVisibility = System.Windows.Controls.ScrollBarVisibility.Auto,
+        };
+        var ulozit = new System.Windows.Controls.Button { Content = "Uložit jako Word…", Padding = new Thickness(10, 3, 10, 3), Margin = new Thickness(0, 0, 8, 0) };
+        var zavrit = new System.Windows.Controls.Button { Content = "Zavřít", IsCancel = true, Padding = new Thickness(10, 3, 10, 3) };
+        var dole = new System.Windows.Controls.StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 8, 0, 0) };
+        dole.Children.Add(ulozit);
+        dole.Children.Add(zavrit);
+        var obsah = new System.Windows.Controls.DockPanel { Margin = new Thickness(12) };
+        System.Windows.Controls.DockPanel.SetDock(dole, System.Windows.Controls.Dock.Bottom);
+        obsah.Children.Add(dole);
+        obsah.Children.Add(pole);
+        var okno = new Window
+        {
+            Title = $"Záznam o exportech, spis {spis.Id}", Content = obsah, Owner = this, Width = 680, Height = 520,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner, ShowInTaskbar = false,
+        };
+        ulozit.Click += (_, _) =>
+        {
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = "Uložit záznam o exportech", Filter = "Dokument Word|*.docx",
+                FileName = $"Záznam o exportech {spis.Id}.docx",
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            };
+            if (dialog.ShowDialog(okno) != true) return;
+            Koncipient.Jadro.Word.Uloz(dialog.FileName, text);
+            Stav.Text = "Záznam uložen: " + dialog.FileName;
+        };
+        okno.ShowDialog();
     }
 }

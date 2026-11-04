@@ -175,6 +175,10 @@ Fotky se řadí přirozeně (IMG_2 před IMG_10). Strany se číslují v pořad�
 - **Přefocení** (`KvalitaFotek.cs`): po přepisu program nabídne strany, které vyšly špatně. Rozmazaná je fotka s ostrostí (rozptyl Laplaceova operátoru na šířce 1000 px) pod 60; fotky z mobilu v Matějově archivu mají 445 až 1583, rozmazané pod 20. Strana bez textu (prázdný papír) se na ostrost nehodnotí. Dál tmavá fotka (jas pod 80), text u okraje (aspoň 3 slova do 0,6 % od okraje) a nejistý přepis (přes 35 % sporných slov). Nová fotka nahradí starou na stejném místě, přepis i kontrola strany se zahodí.
 - **Flash disk** (`Prenos.cs`): na disk jde jen obsah `ProClaude` po kontrole, že v něm nejsou fotky, PDF, Word, klíč ani data spisu. Výstupy od Clauda na disku zůstanou. Zpátky se načtou jen nové `.md` a `.txt` ze složek `vystup` a rovnou se otevřou k vrácení jmen.
 
+## Záznam o exportech
+
+Každý export a každá kopie na flash disk se zapíše do `zaznam-exportu.json` ve složce spisu (`ZaznamExportu.cs`): čas, uživatel Windows, pořadí dokumentů, počet stran, jestli byly zkontrolované, výsledek závěrečné kontroly a počty nahrazených, vypuštěných a ponechaných údajů podle typu. Skutečné údaje ani názvy dokumentů (můžou obsahovat jména) se nezapisují. Záznam zůstává ve spisu a advokátka si ho uloží jako Word jako doklad o zacházení s osobními údaji.
+
 ## Struktura složek a formát dat
 
 Spisy a export jsou dvě oddělené složky. Na počítač s Claude Code se přenáší jen export, Claude Code se spouští v něm. Každá strana je samostatný Markdown.

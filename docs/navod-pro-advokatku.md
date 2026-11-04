@@ -83,6 +83,10 @@ Osoby se nahrazují vymyšlenými jmény (např. Bohdan Jasaník). Claude s nimi
 3. Program dosadí skutečná jména ve správném pádě. V okně barevně označí, co vrátil (zeleně), co stojí za kontrolu (oranžově) a co musíte doplnit sama (červeně). Text vpravo jde rovnou opravit.
 4. **Uložit jako Word…** a dokument dál upravujte ve Wordu jako obvykle.
 
+## Záznam o exportech (GDPR)
+
+Program si u každého spisu sám zapisuje, kdy a co odešlo Claudovi nebo na flash disk: které dokumenty, kolik stran, jestli byly zkontrolované a kolik údajů se nahradilo. Záznam neobsahuje žádné osobní údaje. Tlačítko **Záznam o exportech…** ho ukáže a uloží jako Word, třeba jako doklad pro klienta nebo pro kontrolu ochrany osobních údajů.
+
 ## Hledání ve spisu
 
 **Ctrl+F** otevře záložku **Hledání**. Napište slovo nebo frázi a stiskněte Enter. Nezáleží na diakritice a začátek slova najde i ostatní tvary („smlouv“ najde smlouvu i smlouvě). Enter nebo dvojklik na nález otevře stranu a slovo v ní označí.
