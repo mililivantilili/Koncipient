@@ -304,10 +304,28 @@ try
         case "export":
         {
             var spis = NajdiSpis(argumenty[0]);
-            var vysledek = Export.Proved(spis, Anonymizator.NactiKlic(spis), Volba("--cil"));
+            var cil = Volba("--cil");
+            var vysledek = Export.Proved(spis, Anonymizator.NactiKlic(spis), cil, Dokumenty(spis, Volba("--dokumenty")));
             return vysledek.Uspech
                 ? Vypis(new { uspech = true, slozka = vysledek.Slozka })
                 : Vypis(new { uspech = false, problemy = vysledek.Problemy });
+        }
+
+        case "pdf":
+        {
+            // prohledatelné PDF pro archiv advokátky (obsahuje skutečné údaje, zůstává v počítači)
+            var spis = NajdiSpis(argumenty[0]);
+            var dokumenty = Dokumenty(spis, Volba("--dokumenty"));
+            var cil = Path.GetFullPath(argumenty[1]);
+            return Vypis(new { soubor = cil, stran = ArchivPdf.Uloz(spis, cil, dokumenty) });
+        }
+
+        case "hledej":
+        {
+            if (!TestovaciData()) return Chyba(Ochrana, 3);
+            var spis = NajdiSpis(argumenty[0]);
+            var nalezy = Hledani.Najdi(spis, string.Join(" ", argumenty.Skip(1)));
+            return Vypis(new { nalezu = nalezy.Count, nalezy = nalezy.Select(n => new { strana = spis.Poradi(n.Strana), od = n.Od, @do = n.Do, kontext = $"{n.Pred} [{n.Text}] {n.Po}" }) });
         }
 
         case "vrat-jmena":
@@ -332,6 +350,18 @@ try
 catch (Exception e) when (e is ArgumentException or ArgumentOutOfRangeException or FileNotFoundException or DirectoryNotFoundException or InvalidOperationException)
 {
     return Chyba(e.Message);
+}
+
+// --dokumenty 1,3 (pořadí dokumentů ve spisu) nebo "nove" (ještě neexportované); bez volby celý spis
+static IReadOnlyCollection<string>? Dokumenty(Spis spis, string? volba)
+{
+    if (volba is null) return null;
+    var poradi = spis.StranyPoDokumentech().Select(x => x.Dokument).ToList();
+    if (volba == "nove") return poradi.Where(d => d.Exportovano is null).Select(d => d.Id).ToList();
+    return volba.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Select(c => int.TryParse(c, out var n) && n >= 1 && n <= poradi.Count ? poradi[n - 1].Id
+            : throw new ArgumentException($"Dokument {c} neexistuje, spis má {poradi.Count} dokumentů."))
+        .ToList();
 }
 
 static int Napoveda()
@@ -363,7 +393,9 @@ static int Napoveda()
           udaj <spis> <id> [--akce nahradit|odstranit|ponechat] [--role <role>] [--nahrada <text>] [--smazat]
           styl <spis> stromy|zvirata|kody         jak se nahrazují osoby
           zkontroluj <spis> [<strana>...|vse] [--zrusit]
-          export <spis> [--cil <složka>]          zápis pro Clauda (jen po kontrole všech stran)
+          export <spis> [--cil <složka>] [--dokumenty 1,3|nove]   zápis pro Clauda (jen po kontrole stran)
+          pdf <spis> <soubor.pdf> [--dokumenty 1,3]   prohledatelné PDF pro archiv (skutečné údaje)
+          hledej <spis> <slovo nebo fráze>        *  hledání ve všech stranách
           vrat-jmena <spis> <soubor.md> [--docx <výstup.docx>]   *
 
         * vypisuje obsah spisu: jen s KONCIPIENT_TESTOVACI_DATA=1 a jen na testovacích datech.

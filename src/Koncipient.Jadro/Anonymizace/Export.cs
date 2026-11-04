@@ -25,16 +25,24 @@ public static class Export
     /// Ověří a zapíše export. Nic nezapíše, když některá strana není zkontrolovaná
     /// nebo když závěrečná kontrola najde v anonymizovaném textu známý či nový údaj.
     /// </summary>
-    public static VysledekExportu Proved(Spis spis, Klic klic, string? slozkaProClaude = null)
+    /// <param name="jenDokumenty">
+    /// Jen vybrané dokumenty (Id), třeba nově doplněné. Null = celý spis. Kontrolují se jen
+    /// strany vybraných dokumentů. Soubory dokumentů mají stálá čísla podle pořadí ve spisu.
+    /// </param>
+    public static VysledekExportu Proved(Spis spis, Klic klic, string? slozkaProClaude = null, IReadOnlyCollection<string>? jenDokumenty = null)
     {
+        var vybrane = jenDokumenty;
         var koren = slozkaProClaude ?? VychoziSlozka;
         var problemy = new List<string>();
-        var dokumenty = new List<(int Poradi, string Nazev, string Soubor, List<(int Strana, string Text)> Strany)>();
+        var exportovane = new List<Dokument>();
+        var dokumentyExportu = new List<(int Poradi, string Nazev, string Soubor, List<(int Strana, string Text)> Strany)>();
 
         int k = 0;
         foreach (var (dokument, strany) in spis.StranyPoDokumentech())
         {
             k++;
+            if (vybrane is not null && !vybrane.Contains(dokument.Id)) continue;
+            exportovane.Add(dokument);
             // název dokumentu (ze složky nebo od advokátky) může obsahovat jméno, anonymizuje se taky
             var nazev = Anonymizator.AnonymizujText(dokument.Nazev, klic);
             problemy.AddRange(Kontrola(nazev, klic).Select(p => $"Název dokumentu {k}: {p}"));
@@ -49,9 +57,11 @@ public static class Export
                 problemy.AddRange(Kontrola(text, klic).Select(p => $"Strana {poradi}: {p}"));
                 obsah.Add((poradi, text));
             }
-            dokumenty.Add((k, nazev, $"dokumenty/{k:D2}-{Slug(nazev)}.md", obsah));
+            dokumentyExportu.Add((k, nazev, $"dokumenty/{k:D2}-{Slug(nazev)}.md", obsah));
         }
+        if (dokumentyExportu.Count == 0) problemy.Add("Není vybraný žádný dokument.");
         if (problemy.Count > 0) return new VysledekExportu(false, koren, problemy);
+        var dokumenty = dokumentyExportu;
 
         var cil = Path.Combine(koren, spis.Id);
         var docasna = cil + ".zapisuje";
@@ -87,6 +97,9 @@ public static class Export
             {
                 spis = spis.Id,
                 exportovano = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
+                // jen část spisu: Claude má vědět, že ostatní dokumenty nedostal
+                cely_spis = vybrane is null || dokumenty.Count == spis.Dokumenty.Count,
+                dokumentu_ve_spisu = spis.Dokumenty.Count,
                 dokumenty = dokumenty.Select(d => new { poradi = d.Poradi, nazev = d.Nazev, soubor = d.Soubor, strany = d.Strany.Select(s => s.Strana) }),
             }, Json), new UTF8Encoding(false));
 
@@ -96,6 +109,8 @@ public static class Export
         if (Directory.Exists(cil)) Directory.Delete(cil, recursive: true);
         Directory.Move(docasna, cil);
         ZapisPravidla(koren);
+        foreach (var d in exportovane) d.Exportovano = DateTime.Now;
+        spis.Uloz();
         return new VysledekExportu(true, cil, Array.Empty<string>());
     }
 
@@ -186,7 +201,9 @@ public static class Export
           automaticky (OCR), může obsahovat překlepy a chybějící diakritiku. Když je místo
           nečitelné nebo nejasné, napiš to, nedomýšlej si ho. Názvy dokumentů jsou navržené
           programem nebo advokátkou a jsou také anonymizované.
-        - `manifest.json` vyjmenovává dokumenty a jejich strany.
+        - `manifest.json` vyjmenovává dokumenty a jejich strany. Když má `cely_spis: false`,
+          advokátka poslala jen vybrané dokumenty (třeba nově doplněné). Čísla dokumentů a stran
+          platí v celém spisu, chybějící dokumenty si nedomýšlej a případně o ně požádej.
         - `entity.json` vyjmenovává náhrady použité ve spisu, jejich typ, rod a roli ve věci
           (žalobce, svědek…) a ke komu patří adresy a další údaje.
         - Výstupy ukládej do `vystup/` v příslušném spisu jako Markdown (`.md`). Odtud si je

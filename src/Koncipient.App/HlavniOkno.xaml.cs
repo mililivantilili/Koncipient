@@ -72,6 +72,7 @@ public partial class HlavniOkno : Window
             case Key.O when ctrl: Klik(PridatFotky); break;
             case Key.F5: Klik(SpustitPrepis); break;
             case Key.E when ctrl: Klik(Exportovat); break;
+            case Key.F when ctrl: if (_spis is not null) HledatOtevrit(); break;
             case Key.K when ctrl:
                 if (Zkontrolovano.IsEnabled) { Zkontrolovano.IsChecked = Zkontrolovano.IsChecked != true; Zkontrolovano_Click(this, e); }
                 break;
@@ -234,7 +235,7 @@ public partial class HlavniOkno : Window
         _spis = (SeznamSpisu.SelectedItem as PolozkaSpisu)?.Spis;
         _klic = _spis is null ? new Klic() : Anonymizator.NactiKlic(_spis);
         _strana = null;
-        PridatFotky.IsEnabled = PridatSlozku.IsEnabled = Oddelovace.IsEnabled = NajitUdaje.IsEnabled = Exportovat.IsEnabled = VratitJmena.IsEnabled = _spis is not null;
+        PridatFotky.IsEnabled = PridatSlozku.IsEnabled = Oddelovace.IsEnabled = PdfArchiv.IsEnabled = NajitUdaje.IsEnabled = Exportovat.IsEnabled = VratitJmena.IsEnabled = _spis is not null;
         NactiUdaje();
         NactiStrany();
     }
@@ -821,25 +822,6 @@ public partial class HlavniOkno : Window
         _strana.Zkontrolovano = Zkontrolovano.IsChecked == true;
         _spis.Uloz();
         NactiStrany();
-    }
-
-    private void Exportovat_Click(object sender, RoutedEventArgs e)
-    {
-        if (_spis is null) return;
-        var vysledek = Export.Proved(_spis, _klic);
-        if (!vysledek.Uspech)
-        {
-            var seznam = string.Join("\n", vysledek.Problemy.Take(15));
-            if (vysledek.Problemy.Count > 15) seznam += $"\n… a dalších {vysledek.Problemy.Count - 15}";
-            MessageBox.Show(this, "Export se neprovedl, nic nebylo zapsáno:\n\n" + seznam, "Koncipient",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
-        }
-        MessageBox.Show(this,
-            $"Anonymizovaný spis je ve složce\n{vysledek.Slozka}\n\n" +
-            "Na počítač s Claude Code přenes celou složku ProClaude (flash diskem nebo sdílenou složkou, " +
-            "ve které není nic jiného). Fotky ani klíč pseudonymů v ní nejsou.",
-            "Koncipient", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     // ---------- Ruční otočení ----------

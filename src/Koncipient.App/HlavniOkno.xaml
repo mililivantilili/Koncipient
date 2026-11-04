@@ -32,10 +32,13 @@
                               ToolTip="Ukáže text strany tak, jak ho dostane Claude." />
                 <CheckBox x:Name="Zkontrolovano" AutomationProperties.AutomationId="Zkontrolovano" Content="Strana zkontrolována" VerticalAlignment="Center" Margin="8,0"
                           Click="Zkontrolovano_Click" IsEnabled="False" />
-                <Button x:Name="Exportovat" AutomationProperties.AutomationId="Exportovat" Content="Exportovat pro Clauda…" Click="Exportovat_Click" Padding="8,4" IsEnabled="False" />
+                <Button x:Name="Exportovat" AutomationProperties.AutomationId="Exportovat" Content="Exportovat pro Clauda…" Click="Exportovat_Click" Padding="8,4" IsEnabled="False"
+                        ToolTip="Celý spis nebo jen vybrané dokumenty (třeba nově doplněné). Ctrl+E" />
                 <Separator />
                 <Button x:Name="VratitJmena" AutomationProperties.AutomationId="VratitJmena" Content="Vrátit jména do výstupu od Clauda…" Click="VratitJmena_Click" Padding="8,4" IsEnabled="False"
                         ToolTip="Otevře dokument od Clauda, vrátí do něj skutečná jména a uloží ho jako Word." />
+                <Button x:Name="PdfArchiv" AutomationProperties.AutomationId="PdfArchiv" Content="PDF pro archiv…" Click="PdfArchiv_Click" Padding="8,4" IsEnabled="False"
+                        ToolTip="Prohledatelné PDF spisu (fotky s textem) pro vlastní archiv. Obsahuje skutečné údaje, nedávat Claudovi." />
             </ToolBar>
         </ToolBarTray>
 
@@ -165,7 +168,7 @@
                         </DataGrid>
                     </DockPanel>
                 </TabItem>
-                <TabItem Header="Rychlá kontrola" AutomationProperties.AutomationId="ZalozkaRychlaKontrola">
+                <TabItem Header="Rychlá kontrola" AutomationProperties.AutomationId="ZalozkaRychlaKontrola" x:Name="ZalozkaRk">
                     <DockPanel>
                         <WrapPanel DockPanel.Dock="Top" Margin="4">
                             <TextBlock x:Name="RkSouhrn" AutomationProperties.AutomationId="RkSouhrn" VerticalAlignment="Center" Margin="4,0,12,0" TextWrapping="Wrap" MaxWidth="520" />
@@ -189,6 +192,18 @@
                         </Border>
                         <ListBox x:Name="RkSeznam" AutomationProperties.AutomationId="RkSeznam" SelectionChanged="RkSeznam_SelectionChanged"
                                  PreviewKeyDown="RkSeznam_PreviewKeyDown" FontSize="14" />
+                    </DockPanel>
+                </TabItem>
+                <TabItem Header="Hledání" AutomationProperties.AutomationId="ZalozkaHledani">
+                    <DockPanel>
+                        <DockPanel DockPanel.Dock="Top" Margin="4">
+                            <Button DockPanel.Dock="Right" Content="Hledat" Click="Hledat_Click" Padding="10,3" Margin="6,0,0,0" />
+                            <TextBox x:Name="HledatPole" AutomationProperties.AutomationId="HledatPole" FontSize="15" KeyDown="HledatPole_KeyDown"
+                                     ToolTip="Slovo nebo frázi ve všech stranách spisu. Nezáleží na diakritice, začátek slova najde i jiné tvary. Ctrl+F" />
+                        </DockPanel>
+                        <TextBlock x:Name="HledatSouhrn" AutomationProperties.AutomationId="HledatSouhrn" DockPanel.Dock="Top" Margin="8,0,8,4" Foreground="Gray" />
+                        <ListBox x:Name="HledatVysledky" AutomationProperties.AutomationId="HledatVysledky" FontSize="14"
+                                 MouseDoubleClick="HledatVysledky_Otevrit" KeyDown="HledatVysledky_Otevrit" />
                     </DockPanel>
                 </TabItem>
             </TabControl>

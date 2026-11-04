@@ -22,6 +22,7 @@ Testy může dělat i agent (Claude Code), postup pro něj je v [agent.md](agent
 | Test 7: dokumenty, složky a černé fotky | 🔶 oddělovače prošly 2026-11-04, opravený pád přepisu na prázdné stránce, zopakovat jen přepis spisu s prázdnou stránkou |
 | Test 8: instalátor | nový |
 | Test 9: rychlá kontrola a PDF | nový |
+| Test 10: hledání, PDF pro archiv, export vybraných dokumentů | nový |
 
 Hotové testy (✅) přeskoč, jejich postup je sbalený.
 
@@ -45,7 +46,7 @@ Hotové testy (✅) přeskoč, jejich postup je sbalený.
 1. Otevři **řešení**, ne jen složku: Soubor → Otevřít → Projekt/řešení… → `Koncipient.sln`. Bez toho se nabídka Test ani testy neukážou.
 2. Počkej, až se stáhnou balíčky (vlevo dole), a sestav řešení: Sestavení → Sestavit řešení (Ctrl+Shift+B).
 3. Otevři Test → Průzkumník testů (Ctrl+E, T), anglicky *Test Explorer*.
-4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 437, všechny zelené.
+4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 440, všechny zelené.
 
 Když sestavení selže, otevři Zobrazit → Seznam chyb.
 
@@ -231,6 +232,23 @@ Instalátor je jeden soubor `.exe`, který advokátka spustí dvojklikem. Obsahu
 5. Na spisu z archivu odhadni, kolik času ušetří rychlá kontrola proti procházení po stranách, a jestli je podezřelých slov rozumně (ne stovky).
 
 **Poslat:** jak dlouho trvala rychlá kontrola, kolik bylo podezřelých slov a kolik z nich byly opravdu přehlédnuté údaje.
+
+## Test 10: hledání, PDF pro archiv, export vybraných dokumentů (10 minut)
+
+Na spisu s několika dokumenty a hotovým přepisem:
+
+1. **Ctrl+F**, napiš začátek slova, které ve spisu je (třeba „smlouv“), Enter.
+   - [ ] Nálezy ukazují stranu a okolí, Enter nebo dvojklik otevře stranu a slovo je označené.
+   - [ ] Najde to i bez diakritiky a frázi přes konec řádku.
+2. **PDF pro archiv…**, nech vybrané všechny dokumenty a ulož.
+   - [ ] PDF otevřené v prohlížeči (Edge) vypadá jako fotky, Ctrl+F v něm najde slovo a označí ho zhruba na správném místě.
+   - [ ] Vlevo jsou záložky s názvy dokumentů.
+3. **Exportovat pro Clauda…**
+   - [ ] Okno nabídne dokumenty se stavem „nový“ nebo „exportováno“.
+   - [ ] Vyber jeden dokument: v `ProClaude\S-…\dokumenty` je jen on, se stejným číslem jako v pořadí spisu, a `manifest.json` má `"cely_spis": false`.
+   - [ ] Přidej do spisu další fotky, přepiš je a v exportu klikni **Jen nové**: vybere se jen nový dokument.
+
+**Poslat:** co nesedělo, hlavně jestli označení v PDF sedí na slova.
 
 ## Kde jsou data
 

@@ -68,7 +68,7 @@ Osoby se nahrazují vymyšlenými jmény (např. Bohdan Jasaník). Claude s nimi
 
 ## 5. Export pro Clauda
 
-1. **Exportovat pro Clauda…** Program ještě jednou zkontroluje celý text. Pokud v něm zůstalo skutečné jméno nebo číslo, export zastaví a ukáže, co zbývá. Doplňte to podle kroku 4.
+1. **Exportovat pro Clauda…** Když má spis víc dokumentů, vyberte, které Claude dostane. Po doplnění spisu stačí tlačítko **Jen nové**. Kontrolují se jen strany vybraných dokumentů. Program ještě jednou zkontroluje celý text. Pokud v něm zůstalo skutečné jméno nebo číslo, export zastaví a ukáže, co zbývá. Doplňte to podle kroku 4.
 2. Vznikne složka `Dokumenty\Koncipient\ProClaude\S-…`. Obsahuje jen anonymizovaný text (jeden soubor na dokument) a pokyny pro Clauda. Fotky ani skutečná jména v ní nejsou.
 3. Tuto složku přeneste na počítač s Claudem a pracujte s ní jako obvykle. Na strany se Claude odkazuje čísly ze seznamu vlevo.
 
@@ -78,6 +78,18 @@ Osoby se nahrazují vymyšlenými jmény (např. Bohdan Jasaník). Claude s nimi
 2. Soubor přeneste zpět na počítač s Koncipientem.
 3. **Vrátit jména do výstupu od Clauda…**, pak **Otevřít dokument od Clauda…**. Program dosadí skutečná jména ve správném pádě. V okně barevně označí, co vrátil (zeleně), co stojí za kontrolu (oranžově) a co musíte doplnit sama (červeně). Text vpravo jde rovnou opravit.
 4. **Uložit jako Word…** a dokument dál upravujte ve Wordu jako obvykle.
+
+## Hledání ve spisu
+
+**Ctrl+F** otevře záložku **Hledání**. Napište slovo nebo frázi a stiskněte Enter. Nezáleží na diakritice a začátek slova najde i ostatní tvary („smlouv“ najde smlouvu i smlouvě). Enter nebo dvojklik na nález otevře stranu a slovo v ní označí.
+
+## PDF pro vlastní archiv
+
+**PDF pro archiv…** uloží fotky spisu (nebo vybraných dokumentů) do jednoho PDF, ve kterém jde hledat a kopírovat text. Dokumenty jsou v něm záložky. PDF obsahuje skutečné údaje, proto ho ukládejte jen u sebe a nikdy ho nedávejte Claudovi.
+
+## Doplnění spisu
+
+Nové písemnosti přidáte do stejného spisu tlačítkem **Přidat fotky…** nebo **Přidat složku…**. Spusťte přepis, zkontrolujte nové strany v rychlé kontrole a při exportu zvolte **Jen nové**. Vymyšlená jména zůstávají stejná jako v předchozím exportu.
 
 ## Co nedělat
 

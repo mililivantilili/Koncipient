@@ -14,6 +14,9 @@ public sealed class Dokument
 
     /// <summary>Název zatím nikdo nezadal, program ho po přepisu navrhne z prvního textu.</summary>
     public bool NavrhnoutNazev { get; set; }
+
+    /// <summary>Kdy dokument naposledy odešel v exportu pro Clauda (null = ještě nikdy).</summary>
+    public DateTime? Exportovano { get; set; }
 }
 
 /// <summary>Řazení názvů souborů s čísly: IMG_2 před IMG_10.</summary>

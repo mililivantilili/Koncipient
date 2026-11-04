@@ -164,6 +164,12 @@ Fotky se řadí přirozeně (IMG_2 před IMG_10). Strany se číslují v pořad�
 
 **Rychlá kontrola** (`RychlaKontrola.cs`, záložka v okně, `koncipient-cli kontrola`) nahrazuje procházení celých stran. Ukáže každý nahrazený údaj jednou za stranu s okolím a výřezem fotky. Dál ukáže slova, která zůstanou, ale vypadají jako přehlédnutý údaj: známé křestní jméno, slovo s velkým písmenem mimo český slovník uprostřed věty, číslo s aspoň pěti číslicemi kromě dat a částek. Strana s vyřízenými místy se označí jako zkontrolovaná, strany bez nálezů potvrdí advokátka jedním tlačítkem s upozorněním, že program nenajde všechno.
 
+## Hledání, PDF pro archiv a doplnění spisu
+
+- **Hledání** (`Hledani.cs`, záložka a Ctrl+F) hledá slovo nebo frázi ve všech stranách bez ohledu na diakritiku a velikost písmen. Poslední slovo dotazu stačí jako začátek (skloňování), fráze může přecházet přes konec řádku.
+- **PDF pro archiv** (`ArchivPdf.cs`) skládá fotky stran (šířka A4) s neviditelnou textovou vrstvou z přepisu (PdfPig, písmo Arial z Windows). Velikost písma každého slova odpovídá šířce slova na fotce, aby označení v prohlížeči PDF sedělo. Dokumenty jsou záložky. PDF obsahuje skutečné údaje a zůstává v počítači se spisy.
+- **Export vybraných dokumentů:** export může obsahovat jen vybrané dokumenty, kontrolují se jen jejich strany. Soubory mají stálá čísla podle pořadí ve spisu, `manifest.json` má `cely_spis` a pravidla pro Clauda vysvětlují, že ostatní dokumenty nedostal. Dokument si pamatuje čas posledního exportu, takže po doplnění spisu jde vybrat jen nové.
+
 ## Struktura složek a formát dat
 
 Spisy a export jsou dvě oddělené složky. Na počítač s Claude Code se přenáší jen export, Claude Code se spouští v něm. Každá strana je samostatný Markdown.

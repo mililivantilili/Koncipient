@@ -33,6 +33,7 @@ Nebo přímo `src\Koncipient.Cli\bin\Release\net10.0-windows10.0.19041.0\koncipi
 | 1 OCR a rychlost | `dotnet run --project src\Koncipient.OcrTest -c Release -- <složka> ` a na otázku odpověz 1 (nebo přesměruj vstup) |
 | 2 a 7 spis, dokumenty | `zaloz`, `pridej-slozku`, `pridej-fotky` (i PDF), `oddelovace`, `vrat-oddelovac`, `prepis`, `strany`, `dokument … posun/presun/novy/spoj/prejmenuj/navrhni` |
 | 9 rychlá kontrola, PDF | `pridej-fotky <spis> soubor.pdf`, `prepis`, `kontrola <spis>` (jen s testovacími daty), `zkontroluj` |
+| 10 hledání, PDF, výběr dokumentů | `hledej <spis> <slovo>` (jen s testovacími daty), `pdf <spis> <soubor.pdf>`, `export <spis> --dokumenty 2` nebo `--dokumenty nove` |
 | 3 otočení | `otoc <spis> <strana> 90`, pak `otoc … 270` a `strany`: `prepis` se nemá ztratit |
 | 4 anonymizace a export | `udaje`, `text <spis> <strana> --slova`, `oznac`, `necitlive`, `udaj … --akce/--role/--nahrada`, `styl`, `zkontroluj … vse`, `export --cil <složka>` |
 | 5 vrácení jmen | napiš `.md` s vymyšlenými jmény z exportu, `vrat-jmena <spis> <soubor> --docx <výstup>` |
