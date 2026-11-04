@@ -915,7 +915,7 @@ public partial class HlavniOkno : Window
                 Stav.Text = $"{s.Popis}  ({s.Hotovo}/{s.Celkem})";
             });
             var spisy = _uloziste.Spisy();
-            await Davka.ZpracujAsync(spisy, Motory.ProDavku(), prubeh, _zruseni.Token, Motory.Narovnani());
+            var chyby = (await Davka.ZpracujAsync(spisy, Motory.ProDavku(), prubeh, _zruseni.Token, Motory.Narovnani())).ToList();
 
             // po přepisu rovnou najít údaje, ať jsou ráno připravené ke kontrole
             Stav.Text = "Hledám údaje…";
@@ -923,18 +923,44 @@ public partial class HlavniOkno : Window
             {
                 foreach (var spis in spisy)
                 {
-                    var klic = Anonymizator.NactiKlic(spis);
-                    Anonymizator.AktualizujKlic(spis, klic);
-                    Anonymizator.UlozKlic(spis, klic);
+                    try
+                    {
+                        var klic = Anonymizator.NactiKlic(spis);
+                        Anonymizator.AktualizujKlic(spis, klic);
+                        Anonymizator.UlozKlic(spis, klic);
+                    }
+                    catch (Exception ex) { chyby.Add(new ChybaStrany(spis.Id, 0, "hledání údajů", ex.Message)); }
                 }
             });
-            Stav.Text = "Přepis dokončen a údaje vyhledány.";
             // stav strany se po načtení přepíše, konec dávky proto zůstane v titulku okna
-            Title = $"Koncipient – přepis dokončen {DateTime.Now:d. M. H:mm}";
+            if (chyby.Count == 0)
+            {
+                Stav.Text = "Přepis dokončen a údaje vyhledány.";
+                Title = $"Koncipient – přepis dokončen {DateTime.Now:d. M. H:mm}";
+            }
+            else
+            {
+                Stav.Text = $"Přepis dokončen, {chyby.Count} stran se nepodařilo zpracovat.";
+                Title = $"Koncipient – přepis dokončen s chybami {DateTime.Now:d. M. H:mm}";
+                MessageBox.Show(this,
+                    "Přepis doběhl, ale tyto strany se nepodařilo zpracovat. Ostatní strany jsou hotové.\n\n"
+                    + string.Join("\n", chyby.Take(15).Select(c => c.Strana > 0 ? $"• Spis {c.Spis}, strana {c.Strana} ({c.Krok})" : $"• Spis {c.Spis} ({c.Krok})"))
+                    + (chyby.Count > 15 ? $"\n… a dalších {chyby.Count - 15}" : "")
+                    + "\n\nPři dalším spuštění přepisu se zkusí znovu. Když chyba zůstane, pošli prosím Matějovi číslo spisu a strany (ne fotku).",
+                    "Koncipient: některé strany se nepřepsaly", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
         catch (OperationCanceledException)
         {
+            Title = "Koncipient";
             Stav.Text = "Přepis zastaven. Při dalším spuštění se pokračuje tam, kde skončil.";
+        }
+        catch (Exception ex)
+        {
+            Title = "Koncipient";
+            Stav.Text = "Přepis skončil chybou.";
+            MessageBox.Show(this, "Přepis se zastavil kvůli chybě. Hotové strany zůstávají uložené a při dalším spuštění se pokračuje.\n\n"
+                + "Podrobnosti (anglicky): " + ex.Message, "Koncipient: chyba přepisu", MessageBoxButton.OK, MessageBoxImage.Error);
         }
         finally
         {

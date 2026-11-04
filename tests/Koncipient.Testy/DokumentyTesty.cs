@@ -35,6 +35,22 @@ public class DokumentyTesty
         Assert.All(spis.Dokumenty, x => Assert.True(x.NavrhnoutNazev));
     }
 
+    /// <summary>Fotky prázdného papíru na stole od Matěje (vzory/prazdne): nesmí se zahodit jako oddělovač.</summary>
+    [Fact]
+    public void PrazdnaStrankaZMobiluNeniOddelovac()
+    {
+        var d = new DirectoryInfo(AppContext.BaseDirectory);
+        while (d is not null && !Directory.Exists(Path.Combine(d.FullName, "vzory", "prazdne"))) d = d.Parent;
+        Assert.NotNull(d);
+        var fotky = Directory.GetFiles(Path.Combine(d!.FullName, "vzory", "prazdne"), "*.jpg");
+        Assert.Equal(3, fotky.Length);
+        foreach (var f in fotky)
+        {
+            using var m = Cv2.ImRead(f);
+            Assert.False(Spis.JeCerna(m), f);
+        }
+    }
+
     [Fact]
     public void OddelovaceSeUloziAJdeJeVratit()
     {

@@ -150,6 +150,42 @@ public class DavkaTesty
         public void Dispose() { }
     }
 
+    private sealed class PadajiciMotor(string nazev, int padaNaVolani) : IOcrMotor
+    {
+        private int _volani;
+        public string Nazev => nazev;
+        public bool ChceUpravenouFotku => false;
+        public VysledekOcr Rozpoznej(string cesta)
+        {
+            if (++_volani == padaNaVolani) throw new InvalidOperationException("vymyšlená chyba motoru");
+            return new VysledekOcr { Motor = nazev, Radky = { new RadekOcr { Slova = { new SlovoOcr { Text = "Vzor" } } } } };
+        }
+        public void Dispose() { }
+    }
+
+    [Fact]
+    public async Task ChybaJedneStranyNezastaviDavku()
+    {
+        using var d = new DocasnaSlozka();
+        var uloziste = new Uloziste(Path.Combine(d.Cesta, "Spisy"));
+        var prvni = uloziste.Zaloz("prvni");
+        var druhy = uloziste.Zaloz("druhy");
+        using (var m = new Mat(100, 100, MatType.CV_8UC3, Scalar.White))
+            for (int i = 1; i <= 3; i++) Cv2.ImWrite(Path.Combine(d.Cesta, $"{i}.png"), m);
+        prvni.PridejFotky(new[] { Path.Combine(d.Cesta, "1.png"), Path.Combine(d.Cesta, "2.png") });
+        druhy.PridejFotky(new[] { Path.Combine(d.Cesta, "3.png") });
+
+        var chyby = await Davka.ZpracujAsync(new[] { prvni, druhy }, new Func<IOcrMotor>[] { () => new PadajiciMotor(Motory.Paddle, 1) });
+        var chyba = Assert.Single(chyby);
+        Assert.Equal((prvni.Id, 1), (chyba.Spis, chyba.Strana));
+        Assert.True(prvni.MaOcr(prvni.Strany[1], Motory.Paddle));
+        Assert.True(druhy.MaOcr(druhy.Strany[0], Motory.Paddle));
+
+        // při dalším spuštění se vadná strana zkusí znovu
+        Assert.Empty(await Davka.ZpracujAsync(new[] { prvni, druhy }, new Func<IOcrMotor>[] { () => new PadajiciMotor(Motory.Paddle, 0) }));
+        Assert.True(prvni.MaOcr(prvni.Strany[0], Motory.Paddle));
+    }
+
     [Fact]
     public async Task DavkaZpracujeChybejiciStranyAPriOpakovaniNicNedela()
     {

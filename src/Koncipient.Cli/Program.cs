@@ -116,7 +116,7 @@ try
             var spisy = argumenty.Count > 0 ? new List<Spis> { NajdiSpis(argumenty[0]) } : uloziste.Spisy().ToList();
             await Motory.StahniAsync(new Progress<string>(t => Console.Error.WriteLine(t)));
             var posledni = "";
-            await Davka.ZpracujAsync(spisy, Motory.ProDavku(), new Progress<StavDavky>(s =>
+            var chyby = await Davka.ZpracujAsync(spisy, Motory.ProDavku(), new Progress<StavDavky>(s =>
             {
                 var r = $"{s.Popis} ({s.Hotovo}/{s.Celkem})";
                 if (r != posledni) Console.Error.WriteLine(r);
@@ -128,7 +128,8 @@ try
                 Anonymizator.AktualizujKlic(s, klic);
                 Anonymizator.UlozKlic(s, klic);
             }
-            return Vypis(new { hotovo = true, spisy = spisy.Select(s => s.Id), motory = Motory.ProDavku().Count, windowsOcr = Motory.WindowsOcrJe });
+            return Vypis(new { hotovo = chyby.Count == 0, spisy = spisy.Select(s => s.Id), motory = Motory.ProDavku().Count, windowsOcr = Motory.WindowsOcrJe,
+                chyby = chyby.Select(c => new { spis = c.Spis, strana = c.Strana, krok = c.Krok, zprava = c.Zprava }) });
         }
 
         case "strany":

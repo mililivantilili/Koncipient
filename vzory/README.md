@@ -7,6 +7,7 @@ Všechny dokumenty, jména, adresy a čísla jsou vymyšlené. PSČ začínají 
 | `dokumenty/*.txt` | Šest typických dokumentů advokátní kanceláře (žaloba, rozsudek, kupní smlouva, plná moc, předvolání, výpis z obchodního rejstříku). Citlivé údaje jsou vyznačené `[[typ|hodnota]]` |
 | `generuj.py` | Z dokumentů udělá stránky jako fotky z telefonu (natočení, perspektiva, stín, rozmazání) a referenční JSON s vyznačenými údaji |
 | `sada/` | Vygenerovaná sada: `fotky/*.jpg` a `reference/*.json` |
+| `prazdne/` | Tři fotky prázdného papíru na stole z mobilu (Matěj, 2026-11-04). Hlídají, že se prázdná stránka nezahodí jako oddělovač. |
 
 Sada slouží k měření anonymizace nástrojem `tools/Koncipient.MereniAnonymizace` a automatickým testem `SadaVzoruTesty` (z bezchybného textu nesmí uniknout žádný údaj).
 

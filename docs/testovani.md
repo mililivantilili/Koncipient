@@ -19,7 +19,7 @@ Testy může dělat i agent (Claude Code), postup pro něj je v [agent.md](agent
 | Test 4: anonymizace a export | 🔶 zopakován 2026-11-04, zbylé úniky opravené (viz [výsledky](vysledky-testu-windows.md#stav-oprav-2026-11-04)), zopakovat na archivu |
 | Test 5: vrácení jmen a Word | 🔶 proběhl automaticky, barvy v okně a otevření ve Wordu zbývá ověřit |
 | Test 6: měření anonymizace s Windows OCR | ✅ hotovo, 2026-11-04 0 úniků z 87 |
-| Test 7: dokumenty, složky a černé fotky | 🔶 černé fotky z mobilu změřené, nové pravidlo podle hran, zopakovat se 3 fotkami z Pixelu |
+| Test 7: dokumenty, složky a černé fotky | 🔶 oddělovače prošly 2026-11-04, opravený pád přepisu na prázdné stránce, zopakovat jen přepis spisu s prázdnou stránkou |
 
 Hotové testy (✅) přeskoč, jejich postup je sbalený.
 
@@ -43,7 +43,7 @@ Hotové testy (✅) přeskoč, jejich postup je sbalený.
 1. Otevři **řešení**, ne jen složku: Soubor → Otevřít → Projekt/řešení… → `Koncipient.sln`. Bez toho se nabídka Test ani testy neukážou.
 2. Počkej, až se stáhnou balíčky (vlevo dole), a sestav řešení: Sestavení → Sestavit řešení (Ctrl+Shift+B).
 3. Otevři Test → Průzkumník testů (Ctrl+E, T), anglicky *Test Explorer*.
-4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 428, všechny zelené.
+4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 431, všechny zelené.
 
 Když sestavení selže, otevři Zobrazit → Seznam chyb.
 

@@ -240,3 +240,15 @@ Návrh opravy:
 ### Co tentokrát neověřeno
 
 Přesuny stran přes pravé tlačítko jsem v okně neopakoval, jen přes CLI. Mobil advokátky a prázdný papír přes celý záběr dál chybí.
+
+### Stav oprav po opakování testu 7
+
+Opraveno 2026-11-04 podle návrhu, s automatickými testy (celkem 431):
+
+1. `Slouceni.Sluc` vrátí pro stránku, kde hlavní motor nic nepřečetl, prázdný výsledek. Útržek jen z kontrolního motoru (`1` v záhybu) je na prázdné stránce šum.
+2. Dávka zachytí chybu jedné strany (narovnání, každý motor, sloučení, návrh názvů), zapíše ji a pokračuje. Vrací seznam chyb, strana bez výsledku se při dalším spuštění zkusí znovu. `koncipient-cli prepis` je vypíše v poli `chyby`. Hledání údajů běží pro každý spis zvlášť, takže chyba jednoho spisu nezastaví klíč ostatních.
+3. Okno: po chybách česká hláška se spisem a stranou, titulek „přepis dokončen s chybami“. Po neočekávané chybě se titulek a stav vrátí a hláška je česky (podrobnost anglicky).
+4. Tři fotky prázdného papíru od Matěje jsou zmenšené ve `vzory/prazdne/` a test hlídá, že se nezahodí jako oddělovač (hrany 0,40 až 2,19 %, jas 143 až 164).
+
+Navrhování názvů z reklamního sloganu na první straně zatím zůstává, název jde přejmenovat ručně.
+

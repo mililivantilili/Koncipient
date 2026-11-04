@@ -38,6 +38,18 @@ public class SlouceniTesty
     }
 
     [Fact]
+    public void PrazdnaStrankaSKontrolnimUtrzkem()
+    {
+        // test 7: Windows OCR na prázdném papíru nic, PaddleOCR „1“ v záhybu → dřív pád celé dávky
+        var w = new VysledekOcr { Motor = Motory.Windows, Sirka = 100, Vyska = 100 };
+        var s = Bez.Sluc(w, Text(Motory.Paddle, "1"));
+        Assert.Empty(s.Radky);
+        Assert.Equal("", s.Text);
+        // hlavní motor jen s prázdnými řádky
+        Assert.Empty(Bez.Sluc(Text(Motory.Windows, ""), Text(Motory.Paddle, "1")).Radky);
+    }
+
+    [Fact]
     public async Task DavkaSlouciAZobraziSloucenyText()
     {
         using var d = new DocasnaSlozka();

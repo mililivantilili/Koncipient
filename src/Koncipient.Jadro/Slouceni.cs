@@ -54,6 +54,10 @@ public sealed class Slouceni
 
     public VysledekOcr Sluc(VysledekOcr hlavni, VysledekOcr kontrolni)
     {
+        // Hlavní motor nic nepřečetl (prázdná stránka): útržek z kontrolního motoru, třeba „1“
+        // v záhybu papíru, nemá ke kterému řádku patřit a na prázdné stránce bývá šum.
+        if (!hlavni.Radky.Any(r => r.Slova.Count > 0))
+            return new VysledekOcr { Motor = Nazev, Sirka = hlavni.Sirka, Vyska = hlavni.Vyska };
         var a = hlavni.Radky.SelectMany((r, i) => r.Slova.Select(s => (Slovo: s, Radek: i))).ToList();
         var b = kontrolni.Slova.ToList();
         var shody = NejdelsiSpolecna(a.Select(x => Klic(x.Slovo.Text)).ToList(), b.Select(s => Klic(s.Text)).ToList());

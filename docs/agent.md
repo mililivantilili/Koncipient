@@ -43,6 +43,7 @@ Příklad celého průchodu na vymyšlené sadě:
 koncipient-cli zaloz "test agenta"
 koncipient-cli pridej-slozku S-0001 vzory\sada\fotky
 koncipient-cli prepis S-0001
+# výstup má pole "chyby": strany, které se nepřepsaly (dávka pokračuje dalšími)
 koncipient-cli strany S-0001
 koncipient-cli udaje S-0001
 koncipient-cli text S-0001 1 --anonymizovany
