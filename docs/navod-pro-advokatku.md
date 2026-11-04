@@ -113,7 +113,7 @@ Nové písemnosti přidáte do stejného spisu tlačítkem **Přidat fotky…** 
 
 ## Záloha
 
-Složku `Dokumenty\Koncipient\Spisy` občas zkopírujte na externí disk a ten uložte stejně bezpečně jako papírový spis. Jsou v ní fotky i skutečná jména.
+Tlačítko **Zálohovat…** zkopíruje všechny spisy na externí disk (do složky `Koncipient-zaloha` s dnešním datem) a ověří, že se zkopírovalo všechno. Když záloha týden neproběhla, program to po spuštění připomene. Disk uložte stejně bezpečně jako papírový spis, jsou na něm fotky i skutečná jména, a nedávejte ho k počítači s Claudem.
 
 ## Když něco nefunguje
 

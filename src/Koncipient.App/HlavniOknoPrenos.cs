@@ -162,3 +162,53 @@ public partial class HlavniOkno
         okno.ShowDialog();
     }
 }
+
+/// <summary>Záloha složky Spisy jedním klikem a připomenutí.</summary>
+public partial class HlavniOkno
+{
+    private async void Zalohovat_Click(object sender, RoutedEventArgs e) => await Zalohuj();
+
+    private async Task Zalohuj()
+    {
+        var disky = Prenos.FlashDisky().Concat(DriveInfo.GetDrives().Where(d => d.IsReady && d.DriveType is DriveType.Fixed or DriveType.Network
+                && !_uloziste.Slozka.StartsWith(d.RootDirectory.FullName, StringComparison.OrdinalIgnoreCase))).ToList();
+        if (disky.Count == 0)
+        {
+            MessageBox.Show(this, "Nevidím žádný jiný disk pro zálohu. Připoj externí disk nebo flash disk a zkus to znovu.",
+                "Záloha", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+        var disk = disky.Count == 1 ? disky[0] : VyberDialog.Vyber(this, "Záloha",
+            "Kam zálohovat spisy? Nejlépe na externí disk, který pak uložíš stejně bezpečně jako papírové spisy.",
+            disky, d => $"{d.Name}  {d.VolumeLabel}  ({d.DriveType switch { DriveType.Removable => "výměnný", DriveType.Network => "síťový", _ => "pevný" }}, {d.AvailableFreeSpace / 1_000_000_000} GB volno)");
+        if (disk is null) return;
+        Stav.Text = "Zálohuji spisy…";
+        IsEnabled = false;
+        try
+        {
+            var (cil, souboru) = await Task.Run(() => Zaloha.Proved(_uloziste, disk.RootDirectory.FullName));
+            Stav.Text = $"Záloha hotová a ověřená: {souboru} souborů v {cil}";
+            MessageBox.Show(this, $"Záloha je hotová a ověřená ({souboru} souborů):\n{cil}\n\n"
+                + "Jsou v ní fotky i skutečná jména. Disk ulož bezpečně a nedávej ho k počítači s Claudem.",
+                "Záloha", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or IOException or UnauthorizedAccessException)
+        {
+            Stav.Text = "Záloha se nepodařila.";
+            MessageBox.Show(this, ex.Message, "Záloha", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        finally { IsEnabled = true; }
+    }
+
+    /// <summary>Po spuštění: když záloha dlouho neproběhla, nabídne ji.</summary>
+    private async void PripomenZalohu()
+    {
+        if (!Zaloha.Pripomenout(_uloziste)) return;
+        var posledni = Zaloha.Posledni(_uloziste);
+        if (MessageBox.Show(this,
+                (posledni is { } kdy ? $"Spisy jsi naposledy zálohovala {kdy:d. M. yyyy}." : "Spisy zatím nikdy nebyly zálohované.")
+                + " Fotky a skutečná jména jsou jen v tomto počítači. Zálohovat teď?",
+                "Záloha", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            await Zalohuj();
+    }
+}

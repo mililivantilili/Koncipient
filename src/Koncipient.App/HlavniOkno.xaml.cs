@@ -55,6 +55,7 @@ public partial class HlavniOkno : Window
         };
         NactiSpisy();
         Stav.Text = $"Spisy jsou ve složce {_uloziste.Slozka}";
+        Loaded += (_, _) => Dispatcher.BeginInvoke(new Action(PripomenZalohu), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
     }
 
     // ---------- Klávesové zkratky (i pro agenty, kteří okno ovládají) ----------

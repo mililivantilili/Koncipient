@@ -28,6 +28,7 @@ Testy může dělat i agent (Claude Code), postup pro něj je v [agent.md](agent
 | Test 13: záznam o exportech | nový |
 | Test 14: úkol pro Clauda | nový |
 | Test 15: přehled dat | nový |
+| Test 16: záloha | nový |
 
 Hotové testy (✅) přeskoč, jejich postup je sbalený.
 
@@ -51,7 +52,7 @@ Hotové testy (✅) přeskoč, jejich postup je sbalený.
 1. Otevři **řešení**, ne jen složku: Soubor → Otevřít → Projekt/řešení… → `Koncipient.sln`. Bez toho se nabídka Test ani testy neukážou.
 2. Počkej, až se stáhnou balíčky (vlevo dole), a sestav řešení: Sestavení → Sestavit řešení (Ctrl+Shift+B).
 3. Otevři Test → Průzkumník testů (Ctrl+E, T), anglicky *Test Explorer*.
-4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 460, všechny zelené.
+4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 461, všechny zelené.
 
 Když sestavení selže, otevři Zobrazit → Seznam chyb.
 
@@ -303,6 +304,12 @@ Na přepsaném spisu z archivu otevři záložku **Data**.
 - [ ] Enter otevře stranu a označí datum. **Uložit jako Word…** vytvoří dokument.
 
 **Poslat:** kolik dat bylo a jestli některé chybělo (třeba kvůli chybě OCR) nebo bylo nesmyslné.
+
+## Test 16: záloha (5 minut)
+
+1. Spusť Koncipient. [ ] Když záloha ještě neproběhla, program ji po spuštění nabídne.
+2. **Zálohovat…** a vyber flash disk nebo externí disk. [ ] Na disku vznikne `Koncipient-zaloha\RRRR-MM-DD` se všemi spisy a hláška potvrdí ověření.
+3. Zavři a spusť znovu. [ ] Připomenutí už nepřijde (vrátí se po týdnu).
 
 ## Kde jsou data
 

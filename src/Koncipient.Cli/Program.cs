@@ -312,6 +312,12 @@ try
                 : Vypis(new { uspech = false, problemy = vysledek.Problemy });
         }
 
+        case "zaloha":
+        {
+            var (cil, souboru) = Zaloha.Proved(uloziste, Path.GetFullPath(argumenty[0]));
+            return Vypis(new { cil, souboru });
+        }
+
         case "data":
         {
             // přehled dat ve spisu (vypisuje obsah spisu)
@@ -441,6 +447,7 @@ static int Napoveda()
           zkontroluj <spis> [<strana>...|vse] [--zrusit]
           export <spis> [--cil <složka>] [--dokumenty 1,3|nove] [--ukol "text"]   zápis pro Clauda (jen po kontrole stran)
           pdf <spis> <soubor.pdf> [--dokumenty 1,3]   prohledatelné PDF pro archiv (skutečné údaje)
+          zaloha <složka nebo disk>               záloha všech spisů s ověřením
           data <spis>                             *  přehled dat ve spisu seřazený časově (lhůty nepočítá)
           zaznam <spis> [--text]                  záznam o exportech pro GDPR (jen počty, žádné údaje)
           kvalita <spis>                          strany k přefocení (rozmazané, tmavé, uříznuté, nejistý přepis)

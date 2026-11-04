@@ -43,6 +43,8 @@
                         ToolTip="Zkopíruje export pro Clauda na flash disk a ověří, že v něm nejsou fotky ani klíč." />
                 <Button x:Name="ZFlashDisku" AutomationProperties.AutomationId="ZFlashDisku" Content="Načíst od Clauda z flash disku" Click="ZFlashDisku_Click" Padding="8,4"
                         ToolTip="Načte z flash disku nové výstupy od Clauda a otevře je k vrácení jmen." />
+                <Button x:Name="Zalohovat" AutomationProperties.AutomationId="Zalohovat" Content="Zálohovat…" Click="Zalohovat_Click" Padding="8,4"
+                        ToolTip="Zkopíruje všechny spisy na externí disk a ověří kopii. Program připomene, když záloha týden neproběhla." />
                 <Button x:Name="ZaznamExportu" AutomationProperties.AutomationId="ZaznamExportu" Content="Záznam o exportech…" Click="ZaznamExportu_Click" Padding="8,4" IsEnabled="False"
                         ToolTip="Kdy a co ze spisu odešlo Claudovi, s počty nahrazených údajů. Doklad pro GDPR, neobsahuje osobní údaje." />
                 <Button x:Name="PdfArchiv" AutomationProperties.AutomationId="PdfArchiv" Content="PDF pro archiv…" Click="PdfArchiv_Click" Padding="8,4" IsEnabled="False"
