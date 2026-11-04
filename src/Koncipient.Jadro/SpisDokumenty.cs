@@ -43,8 +43,8 @@ public sealed partial class Spis
     private static readonly string[] PriponyFotek = { ".jpg", ".jpeg", ".png", ".tif", ".tiff" };
 
     /// <summary>
-    /// Černá fotka (zakrytý objektiv) slouží jako oddělovač dokumentů: velmi tmavá
-    /// a téměř bez kresby.
+    /// Černá fotka (zakrytý objektiv) slouží jako oddělovač dokumentů: tmavší než papír
+    /// a bez jakékoli kresby (mobil ji může zesvětlit do červena nebo šeda).
     /// </summary>
     public static bool JeCerna(Mat obrazek)
     {
@@ -52,7 +52,17 @@ public sealed partial class Spis
         Cv2.CvtColor(obrazek, seda, ColorConversionCodes.BGR2GRAY);
         Cv2.MeanStdDev(seda, out var prumer, out var odchylka);
         // telefon ve tmě obraz zesvětlí a přidá šum, stránka papíru je ale vždy světlejší a má kontrast textu
-        return prumer.Val0 < 50 && odchylka.Val0 < 25;
+        if (prumer.Val0 < 50 && odchylka.Val0 < 25) return true;
+        // Zakrytý objektiv může mobil zesvětlit do červena nebo do šedé mlhy (noční a makro režim).
+        // Rozhoduje, že na snímku není žádná kresba: hrany pod 0,05 % (dokumenty mají aspoň 3,9 %,
+        // prázdný papír na stole 0,5 %). Mez jasu chrání bílou stránku bez okrajů.
+        if (prumer.Val0 >= 130) return false;
+        using var mala = new Mat();
+        double meritko = 800.0 / seda.Width;
+        Cv2.Resize(seda, mala, new Size(800, Math.Max(1, (int)Math.Round(seda.Height * meritko))), 0, 0, InterpolationFlags.Area);
+        using var hrany = new Mat();
+        Cv2.Canny(mala, hrany, 60, 180);
+        return Cv2.CountNonZero(hrany) < 0.0005 * hrany.Rows * hrany.Cols;
     }
 
     private Dokument NovyDokument(string? nazev)

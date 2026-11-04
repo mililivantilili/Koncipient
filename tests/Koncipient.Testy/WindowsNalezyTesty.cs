@@ -189,4 +189,73 @@ public class WindowsNalezyTesty
         var vystup = Anonym(text, KlicZ(text));
         Assert.DoesNotContain("1990", vystup);
     }
+    // dotestování 2026-11-04
+
+    [Fact]
+    public void HlavickaEmailuVeDvouSloupcich()
+    {
+        const string text = "Odesílatel\nAdresát\nDatum\npetra smyšlená\njan zkušební\n3. 11. 2026\nDobrý den, posílám podklady.";
+        var vystup = Anonym(text, KlicZ(text));
+        Assert.DoesNotContain("smyšlená", vystup);
+        Assert.DoesNotContain("zkušební", vystup);
+        Assert.Contains("Dobrý den", vystup);
+    }
+
+    [Theory]
+    [InlineData("Dům v Lhotě čp. 123 bude zbourán.", "123")]
+    [InlineData("Dům čp.122 bude zbourán.", "122")]
+    [InlineData("Dům č,pŔ 123 bude zbourán.", "123")]
+    [InlineData("Stavba na pozemku p.č. 9999 v obci.", "9999")]
+    public void CisloDomuAParcelyVJinemZapisu(string text, string cislo)
+    {
+        var vystup = Anonym(text, KlicZ(text));
+        Assert.DoesNotContain(cislo, vystup);
+    }
+
+    [Theory]
+    [InlineData("8. Doložit vyjádření FIKTIVNET a.s k sítím", "8. Doložit vyjádření [FIRMA_001] k sítím")]
+    [InlineData("Přiložte vyjádření FIKTIVNET a.s", "Přiložte vyjádření [FIRMA_001]")]
+    public void FirmaNespolkneSlovaVety(string text, string ocekavane)
+    {
+        Assert.Equal(ocekavane, Anonym(text, KlicZ(text)).Trim());
+    }
+
+    [Fact]
+    public void SmysleneStavbyPoradZustavajiFirmou()
+    {
+        const string text = "Zhotovitel Dopravní služby Smyšlený s.r.o. převzal staveniště.";
+        Assert.Contains("[FIRMA_001]", Anonym(text, KlicZ(text)));
+        Assert.DoesNotContain("služby", Anonym(text, KlicZ(text)));
+    }
+
+    [Fact]
+    public void ZahlaviTabulkySPetimiCisliciNeniAdresa()
+    {
+        var klic = KlicZ("Položka 12345 Počet kusů 3");
+        Assert.DoesNotContain(klic.Entity, e => e.Typ == TypUdaje.Adresa);
+    }
+
+    [Theory]
+    [InlineData(0, 0, 0, true)]       // skoro černá
+    [InlineData(40, 40, 160, true)]   // červená od světla přes prst (BGR)
+    [InlineData(86, 86, 86, true)]    // šedá mlha z makro režimu
+    [InlineData(250, 250, 250, false)] // bílý papír přes celý záběr
+    public void CernaFotkaZMobilu(int b, int g, int r, bool oddelovac)
+    {
+        using var obrazek = new Mat(1200, 900, MatType.CV_8UC3, new Scalar(b, g, r));
+        using var sum = new Mat(1200, 900, MatType.CV_8UC3);
+        Cv2.Randn(sum, new Scalar(0, 0, 0), new Scalar(6, 6, 6));
+        Cv2.Add(obrazek, sum, obrazek);
+        Cv2.GaussianBlur(obrazek, obrazek, new Size(31, 31), 0);
+        Assert.Equal(oddelovac, Spis.JeCerna(obrazek));
+    }
+
+    [Fact]
+    public void FotkaTextuNeniOddelovac()
+    {
+        using var obrazek = new Mat(1200, 900, MatType.CV_8UC3, new Scalar(110, 110, 110));
+        for (int y = 100; y < 1100; y += 40)
+            Cv2.PutText(obrazek, "Kupni smlouva c. 1", new Point(60, y), HersheyFonts.HersheySimplex, 1.2, new Scalar(20, 20, 20), 2);
+        Assert.False(Spis.JeCerna(obrazek));
+    }
 }

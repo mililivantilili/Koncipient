@@ -189,3 +189,19 @@ Omezení: oddělovače i prázdné stránky jsou z jednoho mobilu a mobil advok�
 ### Co tentokrát neověřeno
 
 Změny v okně: hláška po importu, konec dávky v titulku, Není citlivé u víceslovného údaje, ruční oprava jména. Ty mají automatické testy nebo jsou v kódu, ale v okně jsem je znovu neprocházel. Vzhled okna vrácení jmen a otevření `.docx` ve Wordu dál zbývá na Matějovi.
+
+## Stav oprav 2026-11-04
+
+Opraveno v cloudové relaci, každá oprava má automatický test v `WindowsNalezyTesty.cs` (celkem 426 testů):
+
+- **Hlavička e-mailu ve dvou sloupcích:** po bloku popisků pod sebou (Odesílatel, Adresát, Datum…) se hodnoty přiřadí podle pořadí, jméno se pozná i malými písmeny. Malými písmeny se pak nahrazuje jen celé jméno, ne samotné příjmení.
+- **Číslo popisné:** `čp. 123`, `čp.122` i zkomolené `č,pŔ 123`.
+- **Parcelní číslo:** `p.č. 9999` bez lomítka. Čísla parcel bez návěští v popisech výkresů zůstávají, bez nápovědy je nejde odlišit od jiných čísel.
+- **Firma nespolkne slova věty:** malé slovo patří k názvu jen za přídavným jménem (`Dopravní služby Kraus s.r.o.` zůstane celá, z `Doložit vyjádření FIKTIVNET a.s` se nahradí jen firma).
+- **`12345 Počet`** a podobná záhlaví tabulek (Celkem, Cena, Plocha, Výměra…) už nejsou adresa.
+- **Černé fotky:** k původnímu pravidlu přibylo navržené `hrany < 0,05 % a jas < 130` (Canny 60/180 na šířce 800 px). Šedá mlha z makro režimu se tak bere jako oddělovač, bílá stránka ne.
+
+Měření na korpusu (vývojová část 1439 údajů) se nezhoršilo: přes OCR 11 úniků, z textu 12, kontrolní část 11 z 600, vymyšlená sada 0 z 87.
+
+Neřešeno: `Jana Velkoměsto` jako osoba a role ve jméně (`Stavebník Jana`), obojí zachytí tabulka Osoby a údaje. Náhled oddělovačů po importu čeká na Matějovo rozhodnutí.
+

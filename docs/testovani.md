@@ -16,10 +16,10 @@ Testy může dělat i agent (Claude Code), postup pro něj je v [agent.md](agent
 | Test 1b: grafická karta | ✅ hotovo, grafika asi 2× rychlejší než procesor |
 | Test 2: prohlížeč | ✅ hotovo, vše funguje, PaddleOCR na grafice znatelně rychlejší |
 | Test 3: fotky bez otočení | ✅ hotovo, otočení funguje (zbývá jedna drobná kontrola, viz níže) |
-| Test 4: anonymizace a export | 🔶 proběhl automaticky, nalezené chyby opravené (viz [výsledky](vysledky-testu-windows.md#stav-oprav)), zopakovat |
+| Test 4: anonymizace a export | 🔶 zopakován 2026-11-04, zbylé úniky opravené (viz [výsledky](vysledky-testu-windows.md#stav-oprav-2026-11-04)), zopakovat na archivu |
 | Test 5: vrácení jmen a Word | 🔶 proběhl automaticky, barvy v okně a otevření ve Wordu zbývá ověřit |
-| Test 6: měření anonymizace s Windows OCR | ✅ hotovo, 1 únik z 87 (příčina opravená, zopakovat) |
-| Test 7: dokumenty, složky a černé fotky | 🔶 proběhl automaticky, zbývá černá fotka z mobilu |
+| Test 6: měření anonymizace s Windows OCR | ✅ hotovo, 2026-11-04 0 úniků z 87 |
+| Test 7: dokumenty, složky a černé fotky | 🔶 černé fotky z mobilu změřené, nové pravidlo podle hran, zopakovat se 3 fotkami z Pixelu |
 
 Hotové testy (✅) přeskoč, jejich postup je sbalený.
 
@@ -43,7 +43,7 @@ Hotové testy (✅) přeskoč, jejich postup je sbalený.
 1. Otevři **řešení**, ne jen složku: Soubor → Otevřít → Projekt/řešení… → `Koncipient.sln`. Bez toho se nabídka Test ani testy neukážou.
 2. Počkej, až se stáhnou balíčky (vlevo dole), a sestav řešení: Sestavení → Sestavit řešení (Ctrl+Shift+B).
 3. Otevři Test → Průzkumník testů (Ctrl+E, T), anglicky *Test Explorer*.
-4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 405, všechny zelené.
+4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 426, všechny zelené.
 
 Když sestavení selže, otevři Zobrazit → Seznam chyb.
 

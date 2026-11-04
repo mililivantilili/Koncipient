@@ -51,8 +51,10 @@ public static class Anonymizator
         for (int k = 0; k < tvar.Count; k++)
         {
             var slovo = slova[od + k];
-            // jména osob a první slovo firmy se píšou velkým písmenem (Malý vs. malý)
-            if ((e.Typ == TypUdaje.Osoba || (e.Typ == TypUdaje.Firma && k == 0)) && !Text.ZacinaVelkym(slovo)) return false;
+            // jména osob a první slovo firmy se píšou velkým písmenem (Malý vs. malý);
+            // malými se hledají jen tam, kde se tak už jednou našly (hlavička e-mailu „petra smyšlená“)
+            if ((e.Typ == TypUdaje.Osoba || (e.Typ == TypUdaje.Firma && k == 0)) && !Text.ZacinaVelkym(slovo)
+                && (Text.ZacinaVelkym(tvar[k]) || tvar.Count < 2)) return false;
             bool stejne = e.Typ == TypUdaje.Osoba ? Text.StejneJmenoOsoby(tvar[k], slovo) : Text.StejneSlovo(tvar[k], slovo);
             if (!stejne) return false;
         }

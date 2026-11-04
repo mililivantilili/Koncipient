@@ -32,7 +32,7 @@ public static class Detektor
     // Slova psaná s velkým písmenem, která nejsou jména (začátky vět, úřady, měsíce).
     private static readonly HashSet<string> NeJmena = new(StringComparer.OrdinalIgnoreCase)
     {
-        "ČSN", "EN", "Sb", "Policie", "České", "Česká", "Český", "republiky", "Krajské", "Územní", "Městský",
+        "ČSN", "EN", "Sb", "Počet", "Celkem", "Cena", "Plocha", "Množství", "Částka", "Výměra", "Položka", "Rok", "Kód", "Policie", "České", "Česká", "Český", "republiky", "Krajské", "Územní", "Městský",
         "Okresní", "Nejvyšší", "Ústavní", "Krajský", "Obecní", "Stránka", "Strana", "Za", "Ve", "V", "Na", "Pro",
         "Do", "Od", "Při", "Dle", "Podle", "Datum", "Telefon", "Tel", "E-mail", "Email", "Fax", "IČ", "IČO", "DIČ",
         "Viz", "Rozhodnutí", "Usnesení", "Rozsudek", "Žalobce", "Žalovaný", "Navrhovatel", "Odpůrce",
@@ -191,7 +191,7 @@ public static class Detektor
         // hlavička e-mailu: jméno za Od/Komu/To, i malými písmeny a mimo seznam jmen
         (new Regex(@"(?m)^(?:Od|Komu|Kopie|From|To|Cc|Odesílatel|Příjemce)\s*:\s*(?:\d+\s*[-–]\s*)?(?<u>\p{L}[\p{L}'-]*(?: \p{L}[\p{L}'-]*){1,2}?)(?=\s*<|\s*\(|\s*,|\s*;|[ \t]*$)"), TypUdaje.Osoba),
         // číslo popisné nebo evidenční, případně s obcí (č.p 158 v Lhotě u Nikde)
-        (new Regex(@"(?<u>č\.\s?(?:p|ev)\.?\s*\d+(?:/\d+)?(?:\s+v[e]?\s+\p{Lu}\p{Ll}+(?:\s+(?:u|nad|pod|na)\s+\p{Lu}\p{Ll}+)?)?)"), TypUdaje.Adresa),
+        (new Regex(@"(?<u>č[.,]?\s?(?:p|ev)(?:[.,]?\p{Lu}\b|[.,])?\.?\s*\d+(?:/\d+)?(?:\s+v[e]?\s+\p{Lu}\p{Ll}+(?:\s+(?:u|nad|pod|na)\s+\p{Lu}\p{Ll}+)?)?)"), TypUdaje.Adresa),
         // odkaz s doménou prozradí firmu nebo osobu
         (new Regex(@"(?:https?://|www\.)[^\s<>""]+"), TypUdaje.Jiny),
         (new Regex(@"(?:se sídlem|sídlem|bytem|bydlištěm)\s+v\s+(?<u>\p{Lu}\p{Ll}+(?:[ -]\p{Lu}\p{Ll}+){0,2})(?=[,.;\s]|$)"), TypUdaje.Adresa),
@@ -202,6 +202,7 @@ public static class Detektor
         (new Regex(@"(?<u>(?:\p{Lu}\p{Ll}+ )+(?:družstvo|spolek|nadace|ústav)(?: \p{Lu}[\p{L}-]+)*)"), TypUdaje.Firma),
         (new Regex(@"(?:občansk\w+ průkaz\w*|\bOP|cestovní\w* pas\w*)\s*(?:č\.)?\s*(?<u>\d{6,10})\b", RegexOptions.IgnoreCase), TypUdaje.Jiny),
         (new Regex(@"parc\.?\s*č\.?\s*(?<u>\d+(?:/\d+)?)", RegexOptions.IgnoreCase), TypUdaje.Nemovitost),
+        (new Regex(@"\bp\.\s?č\.?\s*(?<u>\d+(?:/\d+)?)", RegexOptions.IgnoreCase), TypUdaje.Nemovitost),
         (new Regex(@"\bLV\s*č\.?\s*(?<u>\d+)"), TypUdaje.Nemovitost),
         // U adres se smí přejít přes konec řádku tam, kde je to jednoznačné:
         // mezi PSČ a obcí, za „k. ú.“ a mezi ulicí a číslem domu (zalomení na fotce).
@@ -283,9 +284,52 @@ public static class Detektor
         }
 
         NajdiOsoby(slova, radky, nalezy);
+        NajdiHlavickuVeSloupcich(slova, radky, nalezy);
         NajdiFirmy(slova, radky, nalezy);
         NajdiDatumZaJmenem(slova, nalezy);
         return Sluc(nalezy);
+    }
+
+    private static readonly HashSet<string> PopiskyHlavicky = new(StringComparer.OrdinalIgnoreCase)
+        { "Od", "Komu", "Kopie", "From", "To", "Cc", "Odesílatel", "Příjemce", "Adresát", "Adresáti",
+          "Datum", "Date", "Předmět", "Subject", "Odesláno", "Sent", "Přílohy", "Attachments" };
+
+    private static readonly HashSet<string> PopiskyOsob = new(StringComparer.OrdinalIgnoreCase)
+        { "Od", "Komu", "Kopie", "From", "To", "Cc", "Odesílatel", "Příjemce", "Adresát", "Adresáti" };
+
+    /// <summary>
+    /// Vytištěná hlavička e-mailu ve dvou sloupcích: OCR přečte nejdřív popisky pod sebou
+    /// (Odesílatel, Adresát, Datum) a teprve pak hodnoty. Hodnota patří k popisku podle pořadí,
+    /// jméno může být i malými písmeny.
+    /// </summary>
+    private static void NajdiHlavickuVeSloupcich(IReadOnlyList<string> slova, IReadOnlyList<int> radky, List<Nalez> nalezy)
+    {
+        // řádky jako úseky slov
+        var useky = new List<(int Od, int Do)>();
+        for (int i = 0; i < slova.Count; i++)
+            if (i == 0 || radky[i] != radky[i - 1]) useky.Add((i, i));
+            else useky[^1] = (useky[^1].Od, i);
+
+        bool JePopisek((int Od, int Do) u) =>
+            u.Do == u.Od && PopiskyHlavicky.Contains(Text.Ocisti(slova[u.Od]).TrimEnd(':'));
+
+        for (int r = 0; r < useky.Count; r++)
+        {
+            int k = r;
+            while (k < useky.Count && JePopisek(useky[k])) k++;
+            int pocet = k - r;
+            if (pocet < 2 || k + pocet > useky.Count) { r = Math.Max(r, k - 1); continue; }
+            for (int p = 0; p < pocet; p++)
+            {
+                if (!PopiskyOsob.Contains(Text.Ocisti(slova[useky[r + p].Od]).TrimEnd(':'))) continue;
+                var (od, @do) = useky[k + p];
+                // jméno = první jedno až tři slova z písmen, e-mail za ním hledá jiné pravidlo
+                int j = od;
+                while (j <= @do && j - od < 3 && Regex.IsMatch(Text.Ocisti(slova[j]), @"^\p{L}[\p{L}'-]+$")) j++;
+                if (j - od >= 2) nalezy.Add(new Nalez(od, j - 1, TypUdaje.Osoba));
+            }
+            r = k + pocet - 1;
+        }
     }
 
     private static void NajdiOsoby(IReadOnlyList<string> slova, IReadOnlyList<int> radky, List<Nalez> nalezy)
@@ -361,12 +405,25 @@ public static class Detektor
             // Název firmy: až čtyři slova před právní formou, začíná velkým písmenem
             // („Smyšlené stavby s.r.o.“), končí na dvojtečce nebo čárce před ním.
             int od = i;
+            bool maleSlovo = false;
             for (int j = i - 1; j >= 0 && i - j <= 4 && radky[j] == radky[i]; j--)
             {
                 var w = slova[j];
                 if (w.EndsWith(':') || w.EndsWith(';') || (w.EndsWith(',') && j < i - 1) || JeTitul(w)
                     || PredFirmou.Contains(Text.Ocisti(w)) || Role(w) is not null) break;
-                if (Text.ZacinaVelkym(w) && !NeJmena.Contains(Text.Ocisti(w))) od = j;
+                // Malé slovo uprostřed názvu (Dopravní služby Kraus s.r.o.) je v pořádku, jen když
+                // před ním stojí přídavné jméno. „Doložit vyjádření FIKTIVNET a.s“ tak nespolkne větu.
+                if (Text.ZacinaVelkym(w) && !NeJmena.Contains(Text.Ocisti(w)))
+                {
+                    if (maleSlovo && !Regex.IsMatch(Text.Ocisti(w), @"(?:[nc]í|[sc]k[ýáé]|ov[ýáé]|[nl][ýáé])$")) break;
+                    od = j;
+                    maleSlovo = false;
+                }
+                else if (od < i)
+                {
+                    if (maleSlovo) break;
+                    maleSlovo = true;
+                }
                 // čárka těsně před právní formou patří k názvu (Elektro-Servis Zlín, s.r.o.)
             }
             if (od < i) nalezy.Add(new Nalez(od, konec, TypUdaje.Firma));
