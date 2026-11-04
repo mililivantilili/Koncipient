@@ -305,7 +305,8 @@ try
         {
             var spis = NajdiSpis(argumenty[0]);
             var cil = Volba("--cil");
-            var vysledek = Export.Proved(spis, Anonymizator.NactiKlic(spis), cil, Dokumenty(spis, Volba("--dokumenty")));
+            var ukol = Volba("--ukol");
+            var vysledek = Export.Proved(spis, Anonymizator.NactiKlic(spis), cil, Dokumenty(spis, Volba("--dokumenty")), ukol);
             return vysledek.Uspech
                 ? Vypis(new { uspech = true, slozka = vysledek.Slozka })
                 : Vypis(new { uspech = false, problemy = vysledek.Problemy });
@@ -430,7 +431,7 @@ static int Napoveda()
           udaj <spis> <id> [--akce nahradit|odstranit|ponechat] [--role <role>] [--nahrada <text>] [--smazat]
           styl <spis> stromy|zvirata|kody         jak se nahrazují osoby
           zkontroluj <spis> [<strana>...|vse] [--zrusit]
-          export <spis> [--cil <složka>] [--dokumenty 1,3|nove]   zápis pro Clauda (jen po kontrole stran)
+          export <spis> [--cil <složka>] [--dokumenty 1,3|nove] [--ukol "text"]   zápis pro Clauda (jen po kontrole stran)
           pdf <spis> <soubor.pdf> [--dokumenty 1,3]   prohledatelné PDF pro archiv (skutečné údaje)
           zaznam <spis> [--text]                  záznam o exportech pro GDPR (jen počty, žádné údaje)
           kvalita <spis>                          strany k přefocení (rozmazané, tmavé, uříznuté, nejistý přepis)

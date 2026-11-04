@@ -29,9 +29,16 @@ public static class Export
     /// Jen vybrané dokumenty (Id), třeba nově doplněné. Null = celý spis. Kontrolují se jen
     /// strany vybraných dokumentů. Soubory dokumentů mají stálá čísla podle pořadí ve spisu.
     /// </param>
-    public static VysledekExportu Proved(Spis spis, Klic klic, string? slozkaProClaude = null, IReadOnlyCollection<string>? jenDokumenty = null)
+    /// <param name="ukol">
+    /// Zadání pro Clauda od advokátky („Navrhni odvolání proti rozsudku ve 2. dokumentu“).
+    /// Může obsahovat skutečná jména, proto se anonymizuje stejně jako text a projde kontrolou.
+    /// Uloží se jako UKOL.md do složky spisu v exportu.
+    /// </param>
+    public static VysledekExportu Proved(Spis spis, Klic klic, string? slozkaProClaude = null, IReadOnlyCollection<string>? jenDokumenty = null,
+        string? ukol = null)
     {
         var vybrane = jenDokumenty;
+        var ukolProClauda = string.IsNullOrWhiteSpace(ukol) ? null : Anonymizator.AnonymizujText(ukol.Trim(), klic);
         var koren = slozkaProClaude ?? VychoziSlozka;
         var problemy = new List<string>();
         var exportovane = new List<Dokument>();
@@ -60,6 +67,7 @@ public static class Export
             dokumentyExportu.Add((k, nazev, $"dokumenty/{k:D2}-{Slug(nazev)}.md", obsah));
         }
         if (dokumentyExportu.Count == 0) problemy.Add("Není vybraný žádný dokument.");
+        if (ukolProClauda is not null) problemy.AddRange(Kontrola(ukolProClauda, klic).Select(p => $"Úkol pro Clauda: {p}"));
         if (problemy.Count > 0) return new VysledekExportu(false, koren, problemy);
         var dokumenty = dokumentyExportu;
 
@@ -92,6 +100,10 @@ public static class Export
             });
         File.WriteAllText(Path.Combine(docasna, "entity.json"),
             JsonSerializer.Serialize(new { spis = spis.Id, entity }, Json), new UTF8Encoding(false));
+        if (ukolProClauda is not null)
+            File.WriteAllText(Path.Combine(docasna, "UKOL.md"),
+                $"# Úkol od advokátky\n\n_{spis.Id}, zadáno {DateTime.Now:d. M. yyyy H:mm}_\n\n{ukolProClauda}\n\n"
+                + "Výsledek ulož do složky `vystup/` jako Markdown (`.md`).\n", new UTF8Encoding(false));
         File.WriteAllText(Path.Combine(docasna, "manifest.json"),
             JsonSerializer.Serialize(new
             {
@@ -99,6 +111,7 @@ public static class Export
                 exportovano = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
                 // jen část spisu: Claude má vědět, že ostatní dokumenty nedostal
                 cely_spis = vybrane is null || dokumenty.Count == spis.Dokumenty.Count,
+                ukol = ukolProClauda is null ? null : "UKOL.md",
                 dokumentu_ve_spisu = spis.Dokumenty.Count,
                 dokumenty = dokumenty.Select(d => new { poradi = d.Poradi, nazev = d.Nazev, soubor = d.Soubor, strany = d.Strany.Select(s => s.Strana) }),
             }, Json), new UTF8Encoding(false));
@@ -112,7 +125,9 @@ public static class Export
         foreach (var d in exportovane) d.Exportovano = DateTime.Now;
         spis.Uloz();
         // doklad pro advokátku, co odešlo (jen počty, žádné údaje); zůstává ve spisu
-        ZaznamyExportu.Pridej(spis, ZaznamyExportu.ZExportu(spis, klic, vybrane, cil));
+        var zaznam = ZaznamyExportu.ZExportu(spis, klic, vybrane, cil);
+        zaznam.SUkolem = ukolProClauda is not null;
+        ZaznamyExportu.Pridej(spis, zaznam);
         return new VysledekExportu(true, cil, Array.Empty<string>());
     }
 
@@ -208,6 +223,8 @@ public static class Export
           platí v celém spisu, chybějící dokumenty si nedomýšlej a případně o ně požádej.
         - `entity.json` vyjmenovává náhrady použité ve spisu, jejich typ, rod a roli ve věci
           (žalobce, svědek…) a ke komu patří adresy a další údaje.
+        - `UKOL.md` (když ve spisu je) je zadání od advokátky k tomuto spisu. Když řekne „udělej
+          úkol“ nebo „úkol ve spisu S-0001“, postupuj podle něj. Jména v něm jsou také pseudonymy.
         - Výstupy ukládej do `vystup/` v příslušném spisu jako Markdown (`.md`). Odtud si je
           advokátka přenese zpět a program do nich vrátí skutečná jména a uloží je jako Word.
 

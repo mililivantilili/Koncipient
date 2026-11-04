@@ -11,7 +11,13 @@ public static class DokumentyDialog
     /// Vrátí Id vybraných dokumentů, null = celý spis (vybráno vše), nebo prázdný seznam při zrušení.
     /// </summary>
     public static IReadOnlyCollection<string>? Vyber(Window vlastnik, Spis spis, string titulek, string popis, string tlacitko, out bool zruseno)
+        => Vyber(vlastnik, spis, titulek, popis, tlacitko, null, out zruseno, out _);
+
+    /// <param name="anonymizujUkol">Když je zadané, okno má pole „Co má Claude udělat“ s náhledem anonymizovaného textu.</param>
+    public static IReadOnlyCollection<string>? Vyber(Window vlastnik, Spis spis, string titulek, string popis, string tlacitko,
+        Func<string, string>? anonymizujUkol, out bool zruseno, out string? ukol)
     {
+        ukol = null;
         var volby = new List<(CheckBox Volba, Dokument Dokument)>();
         var seznam = new StackPanel();
         int k = 0;
@@ -46,6 +52,26 @@ public static class DokumentyDialog
         obsah.Children.Add(new TextBlock { Text = popis, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 8) });
         obsah.Children.Add(rychle);
         obsah.Children.Add(new ScrollViewer { Content = seznam, MaxHeight = 380, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
+        TextBox? poleUkolu = null;
+        if (anonymizujUkol is not null)
+        {
+            poleUkolu = new TextBox
+            {
+                AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 70, FontSize = 14,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Margin = new Thickness(0, 4, 0, 4),
+            };
+            System.Windows.Automation.AutomationProperties.SetAutomationId(poleUkolu, "UkolProClauda");
+            var nahled = new TextBlock { TextWrapping = TextWrapping.Wrap, Foreground = System.Windows.Media.Brushes.DimGray };
+            poleUkolu.TextChanged += (_, _) => nahled.Text = string.IsNullOrWhiteSpace(poleUkolu.Text)
+                ? "" : "Claude dostane: " + anonymizujUkol(poleUkolu.Text.Trim());
+            obsah.Children.Add(new TextBlock
+            {
+                Text = "Co má Claude udělat (nepovinné), třeba „Navrhni odvolání proti rozsudku ve 2. dokumentu“. Jména se nahradí stejně jako ve spisu:",
+                TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 12, 0, 0),
+            });
+            obsah.Children.Add(poleUkolu);
+            obsah.Children.Add(nahled);
+        }
         obsah.Children.Add(dole);
         var okno = new Window
         {
@@ -55,6 +81,7 @@ public static class DokumentyDialog
         ok.Click += (_, _) => okno.DialogResult = true;
         zruseno = okno.ShowDialog() != true;
         if (zruseno) return Array.Empty<string>();
+        ukol = string.IsNullOrWhiteSpace(poleUkolu?.Text) ? null : poleUkolu!.Text.Trim();
         var vybrane = volby.Where(v => v.Volba.IsChecked == true).Select(v => v.Dokument.Id).ToList();
         if (vybrane.Count == 0) { zruseno = true; return Array.Empty<string>(); }
         return vybrane.Count == volby.Count ? null : vybrane;

@@ -101,16 +101,15 @@ public partial class HlavniOkno
     private void Exportovat_Click(object sender, RoutedEventArgs e)
     {
         if (_spis is null) return;
-        IReadOnlyCollection<string>? dokumenty = null;
-        if (_spis.Dokumenty.Count > 1)
-        {
-            dokumenty = DokumentyDialog.Vyber(this, _spis, "Export pro Clauda",
-                "Vyber dokumenty, které dostane Claude. Kontrolují se jen strany vybraných dokumentů. "
-                + "Po doplnění spisu stačí poslat nové dokumenty (tlačítko Jen nové).",
-                "Exportovat", out bool zruseno);
-            if (zruseno) return;
-        }
-        var vysledek = Export.Proved(_spis, _klic, jenDokumenty: dokumenty);
+        var klic = _klic;
+        var dokumenty = DokumentyDialog.Vyber(this, _spis, "Export pro Clauda",
+            _spis.Dokumenty.Count > 1
+                ? "Vyber dokumenty, které dostane Claude. Kontrolují se jen strany vybraných dokumentů. "
+                  + "Po doplnění spisu stačí poslat nové dokumenty (tlačítko Jen nové)."
+                : "Spis odejde Claudovi celý.",
+            "Exportovat", t => Anonymizator.AnonymizujText(t, klic), out bool zruseno, out string? ukol);
+        if (zruseno) return;
+        var vysledek = Export.Proved(_spis, _klic, jenDokumenty: dokumenty, ukol: ukol);
         if (!vysledek.Uspech)
         {
             var seznam = string.Join("\n", vysledek.Problemy.Take(15));
@@ -121,6 +120,7 @@ public partial class HlavniOkno
         }
         if (MessageBox.Show(this,
                 $"Anonymizovaný spis{(dokumenty is null ? "" : $" ({dokumenty.Count} vybrané dokumenty)")} je ve složce\n{vysledek.Slozka}\n\n" +
+                (ukol is null ? "" : "Úkol je v souboru UKOL.md. Na počítači s Claudem stačí napsat „udělej úkol ve spisu " + _spis.Id + "“.\n\n") +
                 "Na počítač s Claude Code se přenáší jen složka ProClaude. Fotky ani klíč pseudonymů v ní nejsou.\n\n" +
                 "Zkopírovat ji teď na flash disk?",
                 "Koncipient", MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)

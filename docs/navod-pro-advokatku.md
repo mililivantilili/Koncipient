@@ -72,7 +72,7 @@ Osoby se nahrazují vymyšlenými jmény (např. Bohdan Jasaník). Claude s nimi
 
 ## 5. Export pro Clauda
 
-1. **Exportovat pro Clauda…** Když má spis víc dokumentů, vyberte, které Claude dostane. Po doplnění spisu stačí tlačítko **Jen nové**. Kontrolují se jen strany vybraných dokumentů. Program ještě jednou projde text a zastaví export, pokud v něm zůstal údaj, který zná (jméno, číslo nebo adresa z tabulky Osoby a údaje). Údaj, který nikdy nepoznal, ale zastavit nemůže, proto je důležitá vaše kontrola v kroku 4.
+1. **Exportovat pro Clauda…** Do pole **Co má Claude udělat** můžete rovnou napsat úkol, třeba „Navrhni odvolání proti rozsudku ve 2. dokumentu“. Jména v něm program nahradí stejně jako ve spisu a pod polem ukáže, co Claude dostane. Na počítači s Claudem pak stačí napsat „udělej úkol ve spisu S-0001“. Když má spis víc dokumentů, vyberte, které Claude dostane. Po doplnění spisu stačí tlačítko **Jen nové**. Kontrolují se jen strany vybraných dokumentů. Program ještě jednou projde text a zastaví export, pokud v něm zůstal údaj, který zná (jméno, číslo nebo adresa z tabulky Osoby a údaje). Údaj, který nikdy nepoznal, ale zastavit nemůže, proto je důležitá vaše kontrola v kroku 4.
 2. Vznikne složka `Dokumenty\Koncipient\ProClaude\S-…`. Obsahuje jen anonymizovaný text (jeden soubor na dokument) a pokyny pro Clauda. Fotky ani skutečná jména v ní nejsou.
 3. Program nabídne **zkopírovat ji na flash disk** (kdykoli později tlačítko **Na flash disk**). Zkopíruje jen složku `ProClaude` a předtím ověří, že v ní nejsou fotky ani klíč. Na počítači s Claudem ji zkopírujte na stejné místo jako minule a pracujte s ní jako obvykle. Na strany se Claude odkazuje čísly ze seznamu vlevo.
 

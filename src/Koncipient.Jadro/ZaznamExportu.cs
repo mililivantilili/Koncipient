@@ -39,6 +39,9 @@ public sealed class ZaznamExportu
     /// <summary>Údaje, které advokátka výslovně nechala bez anonymizace (soudy, úřady…), jen počet.</summary>
     public int Ponechano { get; set; }
 
+    /// <summary>Export obsahoval úkol pro Clauda (text úkolu se nezapisuje, může obsahovat údaje).</summary>
+    public bool SUkolem { get; set; }
+
     /// <summary>Kam export šel (složka nebo disk).</summary>
     public string Cil { get; set; } = "";
 }
@@ -104,7 +107,7 @@ public static class ZaznamyExportu
             sb.AppendLine();
             sb.AppendLine($"{z.Kdy:d. M. yyyy H:mm}  {(z.Akce == "export" ? "Export pro Clauda" : "Zkopírováno na flash disk")} ({z.Kdo})");
             if (z.Akce != "export") { sb.AppendLine($"  Cíl: {z.Cil}"); continue; }
-            sb.AppendLine($"  Dokumenty: {(z.CelySpis ? "celý spis" : "jen " + string.Join(", ", z.Dokumenty))}, {z.Stran} stran");
+            sb.AppendLine($"  Dokumenty: {(z.CelySpis ? "celý spis" : "jen " + string.Join(", ", z.Dokumenty))}, {z.Stran} stran{(z.SUkolem ? ", s úkolem pro Clauda" : "")}");
             sb.AppendLine($"  Strany zkontrolované člověkem: {(z.StranyZkontrolovane ? "ano, všechny" : "ne všechny")}");
             sb.AppendLine($"  Závěrečná kontrola známých údajů: {(z.KontrolaProsla ? "prošla" : "neprošla")}");
             sb.AppendLine($"  Nahrazeno: {(z.Nahrazeno.Count == 0 ? "nic" : string.Join(", ", z.Nahrazeno.Select(p => $"{p.Key} {p.Value}")))}"
