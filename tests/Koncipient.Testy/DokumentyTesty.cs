@@ -136,6 +136,10 @@ public class DokumentyTesty
     [InlineData("12 C 345/2026-87\nROZSUDEK\nJMÉNEM REPUBLIKY", "Rozsudek")]
     [InlineData("Vážený pane,\nzasíláme Vám vyúčtování za rok 2026", "Zasíláme Vám vyúčtování za rok 2026")]
     [InlineData("Fiktivní s.r.o.\nStavíme s láskou\nStanovisko k projektové dokumentaci", "Stanovisko k projektové dokumentaci")]
+    [InlineData("STAVBY FIKTIV s.r.o., Smyšlená 12, 999 01 Lhota, IČO 12345678\nwww.fiktiv-stavby.example | tel. 999 123 456\nKvalita a tradice od roku 1990!\nVěc: Výzva k úhradě faktury č. 2026001\nVážený pane,", "Výzva k úhradě faktury č. 2026001")]
+    [InlineData("Fiktiv stavby\nVáš spolehlivý partner pro stavby a rekonstrukce\nTel. 999 123 456, info@fiktiv.example\nPotvrzujeme přijetí objednávky ze dne 1. 2. 2026", "Potvrzujeme přijetí objednávky ze dne 1. 2. 2026")]
+    [InlineData("Smyšlená 12, 999 01 Lhota\nVážená paní advokátko,\nŽádost o prodloužení lhůty k doplnění", "Žádost o prodloužení lhůty k doplnění")]
+    [InlineData("Nejlepší služby pro vaše smlouvy!\nDarovací smlouva\nuzavřená mezi", "Darovací smlouva")]
     public void NavrhNazvu(string text, string ocekavany)
     {
         var v = new VysledekOcr

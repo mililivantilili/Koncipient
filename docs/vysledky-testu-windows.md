@@ -250,7 +250,7 @@ Opraveno 2026-11-04 podle návrhu, s automatickými testy (celkem 431):
 3. Okno: po chybách česká hláška se spisem a stranou, titulek „přepis dokončen s chybami“. Po neočekávané chybě se titulek a stav vrátí a hláška je česky (podrobnost anglicky).
 4. Tři fotky prázdného papíru od Matěje jsou zmenšené ve `vzory/prazdne/` a test hlídá, že se nezahodí jako oddělovač (hrany 0,40 až 2,19 %, jas 143 až 164).
 
-Navrhování názvů z reklamního sloganu na první straně zatím zůstává, název jde přejmenovat ručně.
+Navrhování názvů z reklamního sloganu opraveno 2026-11-04: hlavička papíru, slogan a oslovení se přeskočí, přednost má řádek „Věc:“.
 
 ## Kontrola nových funkcí, 2026-11-04 (commit 9d8bf75)
 

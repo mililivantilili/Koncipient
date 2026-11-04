@@ -267,14 +267,34 @@ public sealed partial class Spis
             // NADPIS VELKÝMI PÍSMENY → Nadpis velkými písmeny
             return r.Count(char.IsUpper) > r.Count(char.IsLower) ? char.ToUpper(r[0]) + r[1..].ToLower() : r;
         }
-        var typ = radky.FirstOrDefault(r => TypyDokumentu.Any(t => r.Contains(t, StringComparison.CurrentCultureIgnoreCase))
+        // 1) dopis s „Věc:“ nebo „Předmět:“ říká, o co jde, nejpřesněji
+        foreach (var r in radky)
+        {
+            var vec = Regex.Match(r, @"^(?:Věc|Vec|Předmět|Predmet|Ve věci)\s*:\s*(?<t>.+)$", RegexOptions.IgnoreCase);
+            if (vec.Success && vec.Groups["t"].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length >= 2) return Uprav(vec.Groups["t"].Value);
+        }
+        // hlavička papíru (firma, adresa, kontakty), slogan a oslovení název nedávají
+        var obsah = radky.Where(r => !JeHlavickaNeboSlogan(r)).ToList();
+        // 2) řádek s typem dokumentu (Kupní smlouva, Rozsudek…)
+        var typ = obsah.FirstOrDefault(r => TypyDokumentu.Any(t => r.Contains(t, StringComparison.CurrentCultureIgnoreCase))
                                              && r.Split(' ').Length <= 8);
         if (typ is not null) return Uprav(typ);
-        // bez typu: první delší řádek (krátké řádky bývají hlavičkový papír, logo, slogan)
-        var prvni = radky.FirstOrDefault(r => r.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length >= 4 && r.Length >= 25)
-                    ?? radky.FirstOrDefault(r => r.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length >= 3);
+        // 3) bez typu: první delší řádek obsahu
+        var prvni = obsah.FirstOrDefault(r => r.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length >= 4 && r.Length >= 25)
+                    ?? obsah.FirstOrDefault(r => r.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length >= 3);
         return prvni is null ? null : Uprav(prvni);
     }
+
+    /// <summary>
+    /// Řádek hlavičkového papíru (web, e-mail, telefon, IČO, adresa s PSČ, firma s právní formou),
+    /// reklamní slogan (vykřičník, typická reklamní slova) nebo oslovení dopisu.
+    /// </summary>
+    internal static bool JeHlavickaNeboSlogan(string r) =>
+        Regex.IsMatch(r, @"www\.|https?:|@|\b(?:tel|telefon|mobil|fax|IČO?|DIČ|IBAN|č\.\s?ú|účet|ID\s?DS|datová schránka)\b|\b\d{3}\s?\d{2}\s+(?-i:\p{Lu})|s\.\s?r\.\s?o|\ba\.\s?s\.|\bspol\.|\bv\.\s?o\.\s?s",
+            RegexOptions.IgnoreCase)
+        || r.TrimEnd().EndsWith('!') || r.Contains('™') || r.Contains('®')
+        || Regex.IsMatch(r, @"\b(?:kvalit\w*|tradic\w*|spolehliv\w*|partner\w*|profesionál\w*|s láskou|pro vás|váš|vaše|vašim|od roku)\b", RegexOptions.IgnoreCase)
+        || Regex.IsMatch(r, @"^(?:Vážen\w*|Dobrý den|Milý|Milá|Ahoj)\b", RegexOptions.IgnoreCase);
 
     /// <summary>Doplní navržené názvy u dokumentů, které je ještě nemají. Vrátí počet pojmenovaných.</summary>
     public int NavrhniNazvy()
