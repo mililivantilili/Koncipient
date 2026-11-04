@@ -7,7 +7,7 @@ public sealed record StavDavky(int Hotovo, int Celkem, string Popis);
 /// <summary>Strana, kterou dávka nezvládla. Dávka pokračuje dalšími, chyba se ukáže na konci.</summary>
 public sealed record ChybaStrany(string Spis, int Strana, string Krok, string Zprava)
 {
-    public override string ToString() => $"{Spis}, strana {Strana} ({Krok}): {Zprava}";
+    public override string ToString() => Strana > 0 ? $"{Spis}, strana {Strana} ({Krok}): {Zprava}" : $"{Spis} {Krok}: {Zprava}".Trim();
 }
 
 /// <summary>
@@ -66,9 +66,17 @@ public static class Davka
 
         foreach (var tovarna in tovarny)
         {
-            using var motor = tovarna();
+            IOcrMotor motor;
+            try { motor = tovarna(); }
+            catch (Exception e)
+            {
+                // motor nejde spustit (chybí knihovna, model): ostatní motory pokračují
+                chyby.Add(new ChybaStrany("", 0, "spuštění motoru OCR", e.InnerException?.Message ?? e.Message));
+                continue;
+            }
+            using var _ = motor;
             var zbyva = spisy.SelectMany(sp => sp.Strany.Select(st => (sp, st)))
-                .Where(x => !x.sp.MaOcr(x.st, motor.Nazev)).ToList();
+                .Where(x => !x.sp.MaOcr(x.st, motor.Nazev) && !x.sp.MaOcr(x.st, Motory.PdfText)).ToList();
             for (int i = 0; i < zbyva.Count; i++)
             {
                 zruseni.ThrowIfCancellationRequested();

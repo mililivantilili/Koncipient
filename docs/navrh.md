@@ -158,6 +158,12 @@ Spis se skládá z dokumentů, každá strana patří k jednomu. Dokumenty vznik
 
 Fotky se řadí přirozeně (IMG_2 před IMG_10). Strany se číslují v pořadí spisu a na toto číslo odkazuje i Claude. Export obsahuje jeden soubor na dokument (`dokumenty/01-kupni-smlouva.md`) se stranami jako oddíly. Názvy dokumentů a složek můžou obsahovat jména, proto se anonymizují stejně jako text a projdou závěrečnou kontrolou. Automatické rozpoznání hranic dokumentů bez černé fotky (podle hlavičky nebo číslování stran) zatím není, je nespolehlivé.
 
+## Import PDF a rychlá kontrola
+
+**PDF** (hlavně z datové schránky) se přidává stejně jako fotky, každé PDF je dokument. Stránky se vykreslí na 200 DPI (PDFium přes PDFtoImage) pro zobrazení. Text se vezme přímo z PDF (PdfPig) i s polohami slov, takže je přesný a stránka se nepřepisuje (motor `pdf-text`, v pořadí zobrazení hned za ruční opravou). Stránka bez textu, s nečitelným kódováním písma nebo otočená jde přes OCR jako fotka. Obě knihovny běží offline.
+
+**Rychlá kontrola** (`RychlaKontrola.cs`, záložka v okně, `koncipient-cli kontrola`) nahrazuje procházení celých stran. Ukáže každý nahrazený údaj jednou za stranu s okolím a výřezem fotky. Dál ukáže slova, která zůstanou, ale vypadají jako přehlédnutý údaj: známé křestní jméno, slovo s velkým písmenem mimo český slovník uprostřed věty, číslo s aspoň pěti číslicemi kromě dat a částek. Strana s vyřízenými místy se označí jako zkontrolovaná, strany bez nálezů potvrdí advokátka jedním tlačítkem s upozorněním, že program nenajde všechno.
+
 ## Struktura složek a formát dat
 
 Spisy a export jsou dvě oddělené složky. Na počítač s Claude Code se přenáší jen export, Claude Code se spouští v něm. Každá strana je samostatný Markdown.

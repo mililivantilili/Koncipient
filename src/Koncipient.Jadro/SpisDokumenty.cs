@@ -84,6 +84,11 @@ public sealed partial class Spis
     /// složky, každá podsložka (i vnořená) další dokument pojmenovaný podle své cesty.
     /// Černé fotky uvnitř dokument dál rozdělují.
     /// </summary>
+    /// <summary>Každé PDF ve složce je samostatný dokument pojmenovaný podle souboru.</summary>
+    private static IEnumerable<string> PdfVeSlozce(string slozka) =>
+        Directory.GetFiles(slozka).Where(f => Path.GetExtension(f).Equals(".pdf", StringComparison.OrdinalIgnoreCase))
+            .OrderBy(Path.GetFileName, PrirozeneRazeni.Instance);
+
     public IReadOnlyList<Strana> PridejSlozku(string slozka)
     {
         var nove = new List<Strana>();
@@ -91,6 +96,7 @@ public sealed partial class Spis
         {
             var fotky = Directory.GetFiles(adresar).Where(f => PriponyFotek.Contains(Path.GetExtension(f).ToLowerInvariant())).ToList();
             if (fotky.Count > 0) nove.AddRange(PridejFotky(fotky, nazev));
+            foreach (var pdf in PdfVeSlozce(adresar)) nove.AddRange(PridejPdf(pdf, $"{nazev} / {Path.GetFileNameWithoutExtension(pdf)}".TrimStart(' ', '/')));
             foreach (var pod in Directory.GetDirectories(adresar).OrderBy(Path.GetFileName, PrirozeneRazeni.Instance))
                 Projdi(pod, $"{nazev} / {Path.GetFileName(pod)}".TrimStart(' ', '/'));
         }
@@ -98,6 +104,7 @@ public sealed partial class Spis
         var koren = Path.GetFileName(Path.TrimEndingDirectorySeparator(slozka));
         var primo = Directory.GetFiles(slozka).Where(f => PriponyFotek.Contains(Path.GetExtension(f).ToLowerInvariant())).ToList();
         if (primo.Count > 0) nove.AddRange(PridejFotky(primo, koren));
+        foreach (var pdf in PdfVeSlozce(slozka)) nove.AddRange(PridejPdf(pdf));
         foreach (var pod in Directory.GetDirectories(slozka).OrderBy(Path.GetFileName, PrirozeneRazeni.Instance))
             Projdi(pod, Path.GetFileName(pod));
         return nove;

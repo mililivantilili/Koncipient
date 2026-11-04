@@ -82,7 +82,8 @@ try
         {
             var spis = NajdiSpis(argumenty[0]);
             var nazev = Volba("--dokument");
-            var nove = spis.PridejFotky(argumenty.Skip(1), nazev, cerneOddeluji: !Prepinac("--bez-cernych"));
+            bool bezCernych = Prepinac("--bez-cernych");
+            var nove = spis.PridejSoubory(argumenty.Skip(1).ToList(), nazev, cerneOddeluji: !bezCernych);
             return Vypis(new { pridano = nove.Count, dokumentu = spis.Dokumenty.Count, oddelovacu = spis.Oddelovace.Count });
         }
 
@@ -138,6 +139,23 @@ try
             }
             return Vypis(new { hotovo = chyby.Count == 0, spisy = spisy.Select(s => s.Id), motory = Motory.ProDavku().Count, windowsOcr = Motory.WindowsOcrJe,
                 chyby = chyby.Select(c => new { spis = c.Spis, strana = c.Strana, krok = c.Krok, zprava = c.Zprava }) });
+        }
+
+        case "kontrola":
+        {
+            // rychlá kontrola: místa s nahrazenými údaji a podezřelá slova (vypisuje obsah spisu)
+            if (!TestovaciData()) return Chyba(Ochrana, 3);
+            var spis = NajdiSpis(argumenty[0]);
+            var mista = RychlaKontrola.Najdi(spis, Anonymizator.NactiKlic(spis));
+            return Vypis(new
+            {
+                mista = mista.Select(m => new
+                {
+                    strana = spis.Poradi(m.Strana), druh = m.Druh.ToString(), udaj = m.Udaj, nahrada = m.Druh == DruhMista.Nahrazeno ? m.Nahrada : null,
+                    kod = m.Entita?.Id, pocet = m.PocetNaStrane, kontext = $"{m.Pred} [{m.Udaj}] {m.Po}",
+                }),
+                stranyBezNalezu = RychlaKontrola.StranyBezNalezu(spis, mista).Select(spis.Poradi),
+            });
         }
 
         case "strany":
@@ -327,7 +345,7 @@ static int Napoveda()
           spisy                                   seznam spisů
           zaloz <název>                           nový spis
           stahni-modely [--kam <složka>]          stáhne modely OCR (jen pro sestavení instalátoru)
-          pridej-fotky <spis> <soubor>... [--dokument <název>] [--bez-cernych]
+          pridej-fotky <spis> <soubor>... [--dokument <název>] [--bez-cernych]   fotky i PDF
           pridej-slozku <spis> <složka>           podsložky = dokumenty, černá fotka = nový dokument
           oddelovace <spis>                       fotky vzaté jako oddělovače dokumentů (k ruční kontrole)
           vrat-oddelovac <spis> <číslo>           oddělovač byla stránka: vrátit ji na místo a spojit dokumenty
@@ -338,6 +356,7 @@ static int Napoveda()
 
         Anonymizace
           udaje <spis>                            *  údaje v klíči se skutečnými hodnotami
+          kontrola <spis>                         *  rychlá kontrola: místa s nahrazenými údaji a podezřelá slova
           text <spis> <strana> [--slova] [--anonymizovany]   *  přepis strany (--slova = čísla slov pro oznac)
           oznac <spis> <strana> <od> <do> <typ>   slova od–do označit (osoba, firma, adresa, nemovitost, jiny…)
           necitlive <spis> <slovo>...             slova nejsou citlivá

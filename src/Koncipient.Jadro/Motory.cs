@@ -9,12 +9,15 @@ public static class Motory
     public const string Tesseract = "tesseract-cs";
     public const string Windows = "windows-ocr";
 
+    /// <summary>Text převzatý přímo z PDF (datová schránka), přesný, stránka se nepřepisuje.</summary>
+    public const string PdfText = "pdf-text";
+
     /// <summary>
     /// Pořadí, ve kterém se bere hlavní výsledek pro zobrazení. Windows OCR čte souvislý
     /// text nejlépe a nejrychleji (test na Matějově notebooku 2026-11-03), PaddleOCR
     /// je nejlepší na čísla a jména, Tesseract je záloha.
     /// </summary>
-    public static readonly string[] PoradiZobrazeni = { Spis.Opraveno, Slouceni.Nazev, Windows, Paddle, Tesseract };
+    public static readonly string[] PoradiZobrazeni = { Spis.Opraveno, PdfText, Slouceni.Nazev, Windows, Paddle, Tesseract };
 
     /// <summary>Výsledky všech motorů, které se používají ke kontrole a hledání údajů.</summary>
     public static readonly string[] VsechnyMotory = { Windows, Paddle, Tesseract };

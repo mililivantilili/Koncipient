@@ -8,7 +8,7 @@
             <ToolBar>
                 <Button AutomationProperties.AutomationId="Novyspis" Content="Nový spis" Click="NovySpis_Click" ToolTip="Ctrl+N" Padding="8,4" />
                 <Button x:Name="PridatFotky" AutomationProperties.AutomationId="PridatFotky" Content="Přidat fotky…" Click="PridatFotky_Click" Padding="8,4" IsEnabled="False"
-                        ToolTip="Vybrané fotky. Černá fotka (zakrytý objektiv) mezi nimi odděluje dokumenty." />
+                        ToolTip="Vybrané fotky nebo PDF (třeba z datové schránky). Černá fotka mezi fotkami odděluje dokumenty, každé PDF je samostatný dokument." />
                 <Button x:Name="PridatSlozku" AutomationProperties.AutomationId="PridatSlozku" Content="Přidat složku…" Click="PridatSlozku_Click" Padding="8,4" IsEnabled="False"
                         ToolTip="Celá složka: každá podsložka je jeden dokument pojmenovaný podle ní. Černá fotka dokument dál dělí." />
                 <Button x:Name="Oddelovace" AutomationProperties.AutomationId="Oddelovace" Content="Oddělovače…" Click="Oddelovace_Click" Padding="8,4" IsEnabled="False"
@@ -163,6 +163,32 @@
                                 <DataGridTextColumn Header="Tvary v textu" Binding="{Binding Tvary, Mode=OneWay}" IsReadOnly="True" Width="2*" />
                             </DataGrid.Columns>
                         </DataGrid>
+                    </DockPanel>
+                </TabItem>
+                <TabItem Header="Rychlá kontrola" AutomationProperties.AutomationId="ZalozkaRychlaKontrola">
+                    <DockPanel>
+                        <WrapPanel DockPanel.Dock="Top" Margin="4">
+                            <TextBlock x:Name="RkSouhrn" AutomationProperties.AutomationId="RkSouhrn" VerticalAlignment="Center" Margin="4,0,12,0" TextWrapping="Wrap" MaxWidth="520" />
+                            <Button Content="Načíst znovu" Click="RkNacist_Click" Padding="8,3" Margin="0,0,6,0" />
+                            <Button x:Name="RkBezNalezu" AutomationProperties.AutomationId="RkBezNalezu" Click="RkBezNalezu_Click" Padding="8,3"
+                                    ToolTip="Strany, kde program nenašel žádný údaj ani podezřelé slovo. U důležitých stran se vyplatí přesto zapnout Náhled pro Clauda." />
+                        </WrapPanel>
+                        <Border DockPanel.Dock="Bottom" BorderBrush="LightGray" BorderThickness="0,1,0,0" Padding="8">
+                            <StackPanel>
+                                <TextBlock x:Name="RkKontext" AutomationProperties.AutomationId="RkKontext" FontSize="16" TextWrapping="Wrap" Margin="0,0,0,6" />
+                                <Image x:Name="RkVyrez" Height="140" Stretch="Uniform" HorizontalAlignment="Left" Margin="0,0,0,6" />
+                                <WrapPanel>
+                                    <Button x:Name="RkOk" AutomationProperties.AutomationId="RkOk" Content="V pořádku (Enter)" Click="RkOk_Click" Padding="8,3" Margin="0,0,6,4" />
+                                    <Button x:Name="RkNecitlive" AutomationProperties.AutomationId="RkNecitlive" Content="Není citlivé (N)" Click="RkNecitlive_Click" Padding="8,3" Margin="0,0,6,4"
+                                            ToolTip="Nahrazený údaj nechat v textu pro Clauda (soud, úřad…), podezřelé slovo už nehlásit." />
+                                    <Button x:Name="RkOsoba" AutomationProperties.AutomationId="RkOsoba" Content="Je to osoba (O)" Tag="Osoba" Click="RkOznacit_Click" Padding="8,3" Margin="0,0,6,4" />
+                                    <Button x:Name="RkJiny" AutomationProperties.AutomationId="RkJiny" Content="Jiný údaj, odstranit (U)" Tag="Jiny" Click="RkOznacit_Click" Padding="8,3" Margin="0,0,6,4" />
+                                    <Button Content="Otevřít stranu" Click="RkOtevrit_Click" Padding="8,3" Margin="0,0,6,4" />
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+                        <ListBox x:Name="RkSeznam" AutomationProperties.AutomationId="RkSeznam" SelectionChanged="RkSeznam_SelectionChanged"
+                                 PreviewKeyDown="RkSeznam_PreviewKeyDown" FontSize="14" />
                     </DockPanel>
                 </TabItem>
             </TabControl>

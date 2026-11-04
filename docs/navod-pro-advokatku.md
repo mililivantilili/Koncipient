@@ -18,11 +18,12 @@ Spisy se ukládají do složky `Dokumenty\Koncipient\Spisy`. Odinstalace ani nov
 - Každou stránku vyfoťte zvlášť, celou a zhora, ideálně u okna nebo pod lampou. Stačí běžný mobil.
 - **Mezi dokumenty vyfoťte jednu fotku se zakrytým objektivem** (prst nebo dlaň přes fotoaparát). Koncipient podle ní pozná, kde začíná další dokument (smlouva, rozsudek…).
 - Fotky přeneste do počítače s Koncipientem. Můžete je roztřídit do složek, každá složka bude jeden dokument.
+- **PDF (třeba z datové schránky) nefoťte.** Přidejte je rovnou, každé PDF bude jeden dokument. Když PDF obsahuje text, Koncipient ho převezme přesně a bez přepisování.
 
 ## 2. Založení spisu
 
 1. **Nový spis** a zadejte název, například spisovou značku. Název zůstane jen u vás.
-2. **Přidat fotky…** (vybrané fotky) nebo **Přidat složku…** (celá složka, podsložky se stanou dokumenty).
+2. **Přidat fotky…** (vybrané fotky nebo PDF) nebo **Přidat složku…** (celá složka, podsložky se stanou dokumenty, PDF v nich také).
 3. Otevře se okno **Oddělovače dokumentů** s fotkami, které program vzal jako zakrytý objektiv. Pokud je mezi nimi skutečná stránka (třeba hodně tmavá), zaškrtněte **Je to stránka, vrátit**. Pak klikněte na **Hotovo**.
 
 Pořadí stran i dokumenty jdou upravit později: klikněte pravým tlačítkem na stranu v seznamu vlevo.
@@ -36,6 +37,19 @@ Když je hotovo, uvidíte v titulku okna „přepis dokončen“ a čas. Pokud s
 ## 4. Kontrola: hlavní práce
 
 Automatika nikdy nenajde všechno, proto nic neodejde bez vaší kontroly.
+
+### Rychlá kontrola (doporučeno)
+
+Záložka **Rychlá kontrola** ukáže jen místa, na kterých záleží, s kouskem textu a výřezem fotky:
+
+- **zelené:** údaj, který program nahradí (u každého jednou za stranu, s počtem výskytů),
+- **žluté ⚠:** slovo, které zůstane, ale vypadá jako přehlédnuté jméno nebo číslo.
+
+Projděte je klávesnicí: **Enter** = v pořádku, **N** = není citlivé (soud, úřad, obec), **O** = je to osoba, **U** = jiný údaj, odstranit. Stranu, na které máte všechno vyřízené, program sám označí jako zkontrolovanou. Na konci tlačítkem **Strany bez nálezů** potvrďte strany, kde program nenašel nic. Důležité strany si přesto prohlédněte v náhledu pro Clauda.
+
+### Kontrola po stranách
+
+Když chcete stranu projít celou:
 
 1. Vyberte stranu vlevo. Uprostřed je text, vpravo fotka.
 2. Zapněte **Náhled pro Clauda**. Uvidíte text přesně tak, jak ho dostane Claude.

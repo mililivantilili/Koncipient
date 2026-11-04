@@ -261,9 +261,9 @@ public partial class HlavniOkno : Window
         if (_spis is null) return;
         var dialog = new OpenFileDialog
         {
-            Title = "Vyber fotky stran",
+            Title = "Vyber fotky stran nebo PDF",
             Multiselect = true,
-            Filter = "Fotky|*.jpg;*.jpeg;*.png;*.tif;*.tiff|Všechny soubory|*.*",
+            Filter = "Fotky a PDF|*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.pdf|Všechny soubory|*.*",
         };
         if (dialog.ShowDialog(this) != true) return;
 
@@ -274,10 +274,10 @@ public partial class HlavniOkno : Window
         {
             int dokumentuPred = spis.Dokumenty.Count;
             var oddelovacePred = spis.Oddelovace.ToList();
-            var nove = await Task.Run(() => spis.PridejFotky(dialog.FileNames));
+            var nove = await Task.Run(() => spis.PridejSoubory(dialog.FileNames));
             IsEnabled = true;
             int vraceno = ZkontrolujOddelovace(spis, oddelovacePred);
-            int cernych = dialog.FileNames.Length - nove.Count - vraceno;
+            int cernych = spis.Oddelovace.Count(o => !oddelovacePred.Contains(o));
             Stav.Text = $"Přidáno {nove.Count + vraceno} stran v {spis.Dokumenty.Count - dokumentuPred} dokumentech"
                 + (cernych > 0 ? $" ({cernych} černé fotky oddělily dokumenty)" : "") + ". Přepis spustíš tlačítkem Spustit přepis.";
         }
@@ -793,6 +793,7 @@ public partial class HlavniOkno : Window
     private void Zalozky_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (e.OriginalSource == Zalozky && Zalozky.SelectedIndex == 1) NactiUdaje();
+        if (e.OriginalSource == Zalozky && Zalozky.SelectedIndex == 2) RkNacti();
     }
 
     private void VratitJmena_Click(object sender, RoutedEventArgs e)
@@ -944,7 +945,8 @@ public partial class HlavniOkno : Window
                 Title = $"Koncipient – přepis dokončen s chybami {DateTime.Now:d. M. H:mm}";
                 MessageBox.Show(this,
                     "Přepis doběhl, ale tyto strany se nepodařilo zpracovat. Ostatní strany jsou hotové.\n\n"
-                    + string.Join("\n", chyby.Take(15).Select(c => c.Strana > 0 ? $"• Spis {c.Spis}, strana {c.Strana} ({c.Krok})" : $"• Spis {c.Spis} ({c.Krok})"))
+                    + string.Join("\n", chyby.Take(15).Select(c => c.Strana > 0 ? $"• Spis {c.Spis}, strana {c.Strana} ({c.Krok})"
+                        : c.Spis.Length > 0 ? $"• Spis {c.Spis} ({c.Krok})" : $"• {c.Krok}: {c.Zprava}"))
                     + (chyby.Count > 15 ? $"\n… a dalších {chyby.Count - 15}" : "")
                     + "\n\nPři dalším spuštění přepisu se zkusí znovu. Když chyba zůstane, pošli prosím Matějovi číslo spisu a strany (ne fotku).",
                     "Koncipient: některé strany se nepřepsaly", MessageBoxButton.OK, MessageBoxImage.Warning);

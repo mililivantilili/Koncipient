@@ -21,6 +21,7 @@ Testy může dělat i agent (Claude Code), postup pro něj je v [agent.md](agent
 | Test 6: měření anonymizace s Windows OCR | ✅ hotovo, 2026-11-04 0 úniků z 87 |
 | Test 7: dokumenty, složky a černé fotky | 🔶 oddělovače prošly 2026-11-04, opravený pád přepisu na prázdné stránce, zopakovat jen přepis spisu s prázdnou stránkou |
 | Test 8: instalátor | nový |
+| Test 9: rychlá kontrola a PDF | nový |
 
 Hotové testy (✅) přeskoč, jejich postup je sbalený.
 
@@ -44,7 +45,7 @@ Hotové testy (✅) přeskoč, jejich postup je sbalený.
 1. Otevři **řešení**, ne jen složku: Soubor → Otevřít → Projekt/řešení… → `Koncipient.sln`. Bez toho se nabídka Test ani testy neukážou.
 2. Počkej, až se stáhnou balíčky (vlevo dole), a sestav řešení: Sestavení → Sestavit řešení (Ctrl+Shift+B).
 3. Otevři Test → Průzkumník testů (Ctrl+E, T), anglicky *Test Explorer*.
-4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 431, všechny zelené.
+4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 437, všechny zelené.
 
 Když sestavení selže, otevři Zobrazit → Seznam chyb.
 
@@ -213,6 +214,23 @@ Instalátor je jeden soubor `.exe`, který advokátka spustí dvojklikem. Obsahu
 6. Kdo chce, může zkusit instalaci na jiném počítači bez Visual Studia (třeba na notebooku): ověří se tím, že program nepotřebuje nic doinstalovat.
 
 **Poslat:** velikost instalátoru, jestli přepis běžel bez sítě a na čem se instalace zasekla.
+
+## Test 9: rychlá kontrola a import PDF (15 minut)
+
+1. Nový spis, **Přidat fotky…** a vyber `vzory\pdf\s-textem.pdf` a `vzory\pdf\sken.pdf`.
+   - [ ] Vzniknou dva dokumenty pojmenované podle souborů, fotka vpravo je vykreslená stránka.
+   - [ ] Strana z `s-textem.pdf` má text hned po importu (bez přepisu) a slova se při kliknutí označí na správném místě fotky.
+2. Zkus i skutečné PDF z datové schránky (třeba z Matějova archivu, ne od advokátky). [ ] Text sedí, nic nechybí.
+3. **Spustit přepis.** [ ] Přepíše se jen naskenovaná strana, strana s textem ne.
+4. Záložka **Rychlá kontrola**:
+   - [ ] Seznam ukazuje nahrazené údaje (údaj → náhrada, počet) a žlutá podezřelá slova, dole je kousek textu a výřez fotky.
+   - [ ] Enter posune na další místo. Po vyřízení všech míst strany je strana v seznamu vlevo zkontrolovaná.
+   - [ ] **N** u nahrazeného údaje ho ponechá na všech stranách (v záložce Osoby a údaje má akci Ponechat).
+   - [ ] **O** u podezřelého slova z něj udělá osobu s vymyšleným jménem.
+   - [ ] **Strany bez nálezů** se zeptá a označí zbylé strany.
+5. Na spisu z archivu odhadni, kolik času ušetří rychlá kontrola proti procházení po stranách, a jestli je podezřelých slov rozumně (ne stovky).
+
+**Poslat:** jak dlouho trvala rychlá kontrola, kolik bylo podezřelých slov a kolik z nich byly opravdu přehlédnuté údaje.
 
 ## Kde jsou data
 
