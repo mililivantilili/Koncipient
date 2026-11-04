@@ -311,6 +311,20 @@ try
                 : Vypis(new { uspech = false, problemy = vysledek.Problemy });
         }
 
+        case "na-disk":
+        {
+            // kopie ProClaude na flash disk (nebo do zadané složky) s kontrolou, že tam nejsou fotky ani klíč
+            var zdroj = Volba("--proclaude") ?? Prenos.MistniSlozka;
+            return Vypis(new { cil = Path.Combine(Path.GetFullPath(argumenty[0]), Prenos.NazevSlozky), souboru = Prenos.NaDisk(zdroj, Path.GetFullPath(argumenty[0])) });
+        }
+
+        case "z-disku":
+        {
+            var cil = Volba("--proclaude") ?? Prenos.MistniSlozka;
+            var nove = Prenos.ZDisku(Path.GetFullPath(argumenty[0]), cil);
+            return Vypis(new { nacteno = nove.Select(v => new { spis = v.Spis, soubor = v.Soubor }) });
+        }
+
         case "pdf":
         {
             // prohledatelné PDF pro archiv advokátky (obsahuje skutečné údaje, zůstává v počítači)
@@ -395,6 +409,8 @@ static int Napoveda()
           zkontroluj <spis> [<strana>...|vse] [--zrusit]
           export <spis> [--cil <složka>] [--dokumenty 1,3|nove]   zápis pro Clauda (jen po kontrole stran)
           pdf <spis> <soubor.pdf> [--dokumenty 1,3]   prohledatelné PDF pro archiv (skutečné údaje)
+          na-disk <kořen disku> [--proclaude <složka>]  ProClaude na flash disk (ověří, že tam nejsou fotky ani klíč)
+          z-disku <kořen disku> [--proclaude <složka>]  nové výstupy od Clauda z disku
           hledej <spis> <slovo nebo fráze>        *  hledání ve všech stranách
           vrat-jmena <spis> <soubor.md> [--docx <výstup.docx>]   *
 

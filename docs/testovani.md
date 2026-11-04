@@ -23,6 +23,7 @@ Testy může dělat i agent (Claude Code), postup pro něj je v [agent.md](agent
 | Test 8: instalátor | nový |
 | Test 9: rychlá kontrola a PDF | nový |
 | Test 10: hledání, PDF pro archiv, export vybraných dokumentů | nový |
+| Test 11: přenos přes flash disk | nový |
 
 Hotové testy (✅) přeskoč, jejich postup je sbalený.
 
@@ -46,7 +47,7 @@ Hotové testy (✅) přeskoč, jejich postup je sbalený.
 1. Otevři **řešení**, ne jen složku: Soubor → Otevřít → Projekt/řešení… → `Koncipient.sln`. Bez toho se nabídka Test ani testy neukážou.
 2. Počkej, až se stáhnou balíčky (vlevo dole), a sestav řešení: Sestavení → Sestavit řešení (Ctrl+Shift+B).
 3. Otevři Test → Průzkumník testů (Ctrl+E, T), anglicky *Test Explorer*.
-4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 447, všechny zelené.
+4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 453, všechny zelené.
 
 Když sestavení selže, otevři Zobrazit → Seznam chyb.
 
@@ -249,6 +250,17 @@ Na spisu s několika dokumenty a hotovým přepisem:
    - [ ] Přidej do spisu další fotky, přepiš je a v exportu klikni **Jen nové**: vybere se jen nový dokument.
 
 **Poslat:** co nesedělo, hlavně jestli označení v PDF sedí na slova.
+
+## Test 11: přenos přes flash disk (10 minut)
+
+1. Exportuj spis. [ ] Hláška po exportu nabídne zkopírování na flash disk. Bez zasunutého disku napíše, ať ho zasuneš.
+2. Zasuň flash disk a dej **Ano**. [ ] Na disku je `ProClaude` se stejným obsahem jako v `Dokumenty\Koncipient\ProClaude`, bez souborů `.docx`.
+3. Zkus podvrh: do `Dokumenty\Koncipient\ProClaude\S-…` zkopíruj libovolnou fotku a dej **Na flash disk**. [ ] Program odmítne a vypíše tu fotku. Fotku pak smaž.
+4. Na disk do `ProClaude\S-…\vystup` ulož textový soubor `navrh.md` s vymyšleným jménem z exportu (třeba „Bohdan Jasaník podal žalobu.“) a klikni na **Načíst od Clauda z flash disku**.
+   - [ ] Otevře se okno vrácení jmen s tímto souborem a jméno je vrácené.
+   - [ ] Podruhé program napíše, že nové výstupy nejsou.
+
+**Poslat:** co nesedělo a jestli program poznal flash disk (některé disky se hlásí jako pevné, pak je nevidí).
 
 ## Kde jsou data
 

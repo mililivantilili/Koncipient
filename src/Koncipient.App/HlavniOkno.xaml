@@ -37,6 +37,10 @@
                 <Separator />
                 <Button x:Name="VratitJmena" AutomationProperties.AutomationId="VratitJmena" Content="Vrátit jména do výstupu od Clauda…" Click="VratitJmena_Click" Padding="8,4" IsEnabled="False"
                         ToolTip="Otevře dokument od Clauda, vrátí do něj skutečná jména a uloží ho jako Word." />
+                <Button x:Name="NaFlashDisk" AutomationProperties.AutomationId="NaFlashDisk" Content="Na flash disk" Click="NaFlashDisk_Click" Padding="8,4"
+                        ToolTip="Zkopíruje export pro Clauda na flash disk a ověří, že v něm nejsou fotky ani klíč." />
+                <Button x:Name="ZFlashDisku" AutomationProperties.AutomationId="ZFlashDisku" Content="Načíst od Clauda z flash disku" Click="ZFlashDisku_Click" Padding="8,4"
+                        ToolTip="Načte z flash disku nové výstupy od Clauda a otevře je k vrácení jmen." />
                 <Button x:Name="PdfArchiv" AutomationProperties.AutomationId="PdfArchiv" Content="PDF pro archiv…" Click="PdfArchiv_Click" Padding="8,4" IsEnabled="False"
                         ToolTip="Prohledatelné PDF spisu (fotky s textem) pro vlastní archiv. Obsahuje skutečné údaje, nedávat Claudovi." />
             </ToolBar>

@@ -72,13 +72,13 @@ Osoby se nahrazují vymyšlenými jmény (např. Bohdan Jasaník). Claude s nimi
 
 1. **Exportovat pro Clauda…** Když má spis víc dokumentů, vyberte, které Claude dostane. Po doplnění spisu stačí tlačítko **Jen nové**. Kontrolují se jen strany vybraných dokumentů. Program ještě jednou projde text a zastaví export, pokud v něm zůstal údaj, který zná (jméno, číslo nebo adresa z tabulky Osoby a údaje). Údaj, který nikdy nepoznal, ale zastavit nemůže, proto je důležitá vaše kontrola v kroku 4.
 2. Vznikne složka `Dokumenty\Koncipient\ProClaude\S-…`. Obsahuje jen anonymizovaný text (jeden soubor na dokument) a pokyny pro Clauda. Fotky ani skutečná jména v ní nejsou.
-3. Tuto složku přeneste na počítač s Claudem a pracujte s ní jako obvykle. Na strany se Claude odkazuje čísly ze seznamu vlevo.
+3. Program nabídne **zkopírovat ji na flash disk** (kdykoli později tlačítko **Na flash disk**). Zkopíruje jen složku `ProClaude` a předtím ověří, že v ní nejsou fotky ani klíč. Na počítači s Claudem ji zkopírujte na stejné místo jako minule a pracujte s ní jako obvykle. Na strany se Claude odkazuje čísly ze seznamu vlevo.
 
 ## 6. Návrat: skutečná jména do výsledku
 
-1. Požádejte Clauda, ať výsledek (podání, shrnutí…) uloží jako soubor `.md` do složky spisu.
-2. Soubor přeneste zpět na počítač s Koncipientem.
-3. **Vrátit jména do výstupu od Clauda…**, pak **Otevřít dokument od Clauda…**. Program dosadí skutečná jména ve správném pádě. V okně barevně označí, co vrátil (zeleně), co stojí za kontrolu (oranžově) a co musíte doplnit sama (červeně). Text vpravo jde rovnou opravit.
+1. Požádejte Clauda, ať výsledek (podání, shrnutí…) uloží jako soubor `.md` do složky `vystup` ve spisu. Složku `ProClaude` pak zkopírujte zpět na flash disk.
+2. Na počítači s Koncipientem zasuňte flash disk a klikněte na **Načíst od Clauda z flash disku**. Program najde nové výstupy a rovnou otevře okno pro vrácení jmen. (Jinak jde soubor otevřít ručně: **Vrátit jména do výstupu od Clauda…**, pak **Otevřít dokument od Clauda…**.)
+3. Program dosadí skutečná jména ve správném pádě. V okně barevně označí, co vrátil (zeleně), co stojí za kontrolu (oranžově) a co musíte doplnit sama (červeně). Text vpravo jde rovnou opravit.
 4. **Uložit jako Word…** a dokument dál upravujte ve Wordu jako obvykle.
 
 ## Hledání ve spisu

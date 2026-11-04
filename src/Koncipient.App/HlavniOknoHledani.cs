@@ -119,10 +119,11 @@ public partial class HlavniOkno
                 MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
-        MessageBox.Show(this,
-            $"Anonymizovaný spis{(dokumenty is null ? "" : $" ({dokumenty.Count} vybrané dokumenty)")} je ve složce\n{vysledek.Slozka}\n\n" +
-            "Na počítač s Claude Code přenes celou složku ProClaude (flash diskem nebo sdílenou složkou, " +
-            "ve které není nic jiného). Fotky ani klíč pseudonymů v ní nejsou.",
-            "Koncipient", MessageBoxButton.OK, MessageBoxImage.Information);
+        if (MessageBox.Show(this,
+                $"Anonymizovaný spis{(dokumenty is null ? "" : $" ({dokumenty.Count} vybrané dokumenty)")} je ve složce\n{vysledek.Slozka}\n\n" +
+                "Na počítač s Claude Code se přenáší jen složka ProClaude. Fotky ani klíč pseudonymů v ní nejsou.\n\n" +
+                "Zkopírovat ji teď na flash disk?",
+                "Koncipient", MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
+            ZkopirujNaFlashDisk();
     }
 }

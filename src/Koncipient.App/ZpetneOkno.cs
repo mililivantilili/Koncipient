@@ -99,7 +99,13 @@ public sealed class ZpetneOkno : Window
             InitialDirectory = Directory.Exists(vychozi) ? vychozi : Export.VychoziSlozka,
         };
         if (dialog.ShowDialog(this) != true) return;
-        _soubor = dialog.FileName;
+        OtevriSoubor(dialog.FileName);
+    }
+
+    /// <summary>Otevře konkrétní dokument od Clauda (třeba právě načtený z flash disku).</summary>
+    public void OtevriSoubor(string cesta)
+    {
+        _soubor = cesta;
         var text = File.ReadAllText(_soubor).Replace("\r\n", "\n");
 
         var puvodni = new FlowDocument { FontFamily = new FontFamily("Segoe UI"), FontSize = 14, PagePadding = new Thickness(14) };
