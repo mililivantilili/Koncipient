@@ -61,6 +61,14 @@ try
 {
     switch (prikaz)
     {
+        case "stahni-modely":
+        {
+            // pro sestavení instalátoru: stáhne modely do zadané složky (instalace/sestav.ps1)
+            var kam = Volba("--kam") ?? Motory.SlozkaModelu;
+            await Motory.StahniAsync(new Progress<string>(t => Console.Error.WriteLine(t)), default, Path.GetFullPath(kam));
+            return Vypis(new { slozka = Path.GetFullPath(kam), soubory = Directory.GetFiles(kam).Select(Path.GetFileName) });
+        }
+
         case "spisy":
             return Vypis(new { slozka = uloziste.Slozka, spisy = uloziste.Spisy().Select(s => new { id = s.Id, nazev = s.Nazev, stran = s.Strany.Count, dokumentu = s.Dokumenty.Count }) });
 
@@ -318,6 +326,7 @@ static int Napoveda()
         Spisy a fotky
           spisy                                   seznam spisů
           zaloz <název>                           nový spis
+          stahni-modely [--kam <složka>]          stáhne modely OCR (jen pro sestavení instalátoru)
           pridej-fotky <spis> <soubor>... [--dokument <název>] [--bez-cernych]
           pridej-slozku <spis> <složka>           podsložky = dokumenty, černá fotka = nový dokument
           oddelovace <spis>                       fotky vzaté jako oddělovače dokumentů (k ruční kontrole)

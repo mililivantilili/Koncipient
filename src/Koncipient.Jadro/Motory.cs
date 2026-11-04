@@ -30,24 +30,40 @@ public static class Motory
         ("cs_CZ.dic", "https://raw.githubusercontent.com/LibreOffice/dictionaries/master/cs_CZ/cs_CZ.dic"),
     };
 
-    /// <summary>Složka s modely, výchozí %LOCALAPPDATA%\Koncipient\modely, jde změnit proměnnou KONCIPIENT_MODELY.</summary>
+    /// <summary>Modely přibalené instalátorem ve složce programu (instalace/Koncipient.iss).</summary>
+    public static string PribaleneModely => Path.Combine(AppContext.BaseDirectory, "modely");
+
+    /// <summary>
+    /// Složka s modely: proměnná KONCIPIENT_MODELY, jinak modely přibalené instalátorem,
+    /// jinak %LOCALAPPDATA%\Koncipient\modely (vývoj ve Visual Studiu, stáhnou se při prvním přepisu).
+    /// </summary>
     public static string SlozkaModelu =>
         Environment.GetEnvironmentVariable("KONCIPIENT_MODELY")
-        ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Koncipient", "modely");
+        ?? (Directory.Exists(PribaleneModely) ? PribaleneModely
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Koncipient", "modely"));
 
     public static bool ModelyJsou => Soubory.All(s => File.Exists(Path.Combine(SlozkaModelu, s.Soubor)));
 
     /// <summary>
-    /// Jednorázové stažení modelů (asi 140 MB). V hotovém programu bude součástí
-    /// instalace, za běhu se k síti nepřistupuje. Stahují se jen modely, žádná data.
+    /// Jednorázové stažení modelů (asi 140 MB) při sestavení instalátoru nebo ve vývojové
+    /// verzi. Nainstalovaný program je má přibalené a k síti nepřistupuje. Stahují se jen
+    /// modely, žádná data. Když modely chybí v přibalené složce, nestahuje se nic.
     /// </summary>
-    public static async Task StahniAsync(IProgress<string>? prubeh = null, CancellationToken zruseni = default)
+    public static async Task StahniAsync(IProgress<string>? prubeh = null, CancellationToken zruseni = default, string? kam = null)
     {
-        Directory.CreateDirectory(SlozkaModelu);
+        // nainstalovaný program (modely ve složce programu) sám nic nestahuje;
+        // výslovně zadaná složka (--kam při sestavení instalátoru) se naplní
+        if (kam is null && SlozkaModelu == PribaleneModely)
+        {
+            if (ModelyJsou) return;
+            throw new InvalidOperationException("V instalaci chybí modely OCR. Přeinstaluj Koncipient, program sám nic nestahuje.");
+        }
+        kam ??= SlozkaModelu;
+        Directory.CreateDirectory(kam);
         using var http = new HttpClient { Timeout = TimeSpan.FromMinutes(15) };
         foreach (var (soubor, url) in Soubory)
         {
-            var cesta = Path.Combine(SlozkaModelu, soubor);
+            var cesta = Path.Combine(kam, soubor);
             if (File.Exists(cesta)) continue;
             prubeh?.Report($"Stahuji model {soubor}…");
             var docasny = cesta + ".stahuje";
@@ -58,7 +74,6 @@ public static class Motory
         }
     }
 
-    /// <summary>Motory pro noční zpracování: PaddleOCR (hlavní) a Tesseract (kontrolní).</summary>
     /// <summary>Má Windows OCR nainstalovanou češtinu (jen na Windows).</summary>
     public static bool WindowsOcrJe =>
 #if WINDOWS

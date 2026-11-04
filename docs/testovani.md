@@ -20,6 +20,7 @@ Testy může dělat i agent (Claude Code), postup pro něj je v [agent.md](agent
 | Test 5: vrácení jmen a Word | 🔶 proběhl automaticky, barvy v okně a otevření ve Wordu zbývá ověřit |
 | Test 6: měření anonymizace s Windows OCR | ✅ hotovo, 2026-11-04 0 úniků z 87 |
 | Test 7: dokumenty, složky a černé fotky | 🔶 oddělovače prošly 2026-11-04, opravený pád přepisu na prázdné stránce, zopakovat jen přepis spisu s prázdnou stránkou |
+| Test 8: instalátor | nový |
 
 Hotové testy (✅) přeskoč, jejich postup je sbalený.
 
@@ -193,6 +194,25 @@ Spis se teď skládá z dokumentů (smlouva, rozsudek…). Strany jsou v seznamu
 5. Exportuj (strany označ jako zkontrolované). [ ] V `ProClaude\S-…\dokumenty` je jeden soubor na dokument se stranami jako oddíly a jméno osoby v názvu dokumentu nebo složky je nahrazené.
 
 **Poslat:** co nefungovalo, hlavně jestli se černá fotka poznala (případně při jakém světle) a jaké názvy program navrhl.
+
+## Test 8: instalátor (20 minut, poprvé déle kvůli stahování)
+
+Instalátor je jeden soubor `.exe`, který advokátka spustí dvojklikem. Obsahuje program i modely OCR, takže nainstalovaný Koncipient nepotřebuje síť.
+
+1. Jednou nainstaluj Inno Setup: v PowerShellu `winget install JRSoftware.InnoSetup`.
+2. V kořeni repozitáře spusť v PowerShellu:
+   ```
+   powershell -ExecutionPolicy Bypass -File instalace\sestav.ps1
+   ```
+   [ ] Skript skončí řádkem `Hotovo: …\vystup\Koncipient-instalace-0.1.0.exe` a velikostí (čekám kolem 150 MB).
+3. Spusť instalátor. [ ] Nechce práva správce, je česky a vytvoří zástupce na ploše.
+4. **Odpoj počítač od sítě** (Wi-Fi vypnout nebo vytáhnout kabel) a spusť Koncipient ze zástupce.
+   - [ ] Založ spis, přidej pár fotek ze vzorů a spusť přepis. Nesmí se ptát na stažení modelů a přepis má doběhnout.
+   - [ ] Najdi údaje a exportuj. Funguje i vrácení jmen do Wordu.
+5. Odinstaluj ho přes Nastavení → Aplikace. [ ] Složka `Dokumenty\Koncipient` se spisy zůstala.
+6. Kdo chce, může zkusit instalaci na jiném počítači bez Visual Studia (třeba na notebooku): ověří se tím, že program nepotřebuje nic doinstalovat.
+
+**Poslat:** velikost instalátoru, jestli přepis běžel bez sítě a na čem se instalace zasekla.
 
 ## Kde jsou data
 

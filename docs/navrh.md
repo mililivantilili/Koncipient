@@ -197,7 +197,7 @@ Tato struktura je datová složka programu u advokátky, ne složka tohoto repoz
 2. **Prohlížeč.** Import fotek, noční OCR, rozdělené zobrazení a oprava textu. První verze je hotová (`src/Koncipient.App`), v cloudu přeložená a s otestovaným jádrem, čeká na vyzkoušení na Windows. Zatím zobrazuje výsledek PaddleOCR a oranžově místa, kde Tesseract četl jinak. Sloučení přes slovník přijde později.
 3. **Anonymizace a export.** Návrhy údajů, schvalování, klíč pseudonymů, složka `ProClaude` a kontrola před zápisem. První verze je hotová (`src/Koncipient.Jadro/Anonymizace`): pravidla a seznam křestních jmen, porovnání odolné vůči skloňování a chybám OCR, ruční označení v prohlížeči, kontrola každé strany a závěrečná kontrola exportu. NER model zatím není.
 4. **Propojení s Claude Code.** `CLAUDE.md`, pravidla přístupu a dosazení skutečných jmen zpět do výstupu. První verze je hotová: pravidla pro Clauda v `ProClaude/PRAVIDLA-KONCIPIENT.md`, zpětné dosazení se skloňováním a uložení jako Word.
-5. **Instalátor a předání.** Instalace na počítači se spisy, návod na přenos exportu na počítač s Claude Code, záloha složky `Spisy` a krátký návod.
+5. **Instalátor a předání.** Instalátor je hotový (`instalace/`, sestavuje ho `instalace/sestav.ps1` přes Inno Setup): samostatný program bez nutnosti instalovat .NET, koncipient-cli a přibalené modely OCR, instalace pro uživatele bez práv správce. Nainstalovaný program modely nestahuje, za běhu k síti nepřistupuje. Zbývá: instalace na počítači se spisy, návod na přenos exportu na počítač s Claude Code, záloha složky `Spisy` a krátký návod.
 
 ## Rizika
 
