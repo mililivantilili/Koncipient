@@ -36,6 +36,48 @@ public class DokumentyTesty
     }
 
     [Fact]
+    public void OddelovaceSeUloziAJdeJeVratit()
+    {
+        using var d = new DocasnaSlozka();
+        var z = Path.Combine(d.Cesta, "zdroj");
+        var fotky = new[] { Fotka(z, "IMG_1.jpg"), Fotka(z, "IMG_2.jpg", cerna: true), Fotka(z, "IMG_3.jpg"),
+                            Fotka(z, "IMG_4.jpg"), Fotka(z, "IMG_5.jpg", cerna: true) };
+        var spis = new Uloziste(Path.Combine(d.Cesta, "Spisy")).Zaloz("vzor");
+        spis.PridejFotky(fotky, "Smlouva");
+        Assert.Equal(2, spis.Oddelovace.Count);
+        Assert.All(spis.Oddelovace, o => Assert.True(File.Exists(Path.Combine(spis.Slozka, o.Fotka))));
+
+        // oddělovač uprostřed byla ve skutečnosti stránka: vrátí se na místo a dokumenty se spojí
+        var strana = spis.VratOddelovac(spis.Oddelovace.First(o => o.PuvodniNazev == "IMG_2.jpg"));
+        Assert.Equal("Smlouva: IMG_1.jpg,IMG_2.jpg,IMG_3.jpg,IMG_4.jpg", Popis(spis));
+        Assert.True(File.Exists(Path.Combine(spis.Slozka, strana.Fotka)));
+
+        // oddělovač na konci se vrátí za poslední stranu
+        spis.VratOddelovac(spis.Oddelovace.Single());
+        Assert.Equal("Smlouva: IMG_1.jpg,IMG_2.jpg,IMG_3.jpg,IMG_4.jpg,IMG_5.jpg", Popis(spis));
+
+        // po uložení a načtení drží pořadí i čísla
+        var znovu = Spis.Nacti(spis.Slozka);
+        Assert.Empty(znovu.Oddelovace);
+        Assert.Equal(5, znovu.Strany.Select(s => s.Cislo).Distinct().Count());
+    }
+
+    [Fact]
+    public void OddelovacNaZacatkuImportu()
+    {
+        using var d = new DocasnaSlozka();
+        var z = Path.Combine(d.Cesta, "zdroj");
+        var spis = new Uloziste(Path.Combine(d.Cesta, "Spisy")).Zaloz("vzor");
+        spis.PridejFotky(new[] { Fotka(z, "A.jpg") }, "První");
+        spis.PridejFotky(new[] { Fotka(z, "B0.jpg", cerna: true), Fotka(z, "B1.jpg") }, "Druhý");
+        var o = spis.Oddelovace.Single();
+        Assert.Null(o.ZacalDokument);
+        spis.VratOddelovac(o);
+        Assert.Equal("První: A.jpg | Druhý: B0.jpg,B1.jpg", Popis(spis));
+
+    }
+
+    [Fact]
     public void SlozkaSPodslozkami()
     {
         using var d = new DocasnaSlozka();

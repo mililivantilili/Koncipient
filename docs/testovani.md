@@ -43,7 +43,7 @@ Hotové testy (✅) přeskoč, jejich postup je sbalený.
 1. Otevři **řešení**, ne jen složku: Soubor → Otevřít → Projekt/řešení… → `Koncipient.sln`. Bez toho se nabídka Test ani testy neukážou.
 2. Počkej, až se stáhnou balíčky (vlevo dole), a sestav řešení: Sestavení → Sestavit řešení (Ctrl+Shift+B).
 3. Otevři Test → Průzkumník testů (Ctrl+E, T), anglicky *Test Explorer*.
-4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 426, všechny zelené.
+4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 428, všechny zelené.
 
 Když sestavení selže, otevři Zobrazit → Seznam chyb.
 
@@ -181,7 +181,9 @@ Spis se teď skládá z dokumentů (smlouva, rozsudek…). Strany jsou v seznamu
 1. Připrav složku s podsložkami, třeba `Archiv/1 Smlouva` a `Archiv/2 Rozhodnutí`, v každé pár fotek.
 2. Nový spis, **Přidat složku…**, vyber `Archiv`. [ ] Každá podsložka je jeden dokument pojmenovaný podle ní, fotky jsou v pořadí podle názvu (IMG_2 před IMG_10).
 3. Nafoť mobilem 2–3 stránky, pak jednu fotku se zakrytým objektivem (černou), pak další 2 stránky. Přidej je přes **Přidat fotky…**.
-   - [ ] Černá fotka se neuložila a fotky se rozdělily do dvou dokumentů.
+   - [ ] Po importu se otevřelo okno **Oddělovače dokumentů** s náhledem černé fotky. Nech ji nezaškrtnutou a dej **Hotovo**: fotky se rozdělily do dvou dokumentů.
+   - [ ] Zkus i tři fotky z Pixelu (skoro černá, červená, šedá rozmazaná): všechny tři má okno ukázat jako oddělovače, fotky dokumentů ani prázdný papír ne.
+   - [ ] Tlačítko **Oddělovače…**, zaškrtni **Je to stránka, vrátit**: fotka se objeví mezi stranami na svém místě a oba dokumenty se spojí.
    - [ ] Po **Spustit přepis** dostaly oba dokumenty název navržený z prvního textu (třeba „Kupní smlouva“). Když ne, napiš, co na první stránce bylo.
 4. Pravé tlačítko na straně v seznamu:
    - [ ] **Posunout stranu nahoru/dolů** mění pořadí, na hranici přejde strana do sousedního dokumentu.

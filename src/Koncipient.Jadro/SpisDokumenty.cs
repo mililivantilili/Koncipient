@@ -103,6 +103,56 @@ public sealed partial class Spis
         return nove;
     }
 
+    private Oddelovac UlozOddelovac(Mat obrazek, string cesta)
+    {
+        Directory.CreateDirectory(Path.Combine(Slozka, "oddelovace"));
+        int n = 1;
+        while (File.Exists(Path.Combine(Slozka, "oddelovace", $"{n:D4}.jpg"))) n++;
+        var relativni = $"oddelovace/{n:D4}.jpg";
+        Cv2.ImWrite(Path.Combine(Slozka, relativni), obrazek, new ImageEncodingParam(ImwriteFlags.JpegQuality, 90));
+        var o = new Oddelovac { Fotka = relativni, PuvodniNazev = Path.GetFileName(cesta) };
+        Oddelovace.Add(o);
+        return o;
+    }
+
+    /// <summary>
+    /// Vrátí fotku vzatou jako oddělovač mezi strany na její původní místo. Když oddělovač
+    /// začal nový dokument, rozdělení se zruší (dokument se spojí s předchozím).
+    /// </summary>
+    public Strana VratOddelovac(Oddelovac o)
+    {
+        if (!Oddelovace.Remove(o)) throw new ArgumentException("Oddělovač v tomto spisu není.");
+        int cislo = Strany.Count == 0 ? 1 : Strany.Max(s => s.Cislo) + 1;
+        var relativni = $"fotky/{cislo:D4}.jpg";
+        File.Move(Path.Combine(Slozka, o.Fotka), Path.Combine(Slozka, relativni), overwrite: true);
+        var strana = new Strana { Cislo = cislo, Fotka = relativni, PuvodniNazev = o.PuvodniNazev };
+
+        var za = Strany.FirstOrDefault(s => s.Cislo == o.PredStranou);
+        var pred = Strany.FirstOrDefault(s => s.Cislo == o.ZaStranou);
+        if (za is not null)
+        {
+            strana.Dokument = za.Dokument;
+            Strany.Insert(Strany.IndexOf(za), strana);
+        }
+        else if (pred is not null)
+        {
+            strana.Dokument = pred.Dokument;
+            Strany.Insert(Strany.IndexOf(pred) + 1, strana);
+        }
+        else
+        {
+            strana.Dokument = NovyDokument(null).Id;
+            Strany.Add(strana);
+        }
+        if (o.ZacalDokument is not null && strana.Dokument == o.ZacalDokument)
+        {
+            Uklid();
+            SpojSPredchozim(strana);
+        }
+        else Uklid();
+        return strana;
+    }
+
     public Dokument? DokumentStrany(Strana s) => Dokumenty.FirstOrDefault(d => d.Id == s.Dokument);
 
     /// <summary>

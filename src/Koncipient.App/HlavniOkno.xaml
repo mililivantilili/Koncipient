@@ -11,6 +11,8 @@
                         ToolTip="Vybrané fotky. Černá fotka (zakrytý objektiv) mezi nimi odděluje dokumenty." />
                 <Button x:Name="PridatSlozku" AutomationProperties.AutomationId="PridatSlozku" Content="Přidat složku…" Click="PridatSlozku_Click" Padding="8,4" IsEnabled="False"
                         ToolTip="Celá složka: každá podsložka je jeden dokument pojmenovaný podle ní. Černá fotka dokument dál dělí." />
+                <Button x:Name="Oddelovace" AutomationProperties.AutomationId="Oddelovace" Content="Oddělovače…" Click="Oddelovace_Click" Padding="8,4" IsEnabled="False"
+                        ToolTip="Fotky vzaté jako oddělovače dokumentů (zakrytý objektiv). Skutečnou stránku jde vrátit mezi strany." />
                 <Separator />
                 <Button x:Name="SpustitPrepis" AutomationProperties.AutomationId="SpustitPrepis" Content="Spustit přepis" Click="SpustitPrepis_Click" Padding="8,4"
                         ToolTip="Narovná a přepíše všechny strany bez přepisu a najde v nich údaje. Může běžet přes noc, počítač mezitím neusne." />

@@ -234,7 +234,7 @@ public partial class HlavniOkno : Window
         _spis = (SeznamSpisu.SelectedItem as PolozkaSpisu)?.Spis;
         _klic = _spis is null ? new Klic() : Anonymizator.NactiKlic(_spis);
         _strana = null;
-        PridatFotky.IsEnabled = PridatSlozku.IsEnabled = NajitUdaje.IsEnabled = Exportovat.IsEnabled = VratitJmena.IsEnabled = _spis is not null;
+        PridatFotky.IsEnabled = PridatSlozku.IsEnabled = Oddelovace.IsEnabled = NajitUdaje.IsEnabled = Exportovat.IsEnabled = VratitJmena.IsEnabled = _spis is not null;
         NactiUdaje();
         NactiStrany();
     }
@@ -273,9 +273,12 @@ public partial class HlavniOkno : Window
         try
         {
             int dokumentuPred = spis.Dokumenty.Count;
+            var oddelovacePred = spis.Oddelovace.ToList();
             var nove = await Task.Run(() => spis.PridejFotky(dialog.FileNames));
-            int cernych = dialog.FileNames.Length - nove.Count;
-            Stav.Text = $"Přidáno {nove.Count} stran v {spis.Dokumenty.Count - dokumentuPred} dokumentech"
+            IsEnabled = true;
+            int vraceno = ZkontrolujOddelovace(spis, oddelovacePred);
+            int cernych = dialog.FileNames.Length - nove.Count - vraceno;
+            Stav.Text = $"Přidáno {nove.Count + vraceno} stran v {spis.Dokumenty.Count - dokumentuPred} dokumentech"
                 + (cernych > 0 ? $" ({cernych} černé fotky oddělily dokumenty)" : "") + ". Přepis spustíš tlačítkem Spustit přepis.";
         }
         finally
@@ -296,14 +299,42 @@ public partial class HlavniOkno : Window
         IsEnabled = false;
         try
         {
+            var oddelovacePred = spis.Oddelovace.ToList();
             var nove = await Task.Run(() => spis.PridejSlozku(dialog.FolderName));
-            Stav.Text = $"Přidáno {nove.Count} stran v {spis.Dokumenty.Count - pred} dokumentech. Přepis spustíš tlačítkem Spustit přepis.";
+            IsEnabled = true;
+            int vraceno = ZkontrolujOddelovace(spis, oddelovacePred);
+            Stav.Text = $"Přidáno {nove.Count + vraceno} stran v {spis.Dokumenty.Count - pred} dokumentech. Přepis spustíš tlačítkem Spustit přepis.";
         }
         finally
         {
             IsEnabled = true;
         }
         NactiStrany();
+    }
+
+    /// <summary>
+    /// Ukáže oddělovače z právě proběhlého importu a zaškrtnuté vrátí mezi strany.
+    /// Vrátí počet vrácených.
+    /// </summary>
+    private int ZkontrolujOddelovace(Spis spis, IReadOnlyCollection<Oddelovac> pred)
+    {
+        var nove = spis.Oddelovace.Where(o => !pred.Contains(o)).ToList();
+        if (nove.Count == 0) return 0;
+        var vratit = OddelovaceDialog.Zkontroluj(this, spis, nove);
+        foreach (var o in vratit) spis.VratOddelovac(o);
+        return vratit.Count;
+    }
+
+    private void Oddelovace_Click(object sender, RoutedEventArgs e)
+    {
+        if (_spis is null) return;
+        if (_spis.Oddelovace.Count == 0)
+        {
+            MessageBox.Show(this, "Spis nemá žádné fotky vzaté jako oddělovače dokumentů.", "Oddělovače dokumentů");
+            return;
+        }
+        int vraceno = ZkontrolujOddelovace(_spis, Array.Empty<Oddelovac>());
+        if (vraceno > 0) { Stav.Text = $"Vráceno {vraceno} fotek mezi strany."; NactiStrany(); }
     }
 
     // ---------- Dokumenty a pořadí stran ----------

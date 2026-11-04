@@ -203,5 +203,5 @@ Opraveno v cloudové relaci, každá oprava má automatický test v `WindowsNale
 
 Měření na korpusu (vývojová část 1439 údajů) se nezhoršilo: přes OCR 11 úniků, z textu 12, kontrolní část 11 z 600, vymyšlená sada 0 z 87.
 
-Neřešeno: `Jana Velkoměsto` jako osoba a role ve jméně (`Stavebník Jana`), obojí zachytí tabulka Osoby a údaje. Náhled oddělovačů po importu čeká na Matějovo rozhodnutí.
+Neřešeno: `Jana Velkoměsto` jako osoba a role ve jméně (`Stavebník Jana`), obojí zachytí tabulka Osoby a údaje. Náhled oddělovačů po importu: Matěj souhlasil, hotovo (okno Oddělovače dokumentů, v CLI `oddelovace` a `vrat-oddelovac`).
 

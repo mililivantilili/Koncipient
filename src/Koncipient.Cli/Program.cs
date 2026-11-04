@@ -75,7 +75,32 @@ try
             var spis = NajdiSpis(argumenty[0]);
             var nazev = Volba("--dokument");
             var nove = spis.PridejFotky(argumenty.Skip(1), nazev, cerneOddeluji: !Prepinac("--bez-cernych"));
-            return Vypis(new { pridano = nove.Count, dokumentu = spis.Dokumenty.Count });
+            return Vypis(new { pridano = nove.Count, dokumentu = spis.Dokumenty.Count, oddelovacu = spis.Oddelovace.Count });
+        }
+
+        case "oddelovace":
+        {
+            // fotky vzaté jako oddělovače dokumentů; vypisuje jen názvy souborů a místo ve spisu
+            var spis = NajdiSpis(argumenty[0]);
+            int? Poradi(int? cislo) => spis.Strany.FirstOrDefault(s => s.Cislo == cislo) is { } s ? spis.Poradi(s) : null;
+            return Vypis(new
+            {
+                spis = spis.Id,
+                oddelovace = spis.Oddelovace.Select((o, k) => new
+                {
+                    cislo = k + 1, soubor = o.PuvodniNazev, fotka = Path.Combine(spis.Slozka, o.Fotka),
+                    zaStranou = Poradi(o.ZaStranou), predStranou = Poradi(o.PredStranou), rozdelilDokument = o.ZacalDokument is not null,
+                }),
+            });
+        }
+
+        case "vrat-oddelovac":
+        {
+            var spis = NajdiSpis(argumenty[0]);
+            if (!int.TryParse(argumenty.ElementAtOrDefault(1), out var n) || n < 1 || n > spis.Oddelovace.Count)
+                return Chyba($"Oddělovač {argumenty.ElementAtOrDefault(1)} neexistuje, spis jich má {spis.Oddelovace.Count} (koncipient-cli oddelovace {spis.Id}).");
+            var strana = spis.VratOddelovac(spis.Oddelovace[n - 1]);
+            return Vypis(StavStrany(spis, strana));
         }
 
         case "pridej-slozku":
@@ -294,6 +319,8 @@ static int Napoveda()
           zaloz <název>                           nový spis
           pridej-fotky <spis> <soubor>... [--dokument <název>] [--bez-cernych]
           pridej-slozku <spis> <složka>           podsložky = dokumenty, černá fotka = nový dokument
+          oddelovace <spis>                       fotky vzaté jako oddělovače dokumentů (k ruční kontrole)
+          vrat-oddelovac <spis> <číslo>           oddělovač byla stránka: vrátit ji na místo a spojit dokumenty
           prepis [<spis>]                         narovnání, OCR, sloučení, názvy dokumentů, hledání údajů
           strany <spis>                           dokumenty a strany se stavem
           otoc <spis> <strana> <90|180|270>

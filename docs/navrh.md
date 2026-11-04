@@ -153,7 +153,7 @@ Přes OCR z fotek (v cloudu PaddleOCR a Tesseract, 247 stran vývojové části)
 Spis se skládá z dokumentů, každá strana patří k jednomu. Dokumenty vznikají:
 
 - **ze složek:** „Přidat složku…“ udělá z každé podsložky dokument pojmenovaný podle ní, fotky přímo ve složce tvoří dokument pojmenovaný podle složky;
-- **z černých fotek:** fotka se zakrytým objektivem (velmi tmavá, bez kresby) se neuloží a začne další dokument; takový dokument dostane po přepisu název navržený z prvního textu (řádek s typem dokumentu jako „Kupní smlouva“, jinak první smysluplný řádek);
+- **z černých fotek:** fotka se zakrytým objektivem (tmavší než papír a bez kresby, mobil ji může zesvětlit do červena nebo šeda) se neuloží mezi strany a začne další dokument. Po importu program oddělovače ukáže s náhledem a skutečnou stránku jde jedním zaškrtnutím vrátit na její místo (dokumenty se zase spojí), aby se strana spisu neztratila potichu. Oddělovače zůstávají ve složce spisu `oddelovace/` a jde se k nim vrátit tlačítkem Oddělovače…; takový dokument dostane po přepisu název navržený z prvního textu (řádek s typem dokumentu jako „Kupní smlouva“, jinak první smysluplný řádek);
 - **ručně:** posunout stranu, přesunout do jiného dokumentu, začít nový dokument, spojit s předchozím, přejmenovat.
 
 Fotky se řadí přirozeně (IMG_2 před IMG_10). Strany se číslují v pořadí spisu a na toto číslo odkazuje i Claude. Export obsahuje jeden soubor na dokument (`dokumenty/01-kupni-smlouva.md`) se stranami jako oddíly. Názvy dokumentů a složek můžou obsahovat jména, proto se anonymizují stejně jako text a projdou závěrečnou kontrolou. Automatické rozpoznání hranic dokumentů bez černé fotky (podle hlavičky nebo číslování stran) zatím není, je nespolehlivé.

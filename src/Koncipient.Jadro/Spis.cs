@@ -36,6 +36,28 @@ public sealed class Strana
 }
 
 /// <summary>
+/// Fotka, kterou import vzal jako oddělovač dokumentů (zakrytý objektiv). Neuloží se jako
+/// strana, ale zůstane ve složce oddelovace/, aby ji advokátka mohla vrátit mezi strany,
+/// kdyby to byla skutečná stránka.
+/// </summary>
+public sealed class Oddelovac
+{
+    /// <summary>Cesta relativně ke složce spisu, např. oddelovace/0001.jpg.</summary>
+    public required string Fotka { get; set; }
+
+    public string? PuvodniNazev { get; set; }
+
+    /// <summary>Strana z téhož importu hned před oddělovačem (Cislo), null na začátku.</summary>
+    public int? ZaStranou { get; set; }
+
+    /// <summary>Strana z téhož importu hned za oddělovačem (Cislo), null na konci.</summary>
+    public int? PredStranou { get; set; }
+
+    /// <summary>Dokument, který oddělovač začal; při vrácení se zase spojí s předchozím.</summary>
+    public string? ZacalDokument { get; set; }
+}
+
+/// <summary>
 /// Spis ve složce Spisy/S-0001. Obsahuje fotky (narovnané podle EXIF, bez metadat),
 /// výsledky OCR po motorech a ruční opravy. Nic z toho se nešifruje, ochranu dává
 /// oddělený počítač bez Claude Code (viz docs/navrh.md).
@@ -55,6 +77,9 @@ public sealed partial class Spis
     public string Nazev { get; set; } = "";
 
     public List<Strana> Strany { get; set; } = new();
+
+    /// <summary>Fotky vzaté jako oddělovače dokumentů, které advokátka zatím nevrátila mezi strany.</summary>
+    public List<Oddelovac> Oddelovace { get; set; } = new();
 
     [System.Text.Json.Serialization.JsonIgnore] public string Slozka { get; private set; } = "";
 
@@ -115,6 +140,7 @@ public sealed partial class Spis
         var nove = new List<Strana>();
         var dokument = NovyDokument(nazevDokumentu);
         bool prazdny = true;
+        var cekajici = new List<Oddelovac>(); // oddělovače, za kterými ještě nepřišla strana
         foreach (var cesta in cesty.OrderBy(c => Path.GetFileName(c), PrirozeneRazeni.Instance))
         {
             int cislo = Strany.Count == 0 ? 1 : Strany.Max(s => s.Cislo) + 1;
@@ -126,7 +152,10 @@ public sealed partial class Spis
                 if (cerneOddeluji && JeCerna(obrazek))
                 {
                     // oddělovač: další fotky patří do nového dokumentu (prázdný dokument se nezakládá)
-                    if (!prazdny) { dokument = NovyDokument(null); prazdny = true; }
+                    var oddelovac = UlozOddelovac(obrazek, cesta);
+                    oddelovac.ZaStranou = nove.Count > 0 ? nove[^1].Cislo : null;
+                    if (!prazdny) { dokument = NovyDokument(null); prazdny = true; oddelovac.ZacalDokument = dokument.Id; }
+                    cekajici.Add(oddelovac);
                     continue;
                 }
                 Cv2.ImWrite(Path.Combine(Slozka, relativni), obrazek, new ImageEncodingParam(ImwriteFlags.JpegQuality, 95));
@@ -135,7 +164,11 @@ public sealed partial class Spis
             Strany.Add(strana);
             nove.Add(strana);
             prazdny = false;
+            foreach (var o in cekajici) o.PredStranou = cislo;
+            cekajici.Clear();
         }
+        // oddělovač na konci importu nic nezačal
+        foreach (var o in cekajici) o.ZacalDokument = null;
         Dokumenty.RemoveAll(d => !Strany.Any(s => s.Dokument == d.Id));
         Uloz();
         return nove;
