@@ -51,7 +51,7 @@ Ze skutečného exportu navíc: samotné křestní jméno velkými písmeny na s
 
 ### 5. Adresa bez ulice
 
-`Přístavba RD č.p 158 v Lhotě u Nikde` detektor nenajde, takže číslo popisné i obec v exportu zůstanou. Ve stavebních věcech tím jde přímo určit nemovitost. Totéž platí pro samotný název obce, který se v textu opakuje.
+`Přístavba RD č.p 123 v Lhotě u Nikde` detektor nenajde, takže číslo popisné i obec v exportu zůstanou. Ve stavebních věcech tím jde přímo určit nemovitost. Totéž platí pro samotný název obce, který se v textu opakuje.
 
 ### 6. Doména v odkazu
 
@@ -129,3 +129,61 @@ Opraveno v cloudové relaci 2026-11-03, každá oprava má automatický test na 
 
 Neřešeno: falešná spisová značka `347` (bez kontextu nejde určit pravidlo) a role zkomolená OCR ve jméně. Oboje zachytí kontrola v tabulce Osoby a údaje.
 
+
+## Dotestování 2026-11-04 (commit da67223)
+
+Opravy z minula fungují, ale na archivu zůstaly 3 druhy úniků, jedna nová chyba a nepoznaná černá fotka. Testováno přes `koncipient-cli` v oddělené složce spisů, 17 stran z archivu a vymyšlená sada. Příklady jsou opět přepsané na vymyšlené.
+
+| Test | Výsledek |
+| --- | --- |
+| Automatické testy | 412 z 412 |
+| Měření na vymyšlené sadě s Windows OCR | 0 úniků z 87 (minule 1), nahrazeno navíc 2 |
+| Datum a jméno, název dokumentu, jména v hlavičce za `To:`, zbytky po OCR, odkazy, adresa `č.p 123 v Obci` | Opraveno, v exportu z archivu se už neobjevily |
+| Vrácení jmen a `.docx` | Prošlo, ženské jméno mimo seznam má správný rod a správně se vrátilo ve všech zkoušených pádech |
+| Závěrečná kontrola | Správně zablokovala export kvůli zbytkům (`Lhota`, `JANA`) a hláška už ukazuje jen zbytek. Po ručním označení export prošel. |
+
+### Zbývající úniky v exportu z archivu
+
+1. **Jméno ve vytištěné hlavičce e-mailu.** Popisky a hodnoty jsou ve dvou sloupcích, OCR je přečte pod sebou: `Odesílatel`, `Adresát`, `Datum`, pak `petra smyšlená`, takže jméno nemá návěští na stejném řádku a malými písmeny ho detektor nepozná. Závěrečná kontrola to nezachytí.
+2. **Číslo popisné bez obce za ním nebo v jiném zápisu.** Zůstalo `V [ADRESA_012] čp. 123`, `čp.122`, `čp.123` a po chybě OCR `č,pŔ 123`. Spolu s pseudonymizovanou obcí tím v textu zůstává číslo domu.
+3. **Parcelní číslo bez lomítka.** `pozemek p.č. 9999` zůstane, zatímco `p.č. 9998/2` se nahradí. Čísla parcel bez návěští zůstávají i v popisech výkresů.
+
+Rozhodnutí pro advokátku: název orgánu s obcí, například `Územní odbor Obec`, v textu zůstává. Pravidla pro Clauda s tím počítají, ale u malé obce může obec sama prozradit místo.
+
+### Nová chyba: firma spolkne slova věty
+
+Hledání firmy bez právní formy bere i slova před názvem a text se tím ztrácí:
+
+| V textu | V exportu |
+| --- | --- |
+| `8. Doložit vyjádření FIKTIVNET a.s k sítím` | `8. [FIRMA_001] k sítím` |
+| `Přiložte vyjádření FIKTIVNET a.s` | `[FIRMA_005]` |
+
+Věta tím přijde o požadavek, který z ní má Claude číst, a jedna firma dostane několik kódů (na 17 stranách 20 firemních položek, skutečných firem je asi 8). Důležité i proto, že chyba nic neprozradí, takže ji žádná kontrola úniků nezachytí.
+
+### Další falešné nálezy
+
+`12345 Počet` jako adresa (pravidlo pro velká písmena na slovo s malými nepůsobí), `Jana Velkoměsto` jako osoba, `Stavebník Jana` s rolí ve jméně jako samostatná osoba (známé, viz Neřešeno). Tím jedna osoba dostane dva pseudonymy.
+
+### Černé fotky z mobilu
+
+Fotky z telefonu Pixel se zakrytým objektivem, 3 snímky a automatika přepnula do nočního nebo makro režimu. Výsledek není černý, ale **červený nebo šedý rozmazaný obraz**.
+
+| Snímek | Průměrný jas | Odchylka | Hrany | `JeCerna` |
+| --- | --- | --- | --- | --- |
+| Skoro černý | 0,3 | 0,5 | 0,00 % | Ano |
+| Červený (světlo prstem) | 44,1 | 14,8 | 0,00 % | Ano |
+| Šedý rozmazaný (makro) | 85,8 | 28,2 | 0,00 % | **Ne**, uloží se jako strana a dokument se nerozdělí |
+| Fotky dokumentů v archivu (95 souborů) | od 120 | od 21 | od 3,92 % | Ne |
+
+Hrany: `Canny(60, 180)` na obrázku zmenšeném na šířku 800 px, podíl hranových pixelů.
+
+**Doporučení:** nerozhodovat podle tmavosti, ale podle toho, že na snímku není žádná kresba, například `hrany < 0,05 %` a zároveň `jas < 130`. Mezi oběma skupinami je velká mezera a pravidlo nezávisí na tom, jak konkrétní mobil obraz zesvětlí. Horní mez jasu chrání čistě bílou stránku (třeba prázdnou zadní stranu), kterou pravidlo jen podle hran zahodilo.
+
+Protože mobil advokátky může dát jiný výsledek a nesprávně zahozená strana by v právním spisu vadila, navrhuji: **nemazat oddělovač potichu.** Po importu ukázat, kolik fotek se bere jako oddělovač, s náhledem a možností vrátit je mezi strany. Rozhodnutí, jestli je to potřeba, je na Matějovi.
+
+Omezení: jen 3 snímky z jednoho mobilu a v archivu není žádný snímek prázdné stránky, takže horní mez jasu je zatím odhad.
+
+### Co tentokrát neověřeno
+
+Změny v okně: hláška po importu, konec dávky v titulku, Není citlivé u víceslovného údaje, ruční oprava jména. Ty mají automatické testy nebo jsou v kódu, ale v okně jsem je znovu neprocházel. Vzhled okna vrácení jmen a otevření `.docx` ve Wordu dál zbývá na Matějovi.
