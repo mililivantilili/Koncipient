@@ -38,7 +38,15 @@ public sealed partial class Spis
     public IReadOnlyList<Strana> PridejPdf(string cesta, string? nazevDokumentu = null)
     {
         var bajty = File.ReadAllBytes(cesta);
-        using var pdf = PdfDocument.Open(bajty);
+        PdfDocument pdf;
+        try { pdf = PdfDocument.Open(bajty); }
+        catch (Exception e)
+        {
+            throw new InvalidDataException(e.Message.Contains("password", StringComparison.OrdinalIgnoreCase)
+                ? $"PDF {Path.GetFileName(cesta)} je chráněné heslem. Ulož ho bez hesla a přidej znovu."
+                : $"PDF {Path.GetFileName(cesta)} nejde otevřít, nejspíš je poškozené.", e);
+        }
+        using var _ = pdf;
         var dokument = NovyDokument(nazevDokumentu ?? Path.GetFileNameWithoutExtension(cesta));
         var nove = new List<Strana>();
         for (int i = 0; i < pdf.NumberOfPages; i++)
@@ -74,6 +82,26 @@ public sealed partial class Spis
     }
 
     /// <summary>
+    /// Naskenovaná stránka (obrázek přes většinu plochy), ke které PDF přidalo jen krátký text,
+    /// typicky doložku o konverzi nebo elektronickém podpisu. Text z PDF by obsahoval jen ji
+    /// a obsah strany by se ztratil, proto se taková stránka přepíše přes OCR.
+    /// Sken s plnou textovou vrstvou (OCR ze skeneru) text pokrývá velkou část obrázku a bere se.
+    /// </summary>
+    private static bool JeSkenSDolozkou(Page stranka, IReadOnlyList<UglyToad.PdfPig.Content.Word> slova)
+    {
+        double plocha = stranka.Width * stranka.Height;
+        if (plocha <= 0) return false;
+        var obrazky = stranka.GetImages().Select(o => o.BoundingBox).Where(b => b.Width * b.Height >= 0.4 * plocha).ToList();
+        if (obrazky.Count == 0) return false;
+        // podíl obrázku, který text pokrývá (výška řádků × šířka slov)
+        var velky = obrazky.OrderByDescending(b => b.Width * b.Height).First();
+        bool NaObrazku(UglyToad.PdfPig.Core.PdfPoint b) => b.X >= velky.Left && b.X <= velky.Right && b.Y >= velky.Bottom && b.Y <= velky.Top;
+        double textNaObrazku = slova.Where(w => NaObrazku(w.BoundingBox.Centroid))
+            .Sum(w => w.BoundingBox.Width * w.BoundingBox.Height);
+        return textNaObrazku < 0.05 * velky.Width * velky.Height;
+    }
+
+    /// <summary>
     /// Text stránky z PDF jako výsledek „OCR“ s polohami slov v pixelech vykreslené stránky.
     /// Null, když stránka text nemá (sken) nebo je nečitelný (rozbité kódování písma),
     /// taková stránka se přepíše přes OCR.
@@ -86,6 +114,7 @@ public sealed partial class Spis
         // rozbité kódování dává slova z nesmyslných znaků
         double citelnych = slova.Count(w => Regex.IsMatch(w.Text, @"^[\p{L}\d.,;:§()/\-–„“""'%&+*=!?@°]+$")) / (double)slova.Count;
         if (citelnych < 0.8) return null;
+        if (JeSkenSDolozkou(stranka, slova)) return null;
 
         var orez = stranka.CropBox.Bounds;
         double sx = sirka / orez.Width, sy = vyska / orez.Height;

@@ -269,7 +269,7 @@ public partial class HlavniOkno : Window
         if (dialog.ShowDialog(this) != true) return;
 
         var spis = _spis;
-        Stav.Text = $"Přidávám {dialog.FileNames.Length} fotek…";
+        Stav.Text = $"Přidávám {dialog.FileNames.Length} souborů…";
         IsEnabled = false;
         try
         {
@@ -281,6 +281,13 @@ public partial class HlavniOkno : Window
             int cernych = spis.Oddelovace.Count(o => !oddelovacePred.Contains(o));
             Stav.Text = $"Přidáno {nove.Count + vraceno} stran v {spis.Dokumenty.Count - dokumentuPred} dokumentech"
                 + (cernych > 0 ? $" ({cernych} černé fotky oddělily dokumenty)" : "") + ". Přepis spustíš tlačítkem Spustit přepis.";
+        }
+        catch (Exception ex) when (ex is System.IO.InvalidDataException or System.IO.IOException or UnauthorizedAccessException)
+        {
+            // poškozené nebo zamčené PDF či fotka: strany přidané před chybou zůstávají
+            Stav.Text = "Přidávání se zastavilo: " + ex.Message;
+            MessageBox.Show(this, ex.Message + "\n\nStrany přidané před tímto souborem ve spisu zůstaly.",
+                "Koncipient: soubor nejde přidat", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         finally
         {
@@ -305,6 +312,13 @@ public partial class HlavniOkno : Window
             IsEnabled = true;
             int vraceno = ZkontrolujOddelovace(spis, oddelovacePred);
             Stav.Text = $"Přidáno {nove.Count + vraceno} stran v {spis.Dokumenty.Count - pred} dokumentech. Přepis spustíš tlačítkem Spustit přepis.";
+        }
+        catch (Exception ex) when (ex is System.IO.InvalidDataException or System.IO.IOException or UnauthorizedAccessException)
+        {
+            // poškozené nebo zamčené PDF či fotka: strany přidané před chybou zůstávají
+            Stav.Text = "Přidávání se zastavilo: " + ex.Message;
+            MessageBox.Show(this, ex.Message + "\n\nStrany přidané před tímto souborem ve spisu zůstaly.",
+                "Koncipient: soubor nejde přidat", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         finally
         {

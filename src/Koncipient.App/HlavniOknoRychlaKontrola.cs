@@ -19,22 +19,22 @@ public partial class HlavniOkno
 {
     private List<MistoKontroly> _mista = new();
     private readonly HashSet<string> _vyrizeno = new();
+    /// <summary>Strany, na kterých advokátka v rychlé kontrole něco posoudila.</summary>
+    private readonly HashSet<int> _posouzeneStrany = new();
     private string? _rkSpis;
     private (int Cislo, BitmapSource Obrazek)? _rkFotka;
 
-    private static string KlicMista(MistoKontroly m) =>
-        m.Druh == DruhMista.Nahrazeno ? $"{m.Strana.Cislo}:E:{m.Entita!.Id}" : $"{m.Strana.Cislo}:P:{Text.Normalizuj(m.Udaj)}";
+    private static string KlicMista(MistoKontroly m) => m.Klic;
 
     private void RkNacist_Click(object sender, RoutedEventArgs e) => RkNacti();
 
     private void RkNacti(string? vybrat = null)
     {
         if (_spis is null) return;
-        if (_rkSpis != _spis.Id) { _vyrizeno.Clear(); _rkSpis = _spis.Id; _rkFotka = null; }
-        var predtim = _mista.Select(m => m.Strana).Distinct().ToList();
+        if (_rkSpis != _spis.Id) { _vyrizeno.Clear(); _posouzeneStrany.Clear(); _rkSpis = _spis.Id; _rkFotka = null; }
         _mista = RychlaKontrola.Najdi(_spis, _klic);
-        // strana, ze které místa zmizela (Není citlivé, vyřízeno), je hotová
-        OznacHotoveStrany(predtim.Concat(_mista.Select(m => m.Strana)).Distinct());
+        // strana, na které jsou všechna místa vyřízená (nebo zmizela po Není citlivé), je hotová
+        OznacHotoveStrany(_spis.Strany.Where(s => _posouzeneStrany.Contains(s.Cislo)));
 
         RkSeznam.Items.Clear();
         foreach (var m in _mista.Where(m => !_vyrizeno.Contains(KlicMista(m))))
@@ -42,7 +42,8 @@ public partial class HlavniOkno
         int bezNalezu = RychlaKontrola.StranyBezNalezu(_spis, _mista).Count(s => !s.Zkontrolovano);
         RkSouhrn.Text = RkSeznam.Items.Count == 0
             ? "Všechna místa jsou vyřízená."
-            : $"Ke kontrole {RkSeznam.Items.Count} míst na {_mista.Where(m => !_vyrizeno.Contains(KlicMista(m))).Select(m => m.Strana).Distinct().Count()} stranách. Enter = v pořádku, N = není citlivé, O = osoba, U = jiný údaj.";
+            : $"Ke kontrole {RkSeznam.Items.Count} míst na {_mista.Where(m => !_vyrizeno.Contains(KlicMista(m))).SelectMany(m => m.Strany).Distinct().Count()} stranách. Enter = v pořádku, N = není citlivé, O = osoba, U = jiný údaj. "
+              + "Kontrola ukazuje jen místa, která program našel: důležité strany projdi i v Náhledu pro Clauda.";
         RkBezNalezu.Content = $"Strany bez nálezů ({bezNalezu}): označit jako zkontrolované";
         RkBezNalezu.IsEnabled = bezNalezu > 0;
 
@@ -56,9 +57,10 @@ public partial class HlavniOkno
     private string PopisMista(MistoKontroly m)
     {
         var strana = $"s. {_spis!.Poradi(m.Strana)}";
+        var vic = m.Strany.Count > 1 ? $"   ({m.Pocet}× na {m.Strany.Count} stranách)" : m.Pocet > 1 ? $"   ({m.Pocet}×)" : "";
         return m.Druh == DruhMista.Nahrazeno
-            ? $"{strana}   {m.Udaj}  →  {m.Nahrada}{(m.PocetNaStrane > 1 ? $"   ({m.PocetNaStrane}×)" : "")}"
-            : $"{strana}   ⚠ {m.Udaj}   zůstane, vypadá jako přehlédnutý údaj";
+            ? $"{strana}   {m.Udaj}  →  {m.Nahrada}{vic}"
+            : $"{strana}   ⚠ {m.Udaj}   zůstane, vypadá jako přehlédnutý údaj{vic}";
     }
 
     private MistoKontroly? VybraneMisto => (RkSeznam.SelectedItem as ListBoxItem)?.Tag as MistoKontroly;
@@ -111,6 +113,7 @@ public partial class HlavniOkno
     private void RkDalsi(MistoKontroly vyrizene)
     {
         _vyrizeno.Add(KlicMista(vyrizene));
+        foreach (var s in vyrizene.Strany) _posouzeneStrany.Add(s.Cislo);
         int i = RkSeznam.SelectedIndex;
         var dalsi = RkSeznam.Items.Cast<ListBoxItem>().Skip(i + 1).Select(x => (MistoKontroly)x.Tag)
             .FirstOrDefault(x => !_vyrizeno.Contains(KlicMista(x)));
@@ -125,6 +128,12 @@ public partial class HlavniOkno
     private void RkNecitlive_Click(object sender, RoutedEventArgs e)
     {
         if (_spis is null || VybraneMisto is not { } m) return;
+        // osoba nebo číslo by šly do exportu skutečně: jedna klávesa nestačí
+        if (m.Entita is { Typ: not (TypUdaje.Adresa or TypUdaje.Firma or TypUdaje.SpisovaZnacka) } citlivy
+            && MessageBox.Show(this,
+                $"„{m.Udaj}“ ({Nazvy.Typ(citlivy.Typ)}) se pak ve všech stranách pošle Claudovi skutečně, bez náhrady.\n\nOpravdu to není citlivé?",
+                "Není citlivé", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
+            return;
         if (m.Entita is not null) m.Entita.Akce = Akce.Ponechat;
         else Anonymizator.OznacNecitlive(_klic, m.Udaj);
         Anonymizator.UlozKlic(_spis, _klic);
@@ -143,8 +152,8 @@ public partial class HlavniOkno
         var entita = Anonymizator.OznacRucne(_klic, typ, Anonymizator.Slova(v), m.Od, m.Do);
         if (typ == TypUdaje.Osoba) Anonymizator.DoplnOsoby(_klic, SlovaSpisu());
         Anonymizator.UlozKlic(_spis, _klic);
-        // nově označený údaj advokátka právě posoudila, na této straně ho už nehlásit
-        _vyrizeno.Add($"{m.Strana.Cislo}:E:{entita.Id}");
+        // nově označený údaj advokátka právě posoudila, už ho nehlásit
+        _vyrizeno.Add("E:" + entita.Id);
         Stav.Text = $"{m.Udaj}: anonymizováno ve všech stranách spisu.";
         RkDalsi(m);
     }
@@ -194,8 +203,7 @@ public partial class HlavniOkno
         bool zmena = false;
         foreach (var s in strany)
         {
-            if (s.Zkontrolovano || _mista.Any(m => m.Strana == s && !_vyrizeno.Contains(KlicMista(m)))) continue;
-            if (!_vyrizeno.Any(k => k.StartsWith($"{s.Cislo}:"))) continue; // na straně se nic neschvalovalo
+            if (s.Zkontrolovano || _mista.Any(m => m.Strany.Contains(s) && !_vyrizeno.Contains(KlicMista(m)))) continue;
             s.Zkontrolovano = true;
             zmena = true;
         }

@@ -30,7 +30,7 @@ Pořadí stran i dokumenty jdou upravit později: klikněte pravým tlačítkem 
 
 ## 3. Přepis (klidně přes noc)
 
-Klikněte na **Spustit přepis**. Program fotky narovná, převede na text a najde v nich údaje. Jedna stránka trvá desítky sekund, celý spis klidně hodiny. Nechte počítač zapnutý v síti, sám neusne. Přepis jde **Zastavit** a později pokračovat tam, kde skončil.
+Klikněte na **Spustit přepis**. Program fotky narovná, převede na text a najde v nich údaje. Jedna stránka trvá desítky sekund, celý spis klidně hodiny. Nechte počítač zapnutý a zapojený do zásuvky, sám neusne. Internet nepotřebuje. Přepis jde **Zastavit** a později pokračovat tam, kde skončil.
 
 Když je hotovo, uvidíte v titulku okna „přepis dokončen“ a čas. Pokud se některá strana nepřepsala, program napíše, která. Stačí přepis spustit znovu.
 
@@ -45,7 +45,9 @@ Záložka **Rychlá kontrola** ukáže jen místa, na kterých záleží, s kous
 - **zelené:** údaj, který program nahradí (u každého jednou za stranu, s počtem výskytů),
 - **žluté ⚠:** slovo, které zůstane, ale vypadá jako přehlédnuté jméno nebo číslo.
 
-Projděte je klávesnicí: **Enter** = v pořádku, **N** = není citlivé (soud, úřad, obec), **O** = je to osoba, **U** = jiný údaj, odstranit. Stranu, na které máte všechno vyřízené, program sám označí jako zkontrolovanou. Na konci tlačítkem **Strany bez nálezů** potvrďte strany, kde program nenašel nic. Důležité strany si přesto prohlédněte v náhledu pro Clauda.
+Stejný údaj se ukáže jen jednou, i když je na více stranách. Projděte je klávesnicí: **Enter** = v pořádku, **N** = není citlivé (soud, úřad, obec; u osob a čísel se program zeptá), **O** = je to osoba, **U** = jiný údaj, odstranit. Stranu, na které máte všechno vyřízené, program sám označí jako zkontrolovanou. Na konci tlačítkem **Strany bez nálezů** potvrďte strany, kde program nenašel nic.
+
+**Pozor:** rychlá kontrola ukazuje jen místa, která program našel. Jméno, které nepoznal (třeba příjmení Malý nebo Černý uprostřed věty), v ní nemusí být. Důležité strany proto před exportem projděte i v **Náhledu pro Clauda**.
 
 ### Kontrola po stranách
 
@@ -68,7 +70,7 @@ Osoby se nahrazují vymyšlenými jmény (např. Bohdan Jasaník). Claude s nimi
 
 ## 5. Export pro Clauda
 
-1. **Exportovat pro Clauda…** Když má spis víc dokumentů, vyberte, které Claude dostane. Po doplnění spisu stačí tlačítko **Jen nové**. Kontrolují se jen strany vybraných dokumentů. Program ještě jednou zkontroluje celý text. Pokud v něm zůstalo skutečné jméno nebo číslo, export zastaví a ukáže, co zbývá. Doplňte to podle kroku 4.
+1. **Exportovat pro Clauda…** Když má spis víc dokumentů, vyberte, které Claude dostane. Po doplnění spisu stačí tlačítko **Jen nové**. Kontrolují se jen strany vybraných dokumentů. Program ještě jednou projde text a zastaví export, pokud v něm zůstal údaj, který zná (jméno, číslo nebo adresa z tabulky Osoby a údaje). Údaj, který nikdy nepoznal, ale zastavit nemůže, proto je důležitá vaše kontrola v kroku 4.
 2. Vznikne složka `Dokumenty\Koncipient\ProClaude\S-…`. Obsahuje jen anonymizovaný text (jeden soubor na dokument) a pokyny pro Clauda. Fotky ani skutečná jména v ní nejsou.
 3. Tuto složku přeneste na počítač s Claudem a pracujte s ní jako obvykle. Na strany se Claude odkazuje čísly ze seznamu vlevo.
 

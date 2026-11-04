@@ -12,10 +12,19 @@ public enum DruhMista
     Podezrele,
 }
 
-/// <summary>Jedno místo k rychlé kontrole s kouskem okolního textu.</summary>
+/// <summary>
+/// Jedno místo k rychlé kontrole s kouskem okolního textu. Stejný údaj nebo slovo se
+/// napříč spisem ukáže jen jednou (první výskyt), <see cref="Strany"/> jsou všechny strany s ním.
+/// </summary>
 public sealed record MistoKontroly(
     Strana Strana, int Od, int Do, DruhMista Druh, Entita? Entita,
-    string Pred, string Udaj, string Nahrada, string Po, Obdelnik Ramecek, int PocetNaStrane);
+    string Pred, string Udaj, string Nahrada, string Po, Obdelnik Ramecek, int Pocet)
+{
+    public IReadOnlyList<Strana> Strany { get; init; } = new[] { Strana };
+
+    /// <summary>Klíč pro sloučení a pro vyřízení: údaj z klíče, nebo slovo.</summary>
+    public string Klic => Druh == DruhMista.Nahrazeno ? "E:" + Entita!.Id : "P:" + Text.Normalizuj(Udaj);
+}
 
 /// <summary>
 /// Rychlá kontrola místo procházení celých stran: ukáže jen místa, kde program údaj nahradí
@@ -86,10 +95,16 @@ public static class RychlaKontrola
                 if (n.Length < 3 || klic.Vyjimky.Contains(n) || ponechana.Contains(n) || Anonymizator.JePseudonym(klic, w)) continue;
                 if (!JePodezrele(slova, i, w, veSlovniku)) continue;
                 if (!nahlasene.Add(n)) continue; // stejné slovo na straně jen jednou
-                mista.Add(Misto(i, i, DruhMista.Podezrele, null, w, 1));
+                bool dvojice = char.IsLetter(w[0]) && !char.IsUpper(w[0]); // jméno malými: ukázat i příjmení
+                mista.Add(Misto(i, dvojice ? i + 1 : i, DruhMista.Podezrele, null,
+                    dvojice ? $"{w} {Text.Ocisti(slova[i + 1])}" : w, 1));
             }
         }
-        return mista.OrderBy(m => spis.Poradi(m.Strana)).ThenBy(m => m.Od).ToList();
+        // stejný údaj napříč spisem jen jednou (výkresy opakují čísla parcel na každé straně)
+        return mista.OrderBy(m => spis.Poradi(m.Strana)).ThenBy(m => m.Od)
+            .GroupBy(m => m.Klic)
+            .Select(g => g.First() with { Pocet = g.Sum(m => m.Pocet), Strany = g.Select(m => m.Strana).Distinct().ToList() })
+            .ToList();
     }
 
     /// <summary>
@@ -105,7 +120,14 @@ public static class RychlaKontrola
             if (Regex.IsMatch(w, @"^\d{1,3}(?:[ .]\d{3})+(?:,\d+)?(?:,-)?$")) return false; // částka 12.500,-
             return !Regex.IsMatch(w, @"^\d{1,2}\.\d{1,2}\.\d{4}$"); // datum se nechává
         }
-        if (!w.All(z => char.IsLetter(z) || z == '-') || !char.IsUpper(w[0])) return false;
+        if (!w.All(z => char.IsLetter(z) || z == '-')) return false;
+        if (!char.IsUpper(w[0]))
+        {
+            // jméno malými písmeny (hlavička e-mailu „petra smyšlená“): křestní jméno a za ním slovo mimo slovník
+            var velke = char.ToUpper(w[0]) + w[1..];
+            return Detektor.JeKrestniJmeno(velke) && i + 1 < slova.Count
+                && Text.Ocisti(slova[i + 1]) is { Length: >= 3 } dalsi && dalsi.All(char.IsLetter) && !veSlovniku(dalsi);
+        }
         if (slova[i].EndsWith('.') && w.Length <= 5 && !Detektor.JeKrestniJmeno(w)) return false; // zkratky a tituly (Ing., Mgr., odst.)
         if (Detektor.JeKrestniJmeno(w)) return true;
         bool zacatekVety = i == 0 || Regex.IsMatch(slova[i - 1], @"[.:;!?]$|^[-–•]$|^\d+[.)]$");
@@ -117,5 +139,5 @@ public static class RychlaKontrola
 
     /// <summary>Strany, na kterých program nenašel nic ke kontrole.</summary>
     public static List<Strana> StranyBezNalezu(Spis spis, IReadOnlyCollection<MistoKontroly> mista) =>
-        spis.Strany.Where(s => Motory.ProZobrazeni(spis, s) is not null && mista.All(m => m.Strana != s)).ToList();
+        spis.Strany.Where(s => Motory.ProZobrazeni(spis, s) is not null && mista.All(m => !m.Strany.Contains(s))).ToList();
 }

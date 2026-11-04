@@ -35,7 +35,7 @@ public class RychlaKontrolaTesty
         using var _ = d;
         var mista = RychlaKontrola.Najdi(spis, klic, VeSlovniku);
         var osoba = Assert.Single(mista, m => m.Druh == DruhMista.Nahrazeno && m.Entita!.Typ == TypUdaje.Osoba);
-        Assert.True(osoba.PocetNaStrane == 3, string.Join(" | ", mista.Select(m => $"{m.Druh} {m.Udaj} {m.PocetNaStrane} {m.Entita?.Id}")));
+        Assert.Equal(3, osoba.Pocet);
         Assert.Equal("Petr Pokusný", osoba.Udaj);
         Assert.Equal("Smlouvu podepsal Ing.", osoba.Pred);
         Assert.DoesNotContain(mista, m => m.Druh == DruhMista.Podezrele); // titul Ing. není podezřelý
@@ -54,6 +54,25 @@ public class RychlaKontrolaTesty
         Assert.Contains("4471235", podezrela);
         Assert.DoesNotContain("Praha", podezrela);   // ve slovníku
         Assert.DoesNotContain("Svědek", podezrela);  // začátek věty
+    }
+
+    [Fact]
+    public void StejnyUdajNapricStranamiJednou()
+    {
+        var (spis, klic, d) = Spis("Smlouvu podepsal Ing. Petr Pokusný dne 1. 1. 2020.", "Soud rozhodl.", "Svědek byl Petr Pokusný.");
+        using var _ = d;
+        var mista = RychlaKontrola.Najdi(spis, klic, VeSlovniku);
+        var osoba = Assert.Single(mista, m => m.Druh == DruhMista.Nahrazeno && m.Entita!.Typ == TypUdaje.Osoba);
+        Assert.Equal(new[] { spis.Strany[0], spis.Strany[2] }, osoba.Strany);
+        Assert.Equal(new[] { spis.Strany[1] }, RychlaKontrola.StranyBezNalezu(spis, mista));
+    }
+
+    [Fact]
+    public void JmenoMalymiPismenyJePodezrele()
+    {
+        var (spis, klic, d) = Spis("Odesílatel zprávy byl petra zkušebníčková a dne také.");
+        using var _ = d;
+        Assert.Contains(RychlaKontrola.Najdi(spis, klic, VeSlovniku), m => m.Udaj == "petra zkušebníčková");
     }
 
     [Fact]

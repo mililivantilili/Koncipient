@@ -65,7 +65,7 @@ public static class Anonymizator
     /// Tvary, podle kterých se entita hledá. U osoby i samotné příjmení
     /// (poslední slovo, pokud není křestní jméno), protože v textu bývá „pan Novák“.
     /// </summary>
-    private static IEnumerable<List<string>> HledaneTvary(Entita e)
+    private static IEnumerable<List<string>> HledaneTvary(Entita e, Klic? klic = null)
     {
         foreach (var t in e.Tvary.Where(t => t.Count > 0)) yield return t;
         if (e.Typ == TypUdaje.Firma)
@@ -74,7 +74,11 @@ public static class Anonymizator
             foreach (var t in e.Tvary)
             {
                 var bez = t.Where(s => !Detektor.JePravniForma(s)).ToList();
-                if (bez.Count > 0 && bez.Count < t.Count && (bez.Count > 1 || Text.Ocisti(bez[0]).Length >= 4)) yield return bez;
+                if (bez.Count == 0 || bez.Count == t.Count || (bez.Count == 1 && Text.Ocisti(bez[0]).Length < 4)) continue;
+                // jednoslovný název, který je zároveň obcí z adresy (Velkoměsto a.s.), by nahradil i obec ve větě
+                if (bez.Count == 1 && klic is not null && klic.Entity.Any(a => a.Typ == TypUdaje.Adresa
+                        && a.Tvary.SelectMany(x => x).Any(s => Text.StejneSlovo(s, bez[0])))) continue;
+                yield return bez;
             }
             yield break;
         }
@@ -102,13 +106,13 @@ public static class Anonymizator
     public static Entita? NajdiEntitu(Klic klic, TypUdaje typ, IReadOnlyList<string> slova, int od, int @do)
     {
         var usek = slova.Skip(od).Take(@do - od + 1).ToList();
-        var shoda = klic.Entity.FirstOrDefault(e => e.Typ == typ && HledaneTvary(e).Any(t => t.Count == usek.Count && StejnyTvar(e, t, usek, 0)));
+        var shoda = klic.Entity.FirstOrDefault(e => e.Typ == typ && HledaneTvary(e, klic).Any(t => t.Count == usek.Count && StejnyTvar(e, t, usek, 0)));
         if (shoda is not null || typ != TypUdaje.Osoba) return shoda;
         // Osoba podle samotného příjmení. Křestní jméno samo osoby nespojuje (Jan × Jan Pokusný)
         // a různá křestní jména u stejného příjmení znamenají různé osoby (Marie × Jiří Nevšední).
         var krestni = usek.Where(Detektor.JeKrestniJmeno).ToList();
         return klic.Entity.FirstOrDefault(e => e.Typ == TypUdaje.Osoba
-            && HledaneTvary(e).Any(t => t.Count == 1 && !Detektor.JeKrestniJmeno(t[0]) && usek.Any(s => StejnyTvar(e, t, new[] { s }, 0)))
+            && HledaneTvary(e, klic).Any(t => t.Count == 1 && !Detektor.JeKrestniJmeno(t[0]) && usek.Any(s => StejnyTvar(e, t, new[] { s }, 0)))
             && !RuznaKrestniJmena(e, krestni));
     }
 
@@ -368,7 +372,7 @@ public static class Anonymizator
     {
         var kandidati = new List<Vyskyt>();
         foreach (var e in klic.Entity.Where(e => e.Akce != Akce.Ponechat))
-            foreach (var t in HledaneTvary(e))
+            foreach (var t in HledaneTvary(e, klic))
                 for (int i = 0; i + t.Count <= slova.Count; i++)
                 {
                     if (t.Count == 1 && klic.Vyjimky.Contains(Text.Normalizuj(slova[i]))) continue;

@@ -174,7 +174,7 @@ public static class Detektor
     {
         (new Regex(@"\b\d{2}[0156]\d[0-3]\d\s?/\s?\d{3,4}\b"), TypUdaje.RodneCislo),
         (new Regex(@"(?:nar\.|narozen\w*|datum narození:?|dat\. ?nar\.:?)\s*(?:dne\s*)?(?-i:(?:\p{Lu}\p{Ll}+\s+)?)(?<u>\d{1,2}\.\s?(?:\d{1,2}\.|" + Mesice + @")\s?\d{4})", RegexOptions.IgnoreCase), TypUdaje.DatumNarozeni),
-        (new Regex(@"\b(?:IČO?|DIČ)\s*:?\s*(?<u>(?:CZ)?\d{8,10})\b"), TypUdaje.Ico),
+        (new Regex(@"\b(?:I[ČC]O|IČ|DI[ČC])\s*:?\s*(?<u>(?:CZ)?\d{8,10})\b"), TypUdaje.Ico),   // i bez háčku (PDF bez diakritiky)
         (new Regex(@"\b(?:\d{1,6}-)?\d{6,10}/\d{4}\b"), TypUdaje.Ucet),
         (new Regex(@"(?:\+420[ \n]?)?\b[1-9]\d{2}[ \n]?\d{3}[ \n]?\d{3}\b"), TypUdaje.Telefon),
         (new Regex(@"[\w.+-]+@[\w-]+\.[\w.-]*\w"), TypUdaje.Email),
@@ -287,12 +287,19 @@ public static class Detektor
         NajdiHlavickuVeSloupcich(slova, radky, nalezy);
         NajdiFirmy(slova, radky, nalezy);
         NajdiDatumZaJmenem(slova, nalezy);
+        // z hlaviček e-mailu nebrat pozdrav, přeposlání ani název poštovního programu jako osobu
+        nalezy.RemoveAll(n => n.Typ == TypUdaje.Osoba
+            && slova.Skip(n.Od).Take(n.Do - n.Od + 1).Any(s => NeOsobyHlavicky.Contains(Text.Ocisti(s))));
         return Sluc(nalezy);
     }
 
     private static readonly HashSet<string> PopiskyHlavicky = new(StringComparer.OrdinalIgnoreCase)
         { "Od", "Komu", "Kopie", "From", "To", "Cc", "Odesílatel", "Příjemce", "Adresát", "Adresáti",
           "Datum", "Date", "Předmět", "Subject", "Odesláno", "Sent", "Přílohy", "Attachments" };
+
+    private static readonly HashSet<string> NeOsobyHlavicky = new(StringComparer.OrdinalIgnoreCase)
+        { "Dobrý", "den", "Vážená", "Vážený", "Vážení", "Zdravím", "Ahoj", "FW", "Fwd", "RE", "Odp", "Webmail", "Roundcube",
+          "Outlook", "Gmail", "Seznam", "Thunderbird", "Zpráva", "Odpověď", "Přeposláno", "Příloha", "Přílohy" };
 
     private static readonly HashSet<string> PopiskyOsob = new(StringComparer.OrdinalIgnoreCase)
         { "Od", "Komu", "Kopie", "From", "To", "Cc", "Odesílatel", "Příjemce", "Adresát", "Adresáti" };

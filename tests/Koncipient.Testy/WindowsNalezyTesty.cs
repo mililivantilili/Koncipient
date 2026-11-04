@@ -229,6 +229,30 @@ public class WindowsNalezyTesty
     }
 
     [Fact]
+    public void IcoBezHackuSeNajde()
+    {
+        const string text = "Zhotovitel: Pokusné stavby, ICO 99887766, sídlo neuvedeno.";
+        Assert.DoesNotContain("99887766", Anonym(text, KlicZ(text)));
+    }
+
+    [Fact]
+    public void PozdravAPostovniProgramNejsouOsoba()
+    {
+        var klic = KlicZ("Od: Roundcube Webmail\nKomu: Dobrý den\nPředmět: FW: Podklady");
+        Assert.DoesNotContain(klic.Entity, e => e.Typ == TypUdaje.Osoba);
+    }
+
+    [Fact]
+    public void ObecVNazvuFirmyNenahradiObecVeVete()
+    {
+        const string text = "Technické služby města Velkoměsto a.s. převzaly dům čp. 1, 999 01 Velkoměsto.\nV obci Velkoměsto se konalo jednání.";
+        var klic = KlicZ(text);
+        var vystup = Anonym(text, klic);
+        // obec z adresy se nahradí jako adresa, ne jako firma
+        Assert.DoesNotContain("FIRMA_001] se konalo", vystup);
+    }
+
+    [Fact]
     public void ZahlaviTabulkySPetimiCisliciNeniAdresa()
     {
         var klic = KlicZ("Položka 12345 Počet kusů 3");

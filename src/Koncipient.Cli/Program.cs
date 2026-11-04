@@ -152,7 +152,7 @@ try
                 mista = mista.Select(m => new
                 {
                     strana = spis.Poradi(m.Strana), druh = m.Druh.ToString(), udaj = m.Udaj, nahrada = m.Druh == DruhMista.Nahrazeno ? m.Nahrada : null,
-                    kod = m.Entita?.Id, pocet = m.PocetNaStrane, kontext = $"{m.Pred} [{m.Udaj}] {m.Po}",
+                    kod = m.Entita?.Id, pocet = m.Pocet, stran = m.Strany.Select(spis.Poradi), kontext = $"{m.Pred} [{m.Udaj}] {m.Po}",
                 }),
                 stranyBezNalezu = RychlaKontrola.StranyBezNalezu(spis, mista).Select(spis.Poradi),
             });
@@ -347,7 +347,7 @@ try
             return Chyba($"Neznámý příkaz {prikaz}. Nápověda: koncipient-cli help");
     }
 }
-catch (Exception e) when (e is ArgumentException or ArgumentOutOfRangeException or FileNotFoundException or DirectoryNotFoundException or InvalidOperationException)
+catch (Exception e) when (e is ArgumentException or ArgumentOutOfRangeException or FileNotFoundException or DirectoryNotFoundException or InvalidOperationException or InvalidDataException)
 {
     return Chyba(e.Message);
 }

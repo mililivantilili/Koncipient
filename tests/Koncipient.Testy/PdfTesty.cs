@@ -69,6 +69,28 @@ public class PdfTesty
     }
 
     [Fact]
+    public void SkenSDolozkouSePrepiseOcr()
+    {
+        // kontrola 2026-11-04: text z PDF by obsahoval jen doložku o konverzi a obsah strany by zmizel
+        using var d = new DocasnaSlozka();
+        var spis = new Uloziste(d.Cesta).Zaloz("vzor");
+        var strana = Assert.Single(spis.PridejPdf(Vzor("sken-s-dolozkou.pdf")));
+        Assert.False(spis.MaOcr(strana, Motory.PdfText));
+    }
+
+    [Fact]
+    public void PoskozenePdfDaCeskouChybu()
+    {
+        using var d = new DocasnaSlozka();
+        var spis = new Uloziste(d.Cesta).Zaloz("vzor");
+        var cesta = Path.Combine(d.Cesta, "rozbite.pdf");
+        File.WriteAllText(cesta, "%PDF-1.4 tohle není PDF");
+        var chyba = Assert.Throws<InvalidDataException>(() => spis.PridejPdf(cesta));
+        Assert.Contains("nejde otevřít", chyba.Message);
+        Assert.Empty(spis.Strany);
+    }
+
+    [Fact]
     public void PdfVeSlozceJeDokument()
     {
         using var d = new DocasnaSlozka();

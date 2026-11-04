@@ -310,3 +310,20 @@ Je srozumitelný a odpovídá programu, až na tvrzení o exportu výše. Dále:
 - Čistý počítač bez Visual Studia zbývá, stejně jako Windows bez české sady OCR. Ty program řeší přechodem na Tesseract, ale nezkoušel jsem to.
 - Velikost po instalaci je 465 MB.
 - Skutečné PDF z datové schránky jsem neměl k dispozici.
+
+### Stav oprav po kontrole nových funkcí
+
+Opraveno 2026-11-04 (testy v `PdfTesty`, `RychlaKontrolaTesty`, `WindowsNalezyTesty`, celkem 447; měření na korpusu beze změny):
+
+1. **Sken s doložkou:** stránka s obrázkem přes většinu plochy, na které text z PDF pokrývá méně než 5 % obrázku, se přepíše přes OCR. Vymyšlený vzor `vzory/pdf/sken-s-dolozkou.pdf`. Sken s plnou textovou vrstvou ze skeneru se dál bere z PDF. Na skutečném PDF z datové schránky je potřeba ověřit.
+2. **Co kontroly nezachytí:** návod už netvrdí, že export zastaví každý údaj. Rychlá kontrola i návod upozorňují, že důležité strany je potřeba projít v Náhledu pro Clauda. Rychlá kontrola nově hlásí jméno malými písmeny (známé křestní jméno a za ním slovo mimo slovník, např. `petra smyšlená`).
+3. **Hlavičky e-mailu:** pozdravy, `FW`, `RE` a názvy poštovních programů (`Roundcube Webmail`) se neberou jako osoba.
+4. **N u osob a čísel** se ptá, protože údaj by pak šel Claudovi skutečně. U adres, firem a spisových značek se neptá.
+5. **Výkresy:** stejný údaj nebo podezřelé slovo se v rychlé kontrole ukáže jen jednou za spis, s počtem výskytů a stran. Strana je hotová, až když jsou vyřízená všechna místa, která na ní jsou.
+6. **`ICO` bez háčku** se najde.
+7. **Město jako firma:** jednoslovný název firmy bez právní formy, který je zároveň slovem z adresy, se samostatně nehledá.
+8. **Rozbité PDF:** česká hláška (poškozené nebo chráněné heslem), stav se vrátí, CLI vypíše chybu v JSON.
+9. Návod: „zapojený do zásuvky, internet nepotřebuje“.
+
+Otevřené rozhodnutí pro Matěje a advokátku: smí rychlá kontrola označit stranu jako zkontrolovanou, když člověk viděl jen vybraná místa?
+
