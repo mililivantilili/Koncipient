@@ -91,6 +91,12 @@ Program si u každého spisu sám zapisuje, kdy a co odešlo Claudovi nebo na fl
 
 **Ctrl+F** otevře záložku **Hledání**. Napište slovo nebo frázi a stiskněte Enter. Nezáleží na diakritice a začátek slova najde i ostatní tvary („smlouv“ najde smlouvu i smlouvě). Enter nebo dvojklik na nález otevře stranu a slovo v ní označí.
 
+## Přehled dat ve spisu
+
+Záložka **Data** ukáže všechna data z textu spisu seřazená podle času, s okolím a číslem strany. U data je nápověda podle slov před ním (doručení, jednání, splatnost, ze dne…). Enter nebo dvojklik otevře stranu. Data narození jsou skrytá, dokud nezrušíte zaškrtnutí. Přehled jde **uložit jako Word**.
+
+**Lhůty program nepočítá.** Nápověda je jen podle slov v textu a může se mýlit. Lhůty vždy posuďte sama.
+
 ## PDF pro vlastní archiv
 
 **PDF pro archiv…** uloží fotky spisu (nebo vybraných dokumentů) do jednoho PDF, ve kterém jde hledat a kopírovat text. Dokumenty jsou v něm záložky. PDF obsahuje skutečné údaje, proto ho ukládejte jen u sebe a nikdy ho nedávejte Claudovi.

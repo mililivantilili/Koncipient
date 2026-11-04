@@ -27,6 +27,7 @@ Testy může dělat i agent (Claude Code), postup pro něj je v [agent.md](agent
 | Test 12: stránky k přefocení a potvrzení celé strany | nový |
 | Test 13: záznam o exportech | nový |
 | Test 14: úkol pro Clauda | nový |
+| Test 15: přehled dat | nový |
 
 Hotové testy (✅) přeskoč, jejich postup je sbalený.
 
@@ -50,7 +51,7 @@ Hotové testy (✅) přeskoč, jejich postup je sbalený.
 1. Otevři **řešení**, ne jen složku: Soubor → Otevřít → Projekt/řešení… → `Koncipient.sln`. Bez toho se nabídka Test ani testy neukážou.
 2. Počkej, až se stáhnou balíčky (vlevo dole), a sestav řešení: Sestavení → Sestavit řešení (Ctrl+Shift+B).
 3. Otevři Test → Průzkumník testů (Ctrl+E, T), anglicky *Test Explorer*.
-4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 459, všechny zelené.
+4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 460, všechny zelené.
 
 Když sestavení selže, otevři Zobrazit → Seznam chyb.
 
@@ -292,6 +293,16 @@ Na spisu s několika dokumenty a hotovým přepisem:
    - [ ] V `ProClaude\S-…` je `UKOL.md` bez skutečného jména a `manifest.json` má `"ukol": "UKOL.md"`.
 2. Na počítači s Claudem (nebo v Claude Code ve složce ProClaude) napiš „udělej úkol ve spisu S-…“. [ ] Claude najde UKOL.md a výsledek uloží do `vystup`.
 3. Exportuj znovu bez úkolu. [ ] `UKOL.md` zmizel.
+
+## Test 15: přehled dat (5 minut)
+
+Na přepsaném spisu z archivu otevři záložku **Data**.
+- [ ] Data jsou seřazená od nejstaršího a mají okolí a číslo strany. Najde i zápis slovy („7. května 2024“).
+- [ ] Nápověda v hranatých závorkách sedí aspoň u většiny (doručení, ze dne, jednání…).
+- [ ] Data narození jsou skrytá, po zrušení zaškrtnutí se objeví.
+- [ ] Enter otevře stranu a označí datum. **Uložit jako Word…** vytvoří dokument.
+
+**Poslat:** kolik dat bylo a jestli některé chybělo (třeba kvůli chybě OCR) nebo bylo nesmyslné.
 
 ## Kde jsou data
 

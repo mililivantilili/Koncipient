@@ -214,6 +214,20 @@
                                  MouseDoubleClick="HledatVysledky_Otevrit" KeyDown="HledatVysledky_Otevrit" />
                     </DockPanel>
                 </TabItem>
+                <TabItem Header="Data" AutomationProperties.AutomationId="ZalozkaData">
+                    <DockPanel>
+                        <WrapPanel DockPanel.Dock="Top" Margin="4">
+                            <Button Content="Načíst znovu" Click="DataNacist_Click" Padding="8,3" Margin="0,0,6,0" />
+                            <CheckBox x:Name="DataBezNarozeni" AutomationProperties.AutomationId="DataBezNarozeni" Content="Skrýt data narození" IsChecked="True"
+                                      VerticalAlignment="Center" Margin="0,0,12,0" Click="DataNacist_Click" />
+                            <Button Content="Uložit jako Word…" Click="DataUlozit_Click" Padding="8,3"
+                                    ToolTip="Přehled dat pro vlastní potřebu. Obsahuje skutečné údaje, nedávat Claudovi." />
+                        </WrapPanel>
+                        <TextBlock x:Name="DataSouhrn" AutomationProperties.AutomationId="DataSouhrn" DockPanel.Dock="Top" Margin="8,0,8,4" Foreground="Gray" TextWrapping="Wrap" />
+                        <ListBox x:Name="DataSeznam" AutomationProperties.AutomationId="DataSeznam" FontSize="14"
+                                 MouseDoubleClick="DataSeznam_Otevrit" KeyDown="DataSeznam_Otevrit" />
+                    </DockPanel>
+                </TabItem>
             </TabControl>
 
             <GridSplitter Grid.Column="3" HorizontalAlignment="Stretch" />

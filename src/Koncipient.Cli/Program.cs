@@ -312,6 +312,14 @@ try
                 : Vypis(new { uspech = false, problemy = vysledek.Problemy });
         }
 
+        case "data":
+        {
+            // přehled dat ve spisu (vypisuje obsah spisu)
+            if (!TestovaciData()) return Chyba(Ochrana, 3);
+            var spis = NajdiSpis(argumenty[0]);
+            return Vypis(new { data = PrehledDat.Najdi(spis).Select(x => new { datum = x.Datum.ToString("yyyy-MM-dd"), druh = x.Druh, strana = spis.Poradi(x.Strana), kontext = $"{x.Pred} [{x.Text}] {x.Po}" }) });
+        }
+
         case "zaznam":
         {
             // záznam o exportech (jen počty, žádné údaje)
@@ -433,6 +441,7 @@ static int Napoveda()
           zkontroluj <spis> [<strana>...|vse] [--zrusit]
           export <spis> [--cil <složka>] [--dokumenty 1,3|nove] [--ukol "text"]   zápis pro Clauda (jen po kontrole stran)
           pdf <spis> <soubor.pdf> [--dokumenty 1,3]   prohledatelné PDF pro archiv (skutečné údaje)
+          data <spis>                             *  přehled dat ve spisu seřazený časově (lhůty nepočítá)
           zaznam <spis> [--text]                  záznam o exportech pro GDPR (jen počty, žádné údaje)
           kvalita <spis>                          strany k přefocení (rozmazané, tmavé, uříznuté, nejistý přepis)
           nahrad-fotku <spis> <strana> <soubor>   přefocená strana: nová fotka, přepis se zahodí

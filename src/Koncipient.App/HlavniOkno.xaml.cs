@@ -809,6 +809,7 @@ public partial class HlavniOkno : Window
     {
         if (e.OriginalSource == Zalozky && Zalozky.SelectedIndex == 1) NactiUdaje();
         if (e.OriginalSource == Zalozky && Zalozky.SelectedIndex == 2) RkNacti();
+        if (e.OriginalSource == Zalozky && Zalozky.SelectedIndex == 4) DataNacti();
     }
 
     private void VratitJmena_Click(object sender, RoutedEventArgs e)

@@ -127,3 +127,55 @@ public partial class HlavniOkno
             ZkopirujNaFlashDisk();
     }
 }
+
+/// <summary>Záložka Data: přehled dat ve spisu seřazený časově.</summary>
+public partial class HlavniOkno
+{
+    private List<DatumVeSpisu> _data = new();
+
+    private void DataNacti()
+    {
+        DataSeznam.Items.Clear();
+        if (_spis is null) { DataSouhrn.Text = ""; return; }
+        _data = PrehledDat.Najdi(_spis);
+        bool bezNarozeni = DataBezNarozeni.IsChecked == true;
+        var zobrazena = _data.Where(x => !(bezNarozeni && x.Druh == "narození")).ToList();
+        foreach (var x in zobrazena)
+            DataSeznam.Items.Add(new ListBoxItem
+            {
+                Content = $"{x.Datum:d. M. yyyy}   {(x.Druh is null ? "" : $"[{x.Druh}]   ")}s. {_spis.Poradi(x.Strana)}   … {x.Pred} 【{x.Text}】 {x.Po} …",
+                Tag = x,
+            });
+        DataSouhrn.Text = zobrazena.Count == 0
+            ? "Ve spisu nejsou žádná data (nebo ještě není přepsaný)."
+            : $"{zobrazena.Count} dat. Druh v závorce je jen nápověda podle slov před datem, lhůty program nepočítá. Enter nebo dvojklik otevře stranu.";
+    }
+
+    private void DataNacist_Click(object sender, RoutedEventArgs e) => DataNacti();
+
+    private void DataSeznam_Otevrit(object sender, EventArgs e)
+    {
+        if (e is KeyEventArgs k && k.Key != Key.Enter) return;
+        if ((DataSeznam.SelectedItem as ListBoxItem)?.Tag is not DatumVeSpisu x) return;
+        SeznamStran.SelectedItem = SeznamStran.Items.OfType<PolozkaStrany>().FirstOrDefault(p => p.Strana == x.Strana);
+        Zalozky.SelectedIndex = 0;
+        Dispatcher.BeginInvoke(new Action(() => { if (x.Do < _slova.Count) Vyber(x.Od, x.Do, true); }),
+            System.Windows.Threading.DispatcherPriority.Background);
+        if (e is KeyEventArgs ke) ke.Handled = true;
+    }
+
+    private void DataUlozit_Click(object sender, RoutedEventArgs e)
+    {
+        if (_spis is null) return;
+        var dialog = new SaveFileDialog
+        {
+            Title = "Uložit přehled dat", Filter = "Dokument Word|*.docx",
+            FileName = $"Data ve spisu {(string.IsNullOrWhiteSpace(_spis.Nazev) ? _spis.Id : _spis.Nazev)}.docx",
+            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+        };
+        if (dialog.ShowDialog(this) != true) return;
+        var data = DataSeznam.Items.Cast<ListBoxItem>().Select(i => (DatumVeSpisu)i.Tag);
+        Koncipient.Jadro.Word.Uloz(dialog.FileName, PrehledDat.Text(_spis, data));
+        Stav.Text = "Přehled dat uložen: " + dialog.FileName;
+    }
+}

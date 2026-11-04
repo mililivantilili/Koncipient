@@ -179,6 +179,10 @@ Fotky se řadí přirozeně (IMG_2 před IMG_10). Strany se číslují v pořad�
 
 Při exportu může advokátka napsat, co má Claude udělat. Text se anonymizuje stejně jako spis (včetně skloňovaných tvarů jmen), projde závěrečnou kontrolou a uloží se jako `UKOL.md` do složky spisu v exportu; `manifest.json` na něj odkazuje a pravidla pro Clauda říkají, že „udělej úkol“ znamená postupovat podle něj. Okno ukazuje živý náhled, co Claude dostane. Do záznamu o exportech se zapíše jen to, že úkol byl, ne jeho text.
 
+## Přehled dat
+
+Záložka Data (`PrehledDat.cs`) najde data v textu (číselně i s měsícem slovy, roky 1900–2100, neplatná data jako 31. 2. vynechá), seřadí je a k datu dá nápovědu podle tří slov před ním (narození, doručení, právní moc, jednání, splatnost, lhůta, podání, smlouva, ze dne). Lhůty se záměrně nepočítají. Data narození jsou ve výchozím stavu skrytá. Přehled obsahuje skutečné údaje a zůstává v počítači.
+
 ## Záznam o exportech
 
 Každý export a každá kopie na flash disk se zapíše do `zaznam-exportu.json` ve složce spisu (`ZaznamExportu.cs`): čas, uživatel Windows, pořadí dokumentů, počet stran, jestli byly zkontrolované, výsledek závěrečné kontroly a počty nahrazených, vypuštěných a ponechaných údajů podle typu. Skutečné údaje ani názvy dokumentů (můžou obsahovat jména) se nezapisují. Záznam zůstává ve spisu a advokátka si ho uloží jako Word jako doklad o zacházení s osobními údaji.
