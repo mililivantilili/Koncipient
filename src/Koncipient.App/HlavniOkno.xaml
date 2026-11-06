@@ -7,21 +7,25 @@
         <!-- velké tlačítko pásu karet: ikona z písma Segoe (Tag) a popisek pod ní -->
         <Style x:Key="Velke" TargetType="ButtonBase">
             <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Width" Value="76" />
+            <Setter Property="MinWidth" Value="72" />
+            <Setter Property="MaxWidth" Value="100" />
             <Setter Property="Margin" Value="1,0" />
+            <!-- barva ikony: modrá pro běžné akce, zelená spustit, červená zastavit, oranžová pro to, co jde ke Claudovi -->
+            <Setter Property="Foreground" Value="#2B579A" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ButtonBase">
-                        <Border x:Name="Pozadi" Background="Transparent" BorderBrush="Transparent" BorderThickness="1" CornerRadius="4" Padding="3,4">
+                        <Border x:Name="Pozadi" Background="Transparent" BorderBrush="Transparent" BorderThickness="1" CornerRadius="4" Padding="6,4">
                             <StackPanel>
                                 <TextBlock Text="{TemplateBinding Tag}" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="22"
-                                           HorizontalAlignment="Center" Foreground="#2B579A" />
+                                           HorizontalAlignment="Center" Foreground="{TemplateBinding Foreground}" />
                                 <ContentPresenter HorizontalAlignment="Center" Margin="0,4,0,0">
                                     <ContentPresenter.Resources>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="TextWrapping" Value="Wrap" />
                                             <Setter Property="TextAlignment" Value="Center" />
                                             <Setter Property="FontSize" Value="12" />
+                                            <Setter Property="Foreground" Value="#262626" />
                                         </Style>
                                     </ContentPresenter.Resources>
                                 </ContentPresenter>
@@ -51,6 +55,8 @@
         </Style>
         <Style x:Key="Skupina" TargetType="DockPanel">
             <Setter Property="Margin" Value="4,2,4,0" />
+            <!-- stejná výška na všech kartách, aby obsah okna při přepínání neposkakoval -->
+            <Setter Property="MinHeight" Value="98" />
             <Setter Property="LastChildFill" Value="True" />
         </Style>
         <Style x:Key="NazevSkupiny" TargetType="TextBlock">
@@ -65,33 +71,34 @@
             <Setter Property="Fill" Value="#D6DCE5" />
             <Setter Property="Margin" Value="2,6,2,6" />
         </Style>
+        <!-- záhlaví karet: jen text, vybraná karta podtržená modře -->
+        <Style x:Key="Karta" TargetType="TabItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="Karta" Padding="16,6,16,5" Margin="0,0,2,0" Background="Transparent" BorderThickness="0,0,0,3" BorderBrush="Transparent" Cursor="Hand">
+                            <ContentPresenter x:Name="Zahlavi" ContentSource="Header" TextBlock.FontSize="13" TextBlock.Foreground="#333" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Karta" Property="Background" Value="#E3ECF8" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Karta" Property="BorderBrush" Value="#2B579A" />
+                                <!-- tučné jen záhlaví, obsah karty (text strany) zůstává obyčejný -->
+                                <Setter TargetName="Zahlavi" Property="TextBlock.FontWeight" Value="SemiBold" />
+                                <Setter TargetName="Zahlavi" Property="TextBlock.Foreground" Value="#1F3F75" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <DockPanel>
         <!-- Pás karet jako ve Wordu: karty podle kroků práce, ve skupinách velká tlačítka s ikonou -->
-        <TabControl x:Name="Pas" AutomationProperties.AutomationId="PasKaret" DockPanel.Dock="Top" Background="#F5F7FB" BorderThickness="0,0,0,1" BorderBrush="#D6DCE5" Padding="2">
-            <TabControl.Resources>
-                <!-- záhlaví karet: jen text, vybraná karta podtržená modře -->
-                <Style TargetType="TabItem">
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="TabItem">
-                                <Border x:Name="Karta" Padding="16,6,16,5" Margin="0,0,2,0" Background="Transparent" BorderThickness="0,0,0,3" BorderBrush="Transparent" Cursor="Hand">
-                                    <ContentPresenter ContentSource="Header" TextBlock.FontSize="13" TextBlock.Foreground="#333" />
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="Karta" Property="Background" Value="#E3ECF8" />
-                                    </Trigger>
-                                    <Trigger Property="IsSelected" Value="True">
-                                        <Setter TargetName="Karta" Property="BorderBrush" Value="#2B579A" />
-                                        <Setter Property="FontWeight" Value="SemiBold" />
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </TabControl.Resources>
+        <TabControl x:Name="Pas" AutomationProperties.AutomationId="PasKaret" DockPanel.Dock="Top" Background="#F5F7FB" BorderThickness="0,0,0,1" BorderBrush="#D6DCE5" Padding="2"
+                    ItemContainerStyle="{StaticResource Karta}">
             <TabItem Header="Domů" AutomationProperties.AutomationId="KartaDomu">
                 <StackPanel Orientation="Horizontal">
                     <DockPanel Style="{StaticResource Skupina}">
@@ -108,17 +115,17 @@
                     <DockPanel Style="{StaticResource Skupina}">
                         <TextBlock Style="{StaticResource NazevSkupiny}" Text="Přepis" />
                         <StackPanel Orientation="Horizontal">
-                            <Button x:Name="SpustitPrepis" Style="{StaticResource Velke}" Tag="&#xE768;" Content="Spustit přepis" Click="SpustitPrepis_Click" AutomationProperties.AutomationId="SpustitPrepis"
+                            <Button x:Name="SpustitPrepis" Style="{StaticResource Velke}" Tag="&#xE768;" Foreground="#107C10" Content="Spustit přepis" Click="SpustitPrepis_Click" AutomationProperties.AutomationId="SpustitPrepis"
                                     ToolTip="Narovná a přepíše všechny strany bez přepisu a najde v nich údaje. Může běžet přes noc, počítač mezitím neusne. F5" />
-                            <Button x:Name="Zastavit" Style="{StaticResource Velke}" Tag="&#xE71A;" Content="Zastavit" Click="Zastavit_Click" IsEnabled="False" AutomationProperties.AutomationId="Zastavit" />
+                            <Button x:Name="Zastavit" Style="{StaticResource Velke}" Tag="&#xE71A;" Foreground="#C42B1C" Content="Zastavit" Click="Zastavit_Click" IsEnabled="False" AutomationProperties.AutomationId="Zastavit" />
                         </StackPanel>
                     </DockPanel>
                     <Rectangle Style="{StaticResource Oddelovac}" />
                     <DockPanel Style="{StaticResource Skupina}">
-                        <TextBlock Style="{StaticResource NazevSkupiny}" Text="Fotka" />
+                        <TextBlock Style="{StaticResource NazevSkupiny}" Text="Zobrazení" />
                         <StackPanel Orientation="Horizontal">
-                            <StackPanel VerticalAlignment="Center" Margin="4,0">
-                                <TextBlock Text="Zvětšení" Foreground="#555" />
+                            <StackPanel VerticalAlignment="Center" Margin="6,0,8,0">
+                                <TextBlock Text="Zvětšení" Foreground="#262626" FontSize="12" Margin="2,0,0,4" />
                                 <Slider x:Name="Zvetseni" AutomationProperties.AutomationId="Zvetseni" Minimum="0.1" Maximum="3" Value="0.5" Width="110" ValueChanged="Zvetseni_ValueChanged" />
                             </StackPanel>
                             <Button Style="{StaticResource Velke}" Tag="&#xE9A6;" Content="Na šířku" Click="NaSirku_Click" AutomationProperties.AutomationId="Nasirku" />
@@ -133,7 +140,7 @@
                     <DockPanel Style="{StaticResource Skupina}">
                         <TextBlock Style="{StaticResource NazevSkupiny}" Text="Údaje" />
                         <StackPanel Orientation="Horizontal">
-                            <Button x:Name="NajitUdaje" Style="{StaticResource Velke}" Tag="&#xE721;" Content="Najít údaje" Click="NajitUdaje_Click" IsEnabled="False" AutomationProperties.AutomationId="NajitUdaje"
+                            <Button x:Name="NajitUdaje" Style="{StaticResource Velke}" Tag="&#xE8EC;" Content="Najít údaje" Click="NajitUdaje_Click" IsEnabled="False" AutomationProperties.AutomationId="NajitUdaje"
                                     ToolTip="Projde všechny přepsané strany spisu a najde jména, adresy, čísla a další údaje." />
                             <Button Style="{StaticResource Velke}" Tag="&#xE77B;" Content="Osoby a údaje" Click="PasOsoby_Click" AutomationProperties.AutomationId="PasOsoby" />
                             <Button Style="{StaticResource Velke}" Tag="&#xE73E;" Content="Rychlá kontrola" Click="PasRychlaKontrola_Click" AutomationProperties.AutomationId="PasRychlaKontrola"
@@ -146,7 +153,7 @@
                         <StackPanel Orientation="Horizontal">
                             <ToggleButton x:Name="Nahled" Style="{StaticResource Velke}" Tag="&#xE890;" Content="Náhled pro Clauda" Click="Nahled_Click" AutomationProperties.AutomationId="Nahled"
                                           ToolTip="Ukáže text strany tak, jak ho dostane Claude." />
-                            <ToggleButton x:Name="Zkontrolovano" Style="{StaticResource Velke}" Tag="&#xE930;" Content="Strana zkontrolována" Click="Zkontrolovano_Click" IsEnabled="False"
+                            <ToggleButton x:Name="Zkontrolovano" Style="{StaticResource Velke}" Tag="&#xE930;" Foreground="#107C10" Content="Strana zkontrolována" Click="Zkontrolovano_Click" IsEnabled="False"
                                           AutomationProperties.AutomationId="Zkontrolovano" ToolTip="Ctrl+K" />
                         </StackPanel>
                     </DockPanel>
@@ -156,7 +163,7 @@
                         <StackPanel Orientation="Horizontal">
                             <Button Style="{StaticResource Velke}" Tag="&#xE721;" Content="Hledat" Click="PasHledat_Click" AutomationProperties.AutomationId="PasHledat" ToolTip="Ctrl+F" />
                             <Button Style="{StaticResource Velke}" Tag="&#xE787;" Content="Data ve spisu" Click="PasData_Click" AutomationProperties.AutomationId="PasData" />
-                            <Button x:Name="KPrefoceni" Style="{StaticResource Velke}" Tag="&#xE722;" Content="K přefocení" Click="KPrefoceni_Click" AutomationProperties.AutomationId="KPrefoceni"
+                            <Button x:Name="KPrefoceni" Style="{StaticResource Velke}" Tag="&#xE72C;" Foreground="#B9690B" Content="K přefocení" Click="KPrefoceni_Click" AutomationProperties.AutomationId="KPrefoceni"
                                     ToolTip="Strany, které vyšly špatně (rozmazané, tmavé, uříznuté), s možností nahradit je novou fotkou." />
                             <Button x:Name="Oddelovace" Style="{StaticResource Velke}" Tag="&#xE8C6;" Content="Oddělovače" Click="Oddelovace_Click" IsEnabled="False" AutomationProperties.AutomationId="Oddelovace"
                                     ToolTip="Fotky vzaté jako oddělovače dokumentů (zakrytý objektiv). Skutečnou stránku jde vrátit mezi strany." />
@@ -169,9 +176,9 @@
                     <DockPanel Style="{StaticResource Skupina}">
                         <TextBlock Style="{StaticResource NazevSkupiny}" Text="Pro Clauda" />
                         <StackPanel Orientation="Horizontal">
-                            <Button x:Name="Exportovat" Style="{StaticResource Velke}" Tag="&#xE72D;" Content="Exportovat" Click="Exportovat_Click" IsEnabled="False" AutomationProperties.AutomationId="Exportovat"
+                            <Button x:Name="Exportovat" Style="{StaticResource Velke}" Tag="&#xE72D;" Foreground="#C15F3C" Content="Exportovat" Click="Exportovat_Click" IsEnabled="False" AutomationProperties.AutomationId="Exportovat"
                                     ToolTip="Celý spis nebo jen vybrané dokumenty, s úkolem pro Clauda. Ctrl+E" />
-                            <Button x:Name="NaFlashDisk" Style="{StaticResource Velke}" Tag="&#xE88E;" Content="Na flash disk" Click="NaFlashDisk_Click" AutomationProperties.AutomationId="NaFlashDisk"
+                            <Button x:Name="NaFlashDisk" Style="{StaticResource Velke}" Tag="&#xE88E;" Foreground="#C15F3C" Content="Na flash disk" Click="NaFlashDisk_Click" AutomationProperties.AutomationId="NaFlashDisk"
                                     ToolTip="Zkopíruje export pro Clauda na flash disk a ověří, že v něm nejsou fotky ani klíč." />
                         </StackPanel>
                     </DockPanel>
@@ -278,7 +285,8 @@
 
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" />
 
-            <TabControl x:Name="Zalozky" AutomationProperties.AutomationId="Zalozky" Grid.Column="2" SelectionChanged="Zalozky_SelectionChanged">
+            <TabControl x:Name="Zalozky" AutomationProperties.AutomationId="Zalozky" Grid.Column="2" SelectionChanged="Zalozky_SelectionChanged"
+                        ItemContainerStyle="{StaticResource Karta}" BorderThickness="0,1,0,0" BorderBrush="#D6DCE5" Padding="0">
                 <TabItem Header="Text strany">
                     <FlowDocumentScrollViewer x:Name="TextStrany" AutomationProperties.AutomationId="TextStrany" VerticalScrollBarVisibility="Auto">
                         <FlowDocumentScrollViewer.ContextMenu>
