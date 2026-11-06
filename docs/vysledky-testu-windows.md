@@ -391,3 +391,29 @@ Opraveno 2026-11-06 (testy v `PrenosTesty`, `KvalitaTesty`, `PrehledDatTesty`, `
 8. **Nápověda u data:** termín jednání dál od data („jednání, které se bude konat dne …“) dostane nápovědu „jednání“.
 9. **PDF pro archiv:** slova jednoho řádku leží na společném účaří, kopírovaný text by měl mít správné pořadí. Ověřit v Edge.
 
+## Opakování kontroly, 2026-11-06 večer (commit 4a708e9)
+
+Všechny tři závažné chyby i čtyři z pěti středních jsou opravené a nová funkce tisku funguje. Nic blokujícího jsem nenašel. Automatické testy 473 z 473. Testováno přes `koncipient-cli` se složkami místo flash disku, na vymyšlené sadě a archivu.
+
+| Nález z minula | Výsledek |
+| --- | --- |
+| Záloha na disk s ProClaude | Opraveno: záloha na takový disk i do ProClaude a jejích podsložek se odmítne s jasnou hláškou |
+| ProClaude na disk se zálohou | Opraveno: `na-disk` odmítne disk, na kterém je `Koncipient-zaloha` |
+| Text ze spisu podstrčený do ProClaude | Opraveno: soubor, který nevytvořil export, se nezkopíruje. Výstup ve `vystup` se skutečným jménem zastaví závěrečná kontrola. |
+| Nečitelná rozmazaná strana | Opraveno: „fotka je nečitelná (rozmazaná), program z ní nepřečetl nic“ |
+| N u adresy | Opraveno: u adresy patřící osobě se program ptá |
+| Export „Jen nové“ | Opraveno: přidá dokument, předchozí zůstanou ve složce i na disku, `cely_spis: true` |
+| Tlačítka v přetečení lišty | Opraveno: přesunuté do nabídky Spis a Claude |
+| Záznam o exportu | Opraveno: počty jen z exportovaných dokumentů |
+| Nápověda u termínu jednání | Opraveno: `[jednání]` |
+| Pořadí slov v PDF pro archiv | Opraveno: text jde po řádcích (`PLNÁ MOC Já, níže podepsaný…`) |
+
+Zbývá drobnost: uříznutá strana má v seznamu k přefocení i důvod „fotka je rozmazaná“, který neplatí.
+
+### Test 17: upravené fotky k tisku
+
+`tisk` vytvořil PDF (vymyšlená sada 9 stran, 1,1 MB, archiv 6 stran, 5,9 MB). Stránky A4 jsou oříznuté, narovnané a černobílé. Vytištěný text vymyšlené sady je dobře čitelný, písmo je jen trochu zubaté. U fotky z archivu v průhledné fólii se odlesky změnily v černé skvrny kolem textu, tištěný text zůstal čitelný. Na takové stránky je vhodná volba `--barevne`, kterou jsem neověřoval. PDF k tisku nemá textovou vrstvu a jde jen do počítače se spisy.
+
+### Co neověřeno
+
+Skutečný flash disk (program hledá výměnné disky, s USB diskem hlášeným jako pevný ho neuvidí), skutečný tisk na papír, nabídka v okně (testoval jsem jen přes CLI a čtení XAML) a dál okno vrácení jmen a Word.
