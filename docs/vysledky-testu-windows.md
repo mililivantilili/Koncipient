@@ -327,3 +327,52 @@ Opraveno 2026-11-04 (testy v `PdfTesty`, `RychlaKontrolaTesty`, `WindowsNalezyTe
 
 Rozhodnuto Matějem 2026-11-04: rychlá kontrola stranu sama neoznačí. Po vyřízení míst strany ukáže celou stranu v textu pro Clauda vedle fotky a zkontrolovaná je teprve po jejím potvrzení. Hromadné tlačítko Strany bez nálezů zmizelo, takové strany jdou rovnou k potvrzení.
 
+## Kontrola nových funkcí, 2026-11-06 (commit 6a2c825)
+
+Opravy z minula fungují a většina nových funkcí taky. **Nové jsou 3 chyby, kvůli kterým můžou skutečné údaje opustit počítač se spisy nebo zůstat nezkontrolované**: záloha na stejný flash disk, kterým se přenáší ProClaude, kontrola flash disku, která nehlídá text, a rozmazaná strana, která se nenabídne k přefocení. Automatické testy 465 z 465. Testováno přes `koncipient-cli` na archivu (17 stran), vymyšlené sadě a vymyšlených PDF, okno přes UI Automation. Příklady jsou přepsané na vymyšlené.
+
+### Opravy z minula
+
+| Nález | Výsledek |
+| --- | --- |
+| Sken s doložkou v PDF | Opraveno, strana jde přes OCR a má celý text |
+| Jméno malými písmeny v hlavičce e-mailu | Rychlá kontrola ho teď nabídne |
+| Potvrzení u N | Funguje u osob. U adres a firem se neptá, viz níže. |
+| Sloučení míst | Archiv 194 míst (minule 293): 79 nahrazených, 115 podezřelých |
+| Falešné osoby `Dobrý den`, `FW` | Na novém spisu se už neobjevily |
+| Poškozené PDF | Česká hláška s názvem souboru |
+
+### Nové funkce
+
+| Test | Výsledek |
+| --- | --- |
+| 9 a 12: potvrzení celé strany | Funguje: strana dostane ☑ až po Enteru na „celá strana k potvrzení“ |
+| 10: hledání | Najde bez diakritiky (`zaloba` → `Žaloba`) i víceslovnou frázi |
+| 10: PDF pro archiv | Textová vrstva je na všech stranách a záložka dokumentu je vytvořená. Pořadí slov na 4 ze 6 stran je ale přeházené (`PLNÁ MOC 05 999 Dubová 22,`), kopírování textu z PDF proto dá zpřeházený text. Hledání v Edge jsem neověřoval. |
+| 10: export vybraných a jen nových dokumentů | Funguje, `cely_spis: false`, čísla dokumentů jsou stálá. Viz poznámka k přenosu níže. |
+| 11: přenos | Kontrola fotek a klíče funguje, výstup od Clauda se načte jen jednou a jména se vrátí. Skutečný flash disk jsem neměl, testoval jsem se složkou. |
+| 13: záznam o exportech | Bez jmen a názvů dokumentů |
+| 14: úkol pro Clauda | Jméno ve 2. pádě se nahradí ve stejném pádě, nové jméno a datum narození v úkolu export zastaví a bez úkolu `UKOL.md` zmizí |
+| 15: přehled dat | Archiv 9 dat (prostý regex jich najde 11). Data narození jsou skrytá. |
+| 16: záloha | Nabídka po spuštění funguje a po Ne se připomíná znovu. Záloha i ověření proběhnou. |
+| 12: stránky k přefocení | Uříznutá strana se nahlásí. Prázdný papír ne, tmavá fotka se vezme jako oddělovač a ukáže se v okně Oddělovače, nahrazení fotky funguje. |
+
+### Závažné
+
+1. **Záloha na flash disk, kterým se přenáší ProClaude.** Návod k testu 16 přímo doporučuje flash disk. Záloha s fotkami a klíčem i ProClaude pak skončí na stejném disku a ten se zasune do počítače s Claudem, což porušuje pravidlo oddělených počítačů. `Prenos.NaDisk` ani `Zaloha.Proved` to nehlídají. Ověřeno: záloha do složky, kde už je ProClaude, i následné `na-disk` do ní projdou bez varování. Záloha jde uložit i přímo do `ProClaude`. Tam ji sice zachytí kontrola při kopírování na disk, při ručním přenosu složky ale ne. Návrh: záloha odmítne disk nebo složku s ProClaude a `na-disk` odmítne disk, na kterém je `Koncipient-zaloha`. Do návodu napsat, že zálohovací disk patří ke spisům a nikdy se nezasouvá do počítače s Claudem.
+2. **Kontrola flash disku nehlídá obsah textových souborů.** `Prenos.Zkontroluj` hlídá jen přípony a názvy. Soubor `poznamky.md` s přepisem strany se skutečnými jmény, uložený do `ProClaude\S-…`, se na disk zkopíroval. Návrh: kopírovat jen soubory, které vytvořil export (podle manifestu, plus `CLAUDE.md` a pravidla). Ostatní `.md` a `.txt` prověřit závěrečnou kontrolou proti klíči spisu.
+3. **Nečitelná rozmazaná strana se nenabídne k přefocení.** `KvalitaFotek.Posud` přeskakuje kontrolu ostrosti, když má strana méně než 5 slov. Úplně rozmazaná fotka ale nemá žádné slovo, takže se tváří jako prázdná a v exportu zůstane bez textu. Ověřeno na vymyšlené stránce zmenšené na osminu a zpět: 0 slov, v seznamu k přefocení není. Návrh: strana bez slov, která není prázdná (odchylka jasu nad 12), je „nečitelná, přefotit“. Zároveň u uříznuté strany se přidává i důvod „rozmazaná“, který neplatí.
+
+### Střední
+
+| Chyba | Projev |
+| --- | --- |
+| N u adresy bez potvrzení | Adresa soukromé osoby se jednou klávesou odkryje na všech stranách. Potvrzení chybí u adres, firem a spisových značek. U adresy osoby (s `patri_k`) by mělo být. |
+| Export „Jen nové“ nahradí předchozí export | Ve složce `ProClaude\S-…` zůstane jen nový dokument a `na-disk` smaže na disku starší dokumenty. Claude pak předchozí dokumenty spisu nemá. Pokud je to záměr, patří to do návodu, jinak by „jen nové“ mělo přidávat. |
+| Důležitá tlačítka v přetečení lišty | Na monitoru o šířce 1936 px jsou `Načíst od Clauda z flash disku`, `Zálohovat…`, `Záznam o exportech…` a `PDF pro archiv…` skryté za šipkou lišty. Na menším notebooku advokátky jich bude schovaných víc. |
+| Záznam o exportech přehání | U exportu jednoho dokumentu uvádí počty nahrazených údajů z celého klíče spisu (13 osob u jedné strany). Věta „neobsahuje žádné osobní údaje“ neplatí úplně, záznam obsahuje uživatelské jméno Windows a cestu. |
+| Nápověda u data | `jednání, které se bude konat dne 10.9.2026` má nápovědu `[ze dne]`, ne `[jednání]`. U termínu jednání jde o podstatné. |
+
+### Co neověřeno
+
+Skutečný flash disk, otevření záznamu a dat ve Wordu, Ctrl+F v PDF v Edge, jestli Claude najde UKOL.md, stránky k přefocení vyfocené mobilem (testoval jsem upravené obrázky). Okno vrácení jmen dál zbývá vidět člověkem.
