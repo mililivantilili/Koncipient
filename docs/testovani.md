@@ -8,28 +8,30 @@ Testy může dělat i agent (Claude Code), postup pro něj je v [agent.md](agent
 
 ## Přehled
 
-| Test | Stav |
-| --- | --- |
-| Příprava | ✅ hotovo |
-| Test 0: automatické testy | ✅ hotovo, vše prošlo |
-| Test 1: OCR a rychlost | ✅ hotovo, výsledky v [návrhu](navrh.md) |
-| Test 1b: grafická karta | ✅ hotovo, grafika asi 2× rychlejší než procesor |
-| Test 2: prohlížeč | ✅ hotovo, vše funguje, PaddleOCR na grafice znatelně rychlejší |
-| Test 3: fotky bez otočení | ✅ hotovo, otočení funguje (zbývá jedna drobná kontrola, viz níže) |
-| Test 4: anonymizace a export | 🔶 zopakován 2026-11-04, zbylé úniky opravené (viz [výsledky](vysledky-testu-windows.md#stav-oprav-2026-11-04)), zopakovat na archivu |
-| Test 5: vrácení jmen a Word | 🔶 proběhl automaticky, barvy v okně a otevření ve Wordu zbývá ověřit |
-| Test 6: měření anonymizace s Windows OCR | ✅ hotovo, 2026-11-04 0 úniků z 87 |
-| Test 7: dokumenty, složky a černé fotky | 🔶 oddělovače prošly 2026-11-04, opravený pád přepisu na prázdné stránce, zopakovat jen přepis spisu s prázdnou stránkou |
-| Test 8: instalátor | nový |
-| Test 9: rychlá kontrola a PDF | nový |
-| Test 10: hledání, PDF pro archiv, export vybraných dokumentů | nový |
-| Test 11: přenos přes flash disk | nový |
-| Test 12: stránky k přefocení a potvrzení celé strany | nový |
-| Test 13: záznam o exportech | nový |
-| Test 14: úkol pro Clauda | nový |
-| Test 15: přehled dat | nový |
-| Test 16: záloha | nový |
-| Test 17: upravené fotky k tisku | nový |
+| Test | Stav | Co zbývá Matějovi 👤 |
+| --- | --- | --- |
+| Příprava | ✅ hotovo | |
+| Test 0: automatické testy | ✅ hotovo, 2026-11-06 473 z 473 | |
+| Test 1: OCR a rychlost | ✅ hotovo, výsledky v [návrhu](navrh.md) | |
+| Test 1b: grafická karta | ✅ hotovo, grafika asi 2× rychlejší než procesor | |
+| Test 2: prohlížeč | ✅ hotovo, vše funguje, PaddleOCR na grafice znatelně rychlejší | |
+| Test 3: fotky bez otočení | ✅ hotovo, otočení funguje | |
+| Test 4: anonymizace a export | ✅ agent 2026-11-06 na archivu, úniky opravené, export s kontrolou funguje | |
+| Test 5: vrácení jmen a Word | 🔶 agent: jména se vracejí ve správném pádě, .docx vzniká | 👤 podívat se na barvy v okně vrácení jmen a otevřít .docx ve Wordu |
+| Test 6: měření anonymizace s Windows OCR | ✅ hotovo, 2026-11-04 0 úniků z 87 | |
+| Test 7: dokumenty, složky a černé fotky | ✅ agent 2026-11-04, prázdná stránka už přepis nezastaví | |
+| Test 8: instalátor | 🔶 agent 2026-11-04: sestavení, instalace, přepis bez sítě, odinstalace | 👤 instalace na jiném počítači bez Visual Studia, ideálně u advokátky |
+| Test 9: rychlá kontrola a PDF | 🔶 agent 2026-11-06: potvrzení celé strany, N, O, PDF s textem i sken | 👤 skutečné PDF z datové schránky (třeba z archivu) |
+| Test 10: hledání, PDF pro archiv, export vybraných dokumentů | 🔶 agent 2026-11-06: hledání, textová vrstva a záložky PDF, export vybraných a nových | 👤 Ctrl+F v PDF v Edge, jestli označení sedí na slova |
+| Test 11: přenos přes flash disk | 🔶 agent 2026-11-06 se složkou místo disku: kontrola fotek, klíče a textu, výstupy zpět | 👤 skutečný flash disk (pozná ho program?) |
+| Test 12: stránky k přefocení a potvrzení celé strany | 🔶 agent 2026-11-06 na upravených obrázcích: rozmazaná, uříznutá, prázdná | 👤 stránky vyfocené mobilem (rozmazaně, potmě, uříznuté) |
+| Test 13: záznam o exportech | 🔶 agent 2026-11-06: záznam bez jmen, počty jen z exportu | 👤 otevřít uložený záznam ve Wordu |
+| Test 14: úkol pro Clauda | 🔶 agent 2026-11-06: náhled, UKOL.md, nové jméno v úkolu zastaví export | 👤 jestli Claude v ProClaude úkol najde a výsledek uloží do `vystup` |
+| Test 15: přehled dat | 🔶 agent 2026-11-06: řazení, skrytá data narození, nápovědy | 👤 otevřít uložený přehled ve Wordu |
+| Test 16: záloha | 🔶 agent 2026-11-06: nabídka po spuštění, ověření, zákaz disku s ProClaude | 👤 záloha na skutečný externí disk |
+| Test 17: upravené fotky k tisku | 🔶 agent 2026-11-06: PDF vzniká, černobílá a oříznutá | 👤 vytisknout pár stran a posoudit čitelnost, zkusit `barevně` u fotek ve fólii |
+
+Sloupec 👤 jsou kroky, které agent udělat nemůže (skutečný hardware, Word, tisk, Claude na druhém počítači). Ostatní testy dělá agent, výsledky jsou v [vysledky-testu-windows.md](vysledky-testu-windows.md).
 
 Hotové testy (✅) přeskoč, jejich postup je sbalený.
 
