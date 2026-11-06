@@ -183,6 +183,10 @@ Při exportu může advokátka napsat, co má Claude udělat. Text se anonymizuj
 
 Záložka Data (`PrehledDat.cs`) najde data v textu (číselně i s měsícem slovy, roky 1900–2100, neplatná data jako 31. 2. vynechá), seřadí je a k datu dá nápovědu podle tří slov před ním (narození, doručení, právní moc, jednání, splatnost, lhůta, podání, smlouva, ze dne). Lhůty se záměrně nepočítají. Data narození jsou ve výchozím stavu skrytá. Přehled obsahuje skutečné údaje a zůstává v počítači.
 
+## Vzhled okna
+
+Místo lišty a nabídek je nahoře pás karet podle Wordu (vlastní styl na `TabControl`, bez další knihovny): karty Domů, Kontrola, Claude a Tisk a archiv jdou v pořadí práce a mají skupiny velkých tlačítek s ikonou z písma Segoe Fluent Icons nebo Segoe MDL2 Assets, které má každý Windows 10 a 11. Názvy a AutomationId tlačítek zůstaly, takže klávesové zkratky i ovládání agentem fungují dál.
+
 ## Upravené fotky k tisku
 
 `UpravaProTisk.cs` připraví strany k tisku do PDF A4. **Oříznutí:** na zmenšenině se Otsuovým prahem oddělí světlý papír od stolu, uzavřením se zalepí písmena a největší obrys se aproximuje čtyřúhelníkem (jinak obdélníkem kolem). Když papír zabírá méně než 20 % nebo skoro celý snímek, fotka se neořízne. Pak perspektivní transformace na obdélník. **Černobílá:** odhad pozadí morfologickým uzavřením (jádro větší než písmeno, na čtvrtinové velikosti), vydělení pozadím vyrovná stíny a přechody světla. Pak Sauvolův lokální práh v okně asi dvou písmen (k = 0,2) a mediánový filtr proti tečkám. Matějova dřívější metoda (dva píky histogramu po čtvercích velikosti písmene) je příbuzná Bernsenově a Otsuově metodě. Sauvola s vyrovnaným pozadím je odolnější na slabém textu a ve stínech. Na fotkách z Matějova archivu zmizel zvýrazňovač i stíny a text zůstal čitelný.

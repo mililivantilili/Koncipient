@@ -246,3 +246,12 @@ public partial class HlavniOkno
         finally { IsEnabled = true; }
     }
 }
+
+/// <summary>Tlačítka pásu karet, která přepínají záložky vpravo.</summary>
+public partial class HlavniOkno
+{
+    private void PasOsoby_Click(object sender, RoutedEventArgs e) => Zalozky.SelectedIndex = 1;
+    private void PasRychlaKontrola_Click(object sender, RoutedEventArgs e) => Zalozky.SelectedIndex = 2;
+    private void PasHledat_Click(object sender, RoutedEventArgs e) { if (_spis is not null) HledatOtevrit(); }
+    private void PasData_Click(object sender, RoutedEventArgs e) => Zalozky.SelectedIndex = 4;
+}

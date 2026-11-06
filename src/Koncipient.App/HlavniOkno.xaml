@@ -3,71 +3,216 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Koncipient" Height="850" Width="1400" WindowState="Maximized"
         FontFamily="Segoe UI" FontSize="13" PreviewKeyDown="Okno_PreviewKeyDown">
+    <Window.Resources>
+        <!-- velké tlačítko pásu karet: ikona z písma Segoe (Tag) a popisek pod ní -->
+        <Style x:Key="Velke" TargetType="ButtonBase">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Width" Value="76" />
+            <Setter Property="Margin" Value="1,0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ButtonBase">
+                        <Border x:Name="Pozadi" Background="Transparent" BorderBrush="Transparent" BorderThickness="1" CornerRadius="4" Padding="3,4">
+                            <StackPanel>
+                                <TextBlock Text="{TemplateBinding Tag}" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="22"
+                                           HorizontalAlignment="Center" Foreground="#2B579A" />
+                                <ContentPresenter HorizontalAlignment="Center" Margin="0,4,0,0">
+                                    <ContentPresenter.Resources>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextWrapping" Value="Wrap" />
+                                            <Setter Property="TextAlignment" Value="Center" />
+                                            <Setter Property="FontSize" Value="12" />
+                                        </Style>
+                                    </ContentPresenter.Resources>
+                                </ContentPresenter>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Pozadi" Property="Background" Value="#E3ECF8" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Pozadi" Property="BorderBrush" Value="#2B579A" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Pozadi" Property="Background" Value="#C9DAF0" />
+                            </Trigger>
+                            <Trigger Property="ToggleButton.IsChecked" Value="True">
+                                <Setter TargetName="Pozadi" Property="Background" Value="#C9DAF0" />
+                                <Setter TargetName="Pozadi" Property="BorderBrush" Value="#8FB0DB" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="Skupina" TargetType="DockPanel">
+            <Setter Property="Margin" Value="4,2,4,0" />
+            <Setter Property="LastChildFill" Value="True" />
+        </Style>
+        <Style x:Key="NazevSkupiny" TargetType="TextBlock">
+            <Setter Property="DockPanel.Dock" Value="Bottom" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="#6B7280" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Margin" Value="0,2,0,2" />
+        </Style>
+        <Style x:Key="Oddelovac" TargetType="Rectangle">
+            <Setter Property="Width" Value="1" />
+            <Setter Property="Fill" Value="#D6DCE5" />
+            <Setter Property="Margin" Value="2,6,2,6" />
+        </Style>
+    </Window.Resources>
     <DockPanel>
-        <Menu DockPanel.Dock="Top" AutomationProperties.AutomationId="Nabidka">
-            <MenuItem Header="_Spis">
-                <MenuItem Header="Nový spis" Click="NovySpis_Click" InputGestureText="Ctrl+N" />
-                <MenuItem Header="Přidat fotky nebo PDF…" Click="PridatFotky_Click" InputGestureText="Ctrl+O" />
-                <MenuItem Header="Přidat složku…" Click="PridatSlozku_Click" InputGestureText="Ctrl+Shift+O" />
-                <MenuItem x:Name="Oddelovace" AutomationProperties.AutomationId="Oddelovace" Header="Oddělovače dokumentů…" Click="Oddelovace_Click" IsEnabled="False"
-                          ToolTip="Fotky vzaté jako oddělovače dokumentů (zakrytý objektiv). Skutečnou stránku jde vrátit mezi strany." />
-                <MenuItem x:Name="KPrefoceni" AutomationProperties.AutomationId="KPrefoceni" Header="Stránky k přefocení…" Click="KPrefoceni_Click"
-                          ToolTip="Strany, které vyšly špatně (rozmazané, tmavé, uříznuté), s možností nahradit je novou fotkou." />
-                <Separator />
-                <MenuItem x:Name="Zalohovat" AutomationProperties.AutomationId="Zalohovat" Header="Zálohovat spisy…" Click="Zalohovat_Click"
-                          ToolTip="Zkopíruje všechny spisy na externí disk, který zůstává u spisů, a ověří kopii." />
-            </MenuItem>
-            <MenuItem Header="_Claude">
-                <MenuItem Header="Exportovat pro Clauda…" Click="Exportovat_Click" InputGestureText="Ctrl+E" />
-                <MenuItem Header="Zkopírovat export na flash disk" Click="NaFlashDisk_Click" />
-                <MenuItem x:Name="ZFlashDisku" AutomationProperties.AutomationId="ZFlashDisku" Header="Načíst výstupy od Clauda z flash disku…" Click="ZFlashDisku_Click" />
-                <MenuItem Header="Vrátit jména do výstupu od Clauda…" Click="VratitJmena_Click" />
-                <Separator />
-                <MenuItem x:Name="ZaznamExportu" AutomationProperties.AutomationId="ZaznamExportu" Header="Záznam o exportech…" Click="ZaznamExportu_Click" IsEnabled="False"
-                          ToolTip="Kdy a co ze spisu odešlo Claudovi, s počty nahrazených údajů. Doklad pro GDPR." />
-            </MenuItem>
-            <MenuItem Header="_Tisk a archiv">
-                <MenuItem x:Name="TiskFotek" AutomationProperties.AutomationId="TiskFotek" Header="Upravené fotky k tisku…" Click="TiskFotek_Click" IsEnabled="False"
-                          ToolTip="Fotky stran oříznuté na papír, narovnané a převedené na černobílé, do PDF k vytištění." />
-                <MenuItem x:Name="PdfArchiv" AutomationProperties.AutomationId="PdfArchiv" Header="PDF pro archiv (s textem)…" Click="PdfArchiv_Click" IsEnabled="False"
-                          ToolTip="Prohledatelné PDF spisu (fotky s textem) pro vlastní archiv. Obsahuje skutečné údaje, nedávat Claudovi." />
-            </MenuItem>
-        </Menu>
-        <ToolBarTray DockPanel.Dock="Top" IsLocked="True">
-            <ToolBar>
-                <Button AutomationProperties.AutomationId="Novyspis" Content="Nový spis" Click="NovySpis_Click" ToolTip="Ctrl+N" Padding="8,4" />
-                <Button x:Name="PridatFotky" AutomationProperties.AutomationId="PridatFotky" Content="Přidat fotky…" Click="PridatFotky_Click" Padding="8,4" IsEnabled="False"
-                        ToolTip="Vybrané fotky nebo PDF (třeba z datové schránky). Černá fotka mezi fotkami odděluje dokumenty, každé PDF je samostatný dokument." />
-                <Button x:Name="PridatSlozku" AutomationProperties.AutomationId="PridatSlozku" Content="Přidat složku…" Click="PridatSlozku_Click" Padding="8,4" IsEnabled="False"
-                        ToolTip="Celá složka: každá podsložka je jeden dokument pojmenovaný podle ní. Černá fotka dokument dál dělí." />
-                <Separator />
-                <Button x:Name="SpustitPrepis" AutomationProperties.AutomationId="SpustitPrepis" Content="Spustit přepis" Click="SpustitPrepis_Click" Padding="8,4"
-                        ToolTip="Narovná a přepíše všechny strany bez přepisu a najde v nich údaje. Může běžet přes noc, počítač mezitím neusne." />
-                <Button x:Name="Zastavit" AutomationProperties.AutomationId="Zastavit" Content="Zastavit" Click="Zastavit_Click" Padding="8,4" IsEnabled="False" />
-                <Separator />
-                <TextBlock Text="Zvětšení" VerticalAlignment="Center" Margin="8,0,4,0" />
-                <Slider x:Name="Zvetseni" AutomationProperties.AutomationId="Zvetseni" Minimum="0.1" Maximum="3" Value="0.5" Width="120" VerticalAlignment="Center"
-                        ValueChanged="Zvetseni_ValueChanged" />
-                <Button AutomationProperties.AutomationId="Nasirku" Content="Na šířku" Click="NaSirku_Click" Padding="8,4" />
-                <Button AutomationProperties.AutomationId="Tlacitko" Content="⟲" Click="OtocitVlevo_Click" Padding="8,4" ToolTip="Otočit stranu doleva" />
-                <Button AutomationProperties.AutomationId="Tlacitko" Content="⟳" Click="OtocitVpravo_Click" Padding="8,4" ToolTip="Otočit stranu doprava" />
-            </ToolBar>
-            <ToolBar>
-                <Button x:Name="NajitUdaje" AutomationProperties.AutomationId="NajitUdaje" Content="Najít údaje" Click="NajitUdaje_Click" Padding="8,4" IsEnabled="False"
-                        ToolTip="Projde všechny přepsané strany spisu a najde jména, adresy, čísla a další údaje." />
-                <ToggleButton x:Name="Nahled" AutomationProperties.AutomationId="Nahled" Content="Náhled pro Clauda" Click="Nahled_Click" Padding="8,4"
-                              ToolTip="Ukáže text strany tak, jak ho dostane Claude." />
-                <CheckBox x:Name="Zkontrolovano" AutomationProperties.AutomationId="Zkontrolovano" Content="Strana zkontrolována" VerticalAlignment="Center" Margin="8,0"
-                          Click="Zkontrolovano_Click" IsEnabled="False" />
-                <Button x:Name="Exportovat" AutomationProperties.AutomationId="Exportovat" Content="Exportovat pro Clauda…" Click="Exportovat_Click" Padding="8,4" IsEnabled="False"
-                        ToolTip="Celý spis nebo jen vybrané dokumenty (třeba nově doplněné). Ctrl+E" />
-                <Separator />
-                <Button x:Name="VratitJmena" AutomationProperties.AutomationId="VratitJmena" Content="Vrátit jména do výstupu od Clauda…" Click="VratitJmena_Click" Padding="8,4" IsEnabled="False"
-                        ToolTip="Otevře dokument od Clauda, vrátí do něj skutečná jména a uloží ho jako Word." />
-                <Button x:Name="NaFlashDisk" AutomationProperties.AutomationId="NaFlashDisk" Content="Na flash disk" Click="NaFlashDisk_Click" Padding="8,4"
-                        ToolTip="Zkopíruje export pro Clauda na flash disk a ověří, že v něm nejsou fotky ani klíč." />
-            </ToolBar>
-        </ToolBarTray>
+        <!-- Pás karet jako ve Wordu: karty podle kroků práce, ve skupinách velká tlačítka s ikonou -->
+        <TabControl x:Name="Pas" AutomationProperties.AutomationId="PasKaret" DockPanel.Dock="Top" Background="#F5F7FB" BorderThickness="0,0,0,1" BorderBrush="#D6DCE5" Padding="2">
+            <TabControl.Resources>
+                <!-- záhlaví karet: jen text, vybraná karta podtržená modře -->
+                <Style TargetType="TabItem">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TabItem">
+                                <Border x:Name="Karta" Padding="16,6,16,5" Margin="0,0,2,0" Background="Transparent" BorderThickness="0,0,0,3" BorderBrush="Transparent" Cursor="Hand">
+                                    <ContentPresenter ContentSource="Header" TextBlock.FontSize="13" TextBlock.Foreground="#333" />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Karta" Property="Background" Value="#E3ECF8" />
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="Karta" Property="BorderBrush" Value="#2B579A" />
+                                        <Setter Property="FontWeight" Value="SemiBold" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TabControl.Resources>
+            <TabItem Header="Domů" AutomationProperties.AutomationId="KartaDomu">
+                <StackPanel Orientation="Horizontal">
+                    <DockPanel Style="{StaticResource Skupina}">
+                        <TextBlock Style="{StaticResource NazevSkupiny}" Text="Spis" />
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource Velke}" Tag="&#xE8A5;" Content="Nový spis" Click="NovySpis_Click" AutomationProperties.AutomationId="Novyspis" ToolTip="Ctrl+N" />
+                            <Button x:Name="PridatFotky" Style="{StaticResource Velke}" Tag="&#xE722;" Content="Přidat fotky" Click="PridatFotky_Click" IsEnabled="False" AutomationProperties.AutomationId="PridatFotky"
+                                    ToolTip="Vybrané fotky nebo PDF (třeba z datové schránky). Černá fotka mezi fotkami odděluje dokumenty. Ctrl+O" />
+                            <Button x:Name="PridatSlozku" Style="{StaticResource Velke}" Tag="&#xE8B7;" Content="Přidat složku" Click="PridatSlozku_Click" IsEnabled="False" AutomationProperties.AutomationId="PridatSlozku"
+                                    ToolTip="Celá složka: každá podsložka je jeden dokument pojmenovaný podle ní. Ctrl+Shift+O" />
+                        </StackPanel>
+                    </DockPanel>
+                    <Rectangle Style="{StaticResource Oddelovac}" />
+                    <DockPanel Style="{StaticResource Skupina}">
+                        <TextBlock Style="{StaticResource NazevSkupiny}" Text="Přepis" />
+                        <StackPanel Orientation="Horizontal">
+                            <Button x:Name="SpustitPrepis" Style="{StaticResource Velke}" Tag="&#xE768;" Content="Spustit přepis" Click="SpustitPrepis_Click" AutomationProperties.AutomationId="SpustitPrepis"
+                                    ToolTip="Narovná a přepíše všechny strany bez přepisu a najde v nich údaje. Může běžet přes noc, počítač mezitím neusne. F5" />
+                            <Button x:Name="Zastavit" Style="{StaticResource Velke}" Tag="&#xE71A;" Content="Zastavit" Click="Zastavit_Click" IsEnabled="False" AutomationProperties.AutomationId="Zastavit" />
+                        </StackPanel>
+                    </DockPanel>
+                    <Rectangle Style="{StaticResource Oddelovac}" />
+                    <DockPanel Style="{StaticResource Skupina}">
+                        <TextBlock Style="{StaticResource NazevSkupiny}" Text="Fotka" />
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel VerticalAlignment="Center" Margin="4,0">
+                                <TextBlock Text="Zvětšení" Foreground="#555" />
+                                <Slider x:Name="Zvetseni" AutomationProperties.AutomationId="Zvetseni" Minimum="0.1" Maximum="3" Value="0.5" Width="110" ValueChanged="Zvetseni_ValueChanged" />
+                            </StackPanel>
+                            <Button Style="{StaticResource Velke}" Tag="&#xE9A6;" Content="Na šířku" Click="NaSirku_Click" AutomationProperties.AutomationId="Nasirku" />
+                            <Button Style="{StaticResource Velke}" Tag="&#xE7A7;" Content="Otočit doleva" Click="OtocitVlevo_Click" AutomationProperties.AutomationId="OtocitVlevo" />
+                            <Button Style="{StaticResource Velke}" Tag="&#xE7A6;" Content="Otočit doprava" Click="OtocitVpravo_Click" AutomationProperties.AutomationId="OtocitVpravo" />
+                        </StackPanel>
+                    </DockPanel>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="Kontrola" AutomationProperties.AutomationId="KartaKontrola">
+                <StackPanel Orientation="Horizontal">
+                    <DockPanel Style="{StaticResource Skupina}">
+                        <TextBlock Style="{StaticResource NazevSkupiny}" Text="Údaje" />
+                        <StackPanel Orientation="Horizontal">
+                            <Button x:Name="NajitUdaje" Style="{StaticResource Velke}" Tag="&#xE721;" Content="Najít údaje" Click="NajitUdaje_Click" IsEnabled="False" AutomationProperties.AutomationId="NajitUdaje"
+                                    ToolTip="Projde všechny přepsané strany spisu a najde jména, adresy, čísla a další údaje." />
+                            <Button Style="{StaticResource Velke}" Tag="&#xE77B;" Content="Osoby a údaje" Click="PasOsoby_Click" AutomationProperties.AutomationId="PasOsoby" />
+                            <Button Style="{StaticResource Velke}" Tag="&#xE73E;" Content="Rychlá kontrola" Click="PasRychlaKontrola_Click" AutomationProperties.AutomationId="PasRychlaKontrola"
+                                    ToolTip="Projde nalezená místa a pak celé strany tak, jak je dostane Claude." />
+                        </StackPanel>
+                    </DockPanel>
+                    <Rectangle Style="{StaticResource Oddelovac}" />
+                    <DockPanel Style="{StaticResource Skupina}">
+                        <TextBlock Style="{StaticResource NazevSkupiny}" Text="Strana" />
+                        <StackPanel Orientation="Horizontal">
+                            <ToggleButton x:Name="Nahled" Style="{StaticResource Velke}" Tag="&#xE890;" Content="Náhled pro Clauda" Click="Nahled_Click" AutomationProperties.AutomationId="Nahled"
+                                          ToolTip="Ukáže text strany tak, jak ho dostane Claude." />
+                            <ToggleButton x:Name="Zkontrolovano" Style="{StaticResource Velke}" Tag="&#xE930;" Content="Strana zkontrolována" Click="Zkontrolovano_Click" IsEnabled="False"
+                                          AutomationProperties.AutomationId="Zkontrolovano" ToolTip="Ctrl+K" />
+                        </StackPanel>
+                    </DockPanel>
+                    <Rectangle Style="{StaticResource Oddelovac}" />
+                    <DockPanel Style="{StaticResource Skupina}">
+                        <TextBlock Style="{StaticResource NazevSkupiny}" Text="Spis" />
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource Velke}" Tag="&#xE721;" Content="Hledat" Click="PasHledat_Click" AutomationProperties.AutomationId="PasHledat" ToolTip="Ctrl+F" />
+                            <Button Style="{StaticResource Velke}" Tag="&#xE787;" Content="Data ve spisu" Click="PasData_Click" AutomationProperties.AutomationId="PasData" />
+                            <Button x:Name="KPrefoceni" Style="{StaticResource Velke}" Tag="&#xE722;" Content="K přefocení" Click="KPrefoceni_Click" AutomationProperties.AutomationId="KPrefoceni"
+                                    ToolTip="Strany, které vyšly špatně (rozmazané, tmavé, uříznuté), s možností nahradit je novou fotkou." />
+                            <Button x:Name="Oddelovace" Style="{StaticResource Velke}" Tag="&#xE8C6;" Content="Oddělovače" Click="Oddelovace_Click" IsEnabled="False" AutomationProperties.AutomationId="Oddelovace"
+                                    ToolTip="Fotky vzaté jako oddělovače dokumentů (zakrytý objektiv). Skutečnou stránku jde vrátit mezi strany." />
+                        </StackPanel>
+                    </DockPanel>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="Claude" AutomationProperties.AutomationId="KartaClaude">
+                <StackPanel Orientation="Horizontal">
+                    <DockPanel Style="{StaticResource Skupina}">
+                        <TextBlock Style="{StaticResource NazevSkupiny}" Text="Pro Clauda" />
+                        <StackPanel Orientation="Horizontal">
+                            <Button x:Name="Exportovat" Style="{StaticResource Velke}" Tag="&#xE72D;" Content="Exportovat" Click="Exportovat_Click" IsEnabled="False" AutomationProperties.AutomationId="Exportovat"
+                                    ToolTip="Celý spis nebo jen vybrané dokumenty, s úkolem pro Clauda. Ctrl+E" />
+                            <Button x:Name="NaFlashDisk" Style="{StaticResource Velke}" Tag="&#xE88E;" Content="Na flash disk" Click="NaFlashDisk_Click" AutomationProperties.AutomationId="NaFlashDisk"
+                                    ToolTip="Zkopíruje export pro Clauda na flash disk a ověří, že v něm nejsou fotky ani klíč." />
+                        </StackPanel>
+                    </DockPanel>
+                    <Rectangle Style="{StaticResource Oddelovac}" />
+                    <DockPanel Style="{StaticResource Skupina}">
+                        <TextBlock Style="{StaticResource NazevSkupiny}" Text="Od Clauda" />
+                        <StackPanel Orientation="Horizontal">
+                            <Button x:Name="ZFlashDisku" Style="{StaticResource Velke}" Tag="&#xE896;" Content="Načíst z flash disku" Click="ZFlashDisku_Click" AutomationProperties.AutomationId="ZFlashDisku"
+                                    ToolTip="Načte z flash disku nové výstupy od Clauda a otevře je k vrácení jmen." />
+                            <Button x:Name="VratitJmena" Style="{StaticResource Velke}" Tag="&#xE8AB;" Content="Vrátit jména" Click="VratitJmena_Click" IsEnabled="False" AutomationProperties.AutomationId="VratitJmena"
+                                    ToolTip="Otevře dokument od Clauda, vrátí do něj skutečná jména a uloží ho jako Word." />
+                        </StackPanel>
+                    </DockPanel>
+                    <Rectangle Style="{StaticResource Oddelovac}" />
+                    <DockPanel Style="{StaticResource Skupina}">
+                        <TextBlock Style="{StaticResource NazevSkupiny}" Text="Doklad" />
+                        <Button x:Name="ZaznamExportu" Style="{StaticResource Velke}" Tag="&#xE81C;" Content="Záznam o exportech" Click="ZaznamExportu_Click" IsEnabled="False" AutomationProperties.AutomationId="ZaznamExportu"
+                                ToolTip="Kdy a co ze spisu odešlo Claudovi, s počty nahrazených údajů. Doklad pro GDPR." />
+                    </DockPanel>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="Tisk a archiv" AutomationProperties.AutomationId="KartaTisk">
+                <StackPanel Orientation="Horizontal">
+                    <DockPanel Style="{StaticResource Skupina}">
+                        <TextBlock Style="{StaticResource NazevSkupiny}" Text="Tisk" />
+                        <Button x:Name="TiskFotek" Style="{StaticResource Velke}" Tag="&#xE749;" Content="Fotky k tisku" Click="TiskFotek_Click" IsEnabled="False" AutomationProperties.AutomationId="TiskFotek"
+                                ToolTip="Fotky stran oříznuté na papír, narovnané a převedené na černobílé, do PDF k vytištění." />
+                    </DockPanel>
+                    <Rectangle Style="{StaticResource Oddelovac}" />
+                    <DockPanel Style="{StaticResource Skupina}">
+                        <TextBlock Style="{StaticResource NazevSkupiny}" Text="Archiv" />
+                        <StackPanel Orientation="Horizontal">
+                            <Button x:Name="PdfArchiv" Style="{StaticResource Velke}" Tag="&#xEA90;" Content="PDF s textem" Click="PdfArchiv_Click" IsEnabled="False" AutomationProperties.AutomationId="PdfArchiv"
+                                    ToolTip="Prohledatelné PDF spisu (fotky s textem) pro vlastní archiv. Obsahuje skutečné údaje, nedávat Claudovi." />
+                            <Button x:Name="Zalohovat" Style="{StaticResource Velke}" Tag="&#xE74E;" Content="Zálohovat spisy" Click="Zalohovat_Click" AutomationProperties.AutomationId="Zalohovat"
+                                    ToolTip="Zkopíruje všechny spisy na externí disk, který zůstává u spisů, a ověří kopii." />
+                        </StackPanel>
+                    </DockPanel>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
 
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBarItem>

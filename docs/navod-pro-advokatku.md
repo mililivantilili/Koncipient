@@ -13,6 +13,17 @@ Spusťte soubor `Koncipient-instalace-….exe` a potvrďte instalaci. Nepotřebu
 
 Spisy se ukládají do složky `Dokumenty\Koncipient\Spisy`. Odinstalace ani nová verze je nesmažou.
 
+## Jak je okno uspořádané
+
+Nahoře je pás karet jako ve Wordu. Karty jdou v pořadí práce:
+
+- **Domů:** nový spis, přidání fotek nebo PDF, spuštění přepisu, zvětšení a otočení fotky.
+- **Kontrola:** hledání údajů, rychlá kontrola, náhled pro Clauda, označení strany jako zkontrolované, hledání ve spisu, data, stránky k přefocení.
+- **Claude:** export, přenos na flash disk a zpět, vrácení jmen, záznam o exportech.
+- **Tisk a archiv:** upravené fotky k tisku, PDF s textem pro archiv, záloha.
+
+Vlevo je seznam stran po dokumentech, uprostřed text (a záložky Osoby a údaje, Rychlá kontrola, Hledání, Data), vpravo fotka.
+
 ## 1. Nafocení spisu
 
 - Každou stránku vyfoťte zvlášť, celou a zhora, ideálně u okna nebo pod lampou. Stačí běžný mobil.
@@ -34,7 +45,7 @@ Klikněte na **Spustit přepis**. Program fotky narovná, převede na text a naj
 
 Když je hotovo, uvidíte v titulku okna „přepis dokončen“ a čas. Pokud se některá strana nepřepsala, program napíše, která. Stačí přepis spustit znovu.
 
-**Stránky k přefocení:** po přepisu program nabídne strany, které vyšly špatně (rozmazané, tmavé, uříznuté u okraje nebo s nejistým přepisem), i s náhledem. Přefoťte je, dokud máte spis v ruce, a tlačítkem **Nahradit novou fotkou…** je vyměňte. Nová fotka se přepíše při dalším spuštění přepisu. Seznam ukáže kdykoli i nabídka **Spis → Stránky k přefocení…**.
+**Stránky k přefocení:** po přepisu program nabídne strany, které vyšly špatně (rozmazané, tmavé, uříznuté u okraje nebo s nejistým přepisem), i s náhledem. Přefoťte je, dokud máte spis v ruce, a tlačítkem **Nahradit novou fotkou…** je vyměňte. Nová fotka se přepíše při dalším spuštění přepisu. Seznam ukáže kdykoli i tlačítko **K přefocení** na kartě **Kontrola**.
 
 ## 4. Kontrola: hlavní práce
 
@@ -74,22 +85,22 @@ Osoby se nahrazují vymyšlenými jmény (např. Bohdan Jasaník). Claude s nimi
 
 1. **Exportovat pro Clauda…** Do pole **Co má Claude udělat** můžete rovnou napsat úkol, třeba „Navrhni odvolání proti rozsudku ve 2. dokumentu“. Jména v něm program nahradí stejně jako ve spisu a pod polem ukáže, co Claude dostane. Na počítači s Claudem pak stačí napsat „udělej úkol ve spisu S-0001“. Když má spis víc dokumentů, vyberte, které Claude dostane. Po doplnění spisu stačí tlačítko **Jen nové**: nové dokumenty se k dřívějšímu exportu přidají, dříve poslané zůstanou. Kontrolují se jen strany vybraných dokumentů. Program ještě jednou projde text a zastaví export, pokud v něm zůstal údaj, který zná (jméno, číslo nebo adresa z tabulky Osoby a údaje). Údaj, který nikdy nepoznal, ale zastavit nemůže, proto je důležitá vaše kontrola v kroku 4.
 2. Vznikne složka `Dokumenty\Koncipient\ProClaude\S-…`. Obsahuje jen anonymizovaný text (jeden soubor na dokument) a pokyny pro Clauda. Fotky ani skutečná jména v ní nejsou.
-3. Program nabídne **zkopírovat ji na flash disk** (kdykoli později v nabídce **Claude → Zkopírovat export na flash disk**). Zkopíruje jen složku `ProClaude` a předtím ověří, že v ní nejsou fotky ani klíč. Na počítači s Claudem ji zkopírujte na stejné místo jako minule a pracujte s ní jako obvykle. Na strany se Claude odkazuje čísly ze seznamu vlevo.
+3. Program nabídne **zkopírovat ji na flash disk** (kdykoli později na kartě **Claude** tlačítkem **Na flash disk**). Zkopíruje jen složku `ProClaude` a předtím ověří, že v ní nejsou fotky ani klíč. Na počítači s Claudem ji zkopírujte na stejné místo jako minule a pracujte s ní jako obvykle. Na strany se Claude odkazuje čísly ze seznamu vlevo.
 
 ## 6. Návrat: skutečná jména do výsledku
 
 1. Požádejte Clauda, ať výsledek (podání, shrnutí…) uloží jako soubor `.md` do složky `vystup` ve spisu. Složku `ProClaude` pak zkopírujte zpět na flash disk.
-2. Na počítači s Koncipientem zasuňte flash disk a zvolte v nabídce **Claude → Načíst výstupy od Clauda z flash disku…**. Program najde nové výstupy a rovnou otevře okno pro vrácení jmen. (Jinak jde soubor otevřít ručně: **Vrátit jména do výstupu od Clauda…**, pak **Otevřít dokument od Clauda…**.)
+2. Na počítači s Koncipientem zasuňte flash disk a klikněte na kartě **Claude** na **Načíst z flash disku**. Program najde nové výstupy a rovnou otevře okno pro vrácení jmen. (Jinak jde soubor otevřít ručně: **Vrátit jména do výstupu od Clauda…**, pak **Otevřít dokument od Clauda…**.)
 3. Program dosadí skutečná jména ve správném pádě. V okně barevně označí, co vrátil (zeleně), co stojí za kontrolu (oranžově) a co musíte doplnit sama (červeně). Text vpravo jde rovnou opravit.
 4. **Uložit jako Word…** a dokument dál upravujte ve Wordu jako obvykle.
 
 ## Záznam o exportech (GDPR)
 
-Program si u každého spisu sám zapisuje, kdy a co odešlo Claudovi nebo na flash disk: které dokumenty, kolik stran, jestli byly zkontrolované a kolik údajů se nahradilo. Záznam neobsahuje žádné osobní údaje. Nabídka **Claude → Záznam o exportech…** ho ukáže a uloží jako Word, třeba jako doklad pro klienta nebo pro kontrolu ochrany osobních údajů.
+Program si u každého spisu sám zapisuje, kdy a co odešlo Claudovi nebo na flash disk: které dokumenty, kolik stran, jestli byly zkontrolované a kolik údajů se nahradilo. Záznam neobsahuje žádné osobní údaje. Tlačítko **Záznam o exportech** na kartě **Claude** ho ukáže a uloží jako Word, třeba jako doklad pro klienta nebo pro kontrolu ochrany osobních údajů.
 
 ## Upravené fotky k tisku
 
-Nabídka **Tisk a archiv → Upravené fotky k tisku…** připraví PDF ve formátu A4: fotky se oříznou na list papíru (stůl a okolí zmizí), narovnají a převedou na čistou černobílou. Papír je bílý i tam, kde byl stín, a zvýrazňovač zmizí. Když program papír na fotce jistě nenajde (třeba vedle leží další listy), nechá fotku celou. PDF obsahuje skutečné údaje, je jen pro tisk v kanceláři.
+Tlačítko **Fotky k tisku** na kartě **Tisk a archiv** připraví PDF ve formátu A4: fotky se oříznou na list papíru (stůl a okolí zmizí), narovnají a převedou na čistou černobílou. Papír je bílý i tam, kde byl stín, a zvýrazňovač zmizí. Když program papír na fotce jistě nenajde (třeba vedle leží další listy), nechá fotku celou. PDF obsahuje skutečné údaje, je jen pro tisk v kanceláři.
 
 ## Hledání ve spisu
 
@@ -103,7 +114,7 @@ Záložka **Data** ukáže všechna data z textu spisu seřazená podle času, s
 
 ## PDF pro vlastní archiv
 
-**Tisk a archiv → PDF pro archiv (s textem)…** uloží fotky spisu (nebo vybraných dokumentů) do jednoho PDF, ve kterém jde hledat a kopírovat text. Dokumenty jsou v něm záložky. PDF obsahuje skutečné údaje, proto ho ukládejte jen u sebe a nikdy ho nedávejte Claudovi.
+Tlačítko **PDF s textem** na kartě **Tisk a archiv** uloží fotky spisu (nebo vybraných dokumentů) do jednoho PDF, ve kterém jde hledat a kopírovat text. Dokumenty jsou v něm záložky. PDF obsahuje skutečné údaje, proto ho ukládejte jen u sebe a nikdy ho nedávejte Claudovi.
 
 ## Doplnění spisu
 
@@ -117,7 +128,7 @@ Nové písemnosti přidáte do stejného spisu tlačítkem **Přidat fotky…** 
 
 ## Záloha
 
-Nabídka **Spis → Zálohovat spisy…** zkopíruje všechny spisy na externí disk (do složky `Koncipient-zaloha` s dnešním datem) a ověří, že se zkopírovalo všechno. Když záloha týden neproběhla, program to po spuštění připomene. Disk uložte stejně bezpečně jako papírový spis, jsou na něm fotky i skutečná jména, a nikdy ho nezasouvejte do počítače s Claudem. **Na zálohu použijte jiný disk než na přenos pro Clauda**: program zálohu na disk s přenosem odmítne a přenos na zálohovací disk také.
+Tlačítko **Zálohovat spisy** na kartě **Tisk a archiv** zkopíruje všechny spisy na externí disk (do složky `Koncipient-zaloha` s dnešním datem) a ověří, že se zkopírovalo všechno. Když záloha týden neproběhla, program to po spuštění připomene. Disk uložte stejně bezpečně jako papírový spis, jsou na něm fotky i skutečná jména, a nikdy ho nezasouvejte do počítače s Claudem. **Na zálohu použijte jiný disk než na přenos pro Clauda**: program zálohu na disk s přenosem odmítne a přenos na zálohovací disk také.
 
 ## Když něco nefunguje
 
