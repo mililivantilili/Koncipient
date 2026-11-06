@@ -4,6 +4,35 @@
         Title="Koncipient" Height="850" Width="1400" WindowState="Maximized"
         FontFamily="Segoe UI" FontSize="13" PreviewKeyDown="Okno_PreviewKeyDown">
     <DockPanel>
+        <Menu DockPanel.Dock="Top" AutomationProperties.AutomationId="Nabidka">
+            <MenuItem Header="_Spis">
+                <MenuItem Header="Nový spis" Click="NovySpis_Click" InputGestureText="Ctrl+N" />
+                <MenuItem Header="Přidat fotky nebo PDF…" Click="PridatFotky_Click" InputGestureText="Ctrl+O" />
+                <MenuItem Header="Přidat složku…" Click="PridatSlozku_Click" InputGestureText="Ctrl+Shift+O" />
+                <MenuItem x:Name="Oddelovace" AutomationProperties.AutomationId="Oddelovace" Header="Oddělovače dokumentů…" Click="Oddelovace_Click" IsEnabled="False"
+                          ToolTip="Fotky vzaté jako oddělovače dokumentů (zakrytý objektiv). Skutečnou stránku jde vrátit mezi strany." />
+                <MenuItem x:Name="KPrefoceni" AutomationProperties.AutomationId="KPrefoceni" Header="Stránky k přefocení…" Click="KPrefoceni_Click"
+                          ToolTip="Strany, které vyšly špatně (rozmazané, tmavé, uříznuté), s možností nahradit je novou fotkou." />
+                <Separator />
+                <MenuItem x:Name="Zalohovat" AutomationProperties.AutomationId="Zalohovat" Header="Zálohovat spisy…" Click="Zalohovat_Click"
+                          ToolTip="Zkopíruje všechny spisy na externí disk, který zůstává u spisů, a ověří kopii." />
+            </MenuItem>
+            <MenuItem Header="_Claude">
+                <MenuItem Header="Exportovat pro Clauda…" Click="Exportovat_Click" InputGestureText="Ctrl+E" />
+                <MenuItem Header="Zkopírovat export na flash disk" Click="NaFlashDisk_Click" />
+                <MenuItem x:Name="ZFlashDisku" AutomationProperties.AutomationId="ZFlashDisku" Header="Načíst výstupy od Clauda z flash disku…" Click="ZFlashDisku_Click" />
+                <MenuItem Header="Vrátit jména do výstupu od Clauda…" Click="VratitJmena_Click" />
+                <Separator />
+                <MenuItem x:Name="ZaznamExportu" AutomationProperties.AutomationId="ZaznamExportu" Header="Záznam o exportech…" Click="ZaznamExportu_Click" IsEnabled="False"
+                          ToolTip="Kdy a co ze spisu odešlo Claudovi, s počty nahrazených údajů. Doklad pro GDPR." />
+            </MenuItem>
+            <MenuItem Header="_Tisk a archiv">
+                <MenuItem x:Name="TiskFotek" AutomationProperties.AutomationId="TiskFotek" Header="Upravené fotky k tisku…" Click="TiskFotek_Click" IsEnabled="False"
+                          ToolTip="Fotky stran oříznuté na papír, narovnané a převedené na černobílé, do PDF k vytištění." />
+                <MenuItem x:Name="PdfArchiv" AutomationProperties.AutomationId="PdfArchiv" Header="PDF pro archiv (s textem)…" Click="PdfArchiv_Click" IsEnabled="False"
+                          ToolTip="Prohledatelné PDF spisu (fotky s textem) pro vlastní archiv. Obsahuje skutečné údaje, nedávat Claudovi." />
+            </MenuItem>
+        </Menu>
         <ToolBarTray DockPanel.Dock="Top" IsLocked="True">
             <ToolBar>
                 <Button AutomationProperties.AutomationId="Novyspis" Content="Nový spis" Click="NovySpis_Click" ToolTip="Ctrl+N" Padding="8,4" />
@@ -11,8 +40,6 @@
                         ToolTip="Vybrané fotky nebo PDF (třeba z datové schránky). Černá fotka mezi fotkami odděluje dokumenty, každé PDF je samostatný dokument." />
                 <Button x:Name="PridatSlozku" AutomationProperties.AutomationId="PridatSlozku" Content="Přidat složku…" Click="PridatSlozku_Click" Padding="8,4" IsEnabled="False"
                         ToolTip="Celá složka: každá podsložka je jeden dokument pojmenovaný podle ní. Černá fotka dokument dál dělí." />
-                <Button x:Name="Oddelovace" AutomationProperties.AutomationId="Oddelovace" Content="Oddělovače…" Click="Oddelovace_Click" Padding="8,4" IsEnabled="False"
-                        ToolTip="Fotky vzaté jako oddělovače dokumentů (zakrytý objektiv). Skutečnou stránku jde vrátit mezi strany." />
                 <Separator />
                 <Button x:Name="SpustitPrepis" AutomationProperties.AutomationId="SpustitPrepis" Content="Spustit přepis" Click="SpustitPrepis_Click" Padding="8,4"
                         ToolTip="Narovná a přepíše všechny strany bez přepisu a najde v nich údaje. Může běžet přes noc, počítač mezitím neusne." />
@@ -37,18 +64,8 @@
                 <Separator />
                 <Button x:Name="VratitJmena" AutomationProperties.AutomationId="VratitJmena" Content="Vrátit jména do výstupu od Clauda…" Click="VratitJmena_Click" Padding="8,4" IsEnabled="False"
                         ToolTip="Otevře dokument od Clauda, vrátí do něj skutečná jména a uloží ho jako Word." />
-                <Button x:Name="KPrefoceni" AutomationProperties.AutomationId="KPrefoceni" Content="K přefocení…" Click="KPrefoceni_Click" Padding="8,4"
-                        ToolTip="Strany, které vyšly špatně (rozmazané, tmavé, uříznuté), s možností nahradit je novou fotkou." />
                 <Button x:Name="NaFlashDisk" AutomationProperties.AutomationId="NaFlashDisk" Content="Na flash disk" Click="NaFlashDisk_Click" Padding="8,4"
                         ToolTip="Zkopíruje export pro Clauda na flash disk a ověří, že v něm nejsou fotky ani klíč." />
-                <Button x:Name="ZFlashDisku" AutomationProperties.AutomationId="ZFlashDisku" Content="Načíst od Clauda z flash disku" Click="ZFlashDisku_Click" Padding="8,4"
-                        ToolTip="Načte z flash disku nové výstupy od Clauda a otevře je k vrácení jmen." />
-                <Button x:Name="Zalohovat" AutomationProperties.AutomationId="Zalohovat" Content="Zálohovat…" Click="Zalohovat_Click" Padding="8,4"
-                        ToolTip="Zkopíruje všechny spisy na externí disk a ověří kopii. Program připomene, když záloha týden neproběhla." />
-                <Button x:Name="ZaznamExportu" AutomationProperties.AutomationId="ZaznamExportu" Content="Záznam o exportech…" Click="ZaznamExportu_Click" Padding="8,4" IsEnabled="False"
-                        ToolTip="Kdy a co ze spisu odešlo Claudovi, s počty nahrazených údajů. Doklad pro GDPR, neobsahuje osobní údaje." />
-                <Button x:Name="PdfArchiv" AutomationProperties.AutomationId="PdfArchiv" Content="PDF pro archiv…" Click="PdfArchiv_Click" Padding="8,4" IsEnabled="False"
-                        ToolTip="Prohledatelné PDF spisu (fotky s textem) pro vlastní archiv. Obsahuje skutečné údaje, nedávat Claudovi." />
             </ToolBar>
         </ToolBarTray>
 

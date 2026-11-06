@@ -181,7 +181,9 @@ public partial class HlavniOkno
     {
         if (_spis is null || VybraneMisto is not { } m) return;
         // osoba nebo číslo by šly do exportu skutečně: jedna klávesa nestačí
-        if (m.Entita is { Typ: not (TypUdaje.Adresa or TypUdaje.Firma or TypUdaje.SpisovaZnacka) } citlivy
+        // adresa soukromé osoby (patří k osobě) je stejně citlivá jako osoba
+        if (m.Entita is { } citlivy && (citlivy.Typ is not (TypUdaje.Adresa or TypUdaje.Firma or TypUdaje.SpisovaZnacka)
+                                        || citlivy.Typ == TypUdaje.Adresa && citlivy.PatriK is not null)
             && MessageBox.Show(this,
                 $"„{m.Udaj}“ ({Nazvy.Typ(citlivy.Typ)}) se pak ve všech stranách pošle Claudovi skutečně, bez náhrady.\n\nOpravdu to není citlivé?",
                 "Není citlivé", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)

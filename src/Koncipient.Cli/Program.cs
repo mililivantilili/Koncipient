@@ -372,6 +372,16 @@ try
             return Vypis(new { soubor = cil, stran = ArchivPdf.Uloz(spis, cil, dokumenty) });
         }
 
+        case "tisk":
+        {
+            // upravené fotky k tisku (oříznutí, narovnání, černobílá) do PDF A4; skutečné údaje, jen pro tisk
+            var spis = NajdiSpis(argumenty[0]);
+            var dokumenty = Dokumenty(spis, Volba("--dokumenty"));
+            bool barevne = Prepinac("--barevne"), neorezavat = Prepinac("--neorezavat");
+            var cil = Path.GetFullPath(argumenty[1]);
+            return Vypis(new { soubor = cil, stran = UpravaProTisk.UlozPdf(spis, cil, dokumenty, !neorezavat, !barevne) });
+        }
+
         case "hledej":
         {
             if (!TestovaciData()) return Chyba(Ochrana, 3);
@@ -447,6 +457,7 @@ static int Napoveda()
           zkontroluj <spis> [<strana>...|vse] [--zrusit]
           export <spis> [--cil <složka>] [--dokumenty 1,3|nove] [--ukol "text"]   zápis pro Clauda (jen po kontrole stran)
           pdf <spis> <soubor.pdf> [--dokumenty 1,3]   prohledatelné PDF pro archiv (skutečné údaje)
+          tisk <spis> <soubor.pdf> [--dokumenty 1,3] [--barevne] [--neorezavat]   upravené fotky k tisku
           zaloha <složka nebo disk>               záloha všech spisů s ověřením
           data <spis>                             *  přehled dat ve spisu seřazený časově (lhůty nepočítá)
           zaznam <spis> [--text]                  záznam o exportech pro GDPR (jen počty, žádné údaje)

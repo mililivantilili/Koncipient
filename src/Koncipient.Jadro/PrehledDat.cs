@@ -30,7 +30,7 @@ public static partial class PrehledDat
         (@"\bnar(\.|oz)", "narození"),
         (@"doruč", "doručení"),
         (@"právní moc|právní mocí|nabyl", "právní moc"),
-        (@"jednání|líčení|nařizuje", "jednání"),
+        (@"jednání|líčení|nařizuje|konat|koná|konaném|konané", "jednání"),
         (@"splatn", "splatnost"),
         (@"lhůt|nejpozději|do\s*$", "lhůta v textu"),
         (@"podán|podal|podala|podání", "podání"),
@@ -65,6 +65,8 @@ public static partial class PrehledDat
                 var pred = string.Join(" ", slova.Skip(Math.Max(0, od - Okoli)).Take(Math.Min(Okoli, od)));
                 var kratce = string.Join(" ", slova.Skip(Math.Max(0, od - 3)).Take(Math.Min(3, od)));
                 var druh = Napovedy.FirstOrDefault(n => Regex.IsMatch(kratce, n.Vzor, RegexOptions.IgnoreCase)).Druh;
+                // termín jednání bývá dál od data („jednání, které se bude konat dne 10. 9.“)
+                if (druh is null or "ze dne" && Regex.IsMatch(pred, @"jednání|líčení", RegexOptions.IgnoreCase)) druh = "jednání";
                 vysledek.Add(new DatumVeSpisu(new DateOnly(rok, mesic, den), strana, od, @do, pred,
                     string.Join(" ", slova.Skip(od).Take(@do - od + 1)), string.Join(" ", slova.Skip(@do + 1).Take(Okoli)), druh));
             }

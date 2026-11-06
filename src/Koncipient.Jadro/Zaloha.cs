@@ -28,6 +28,14 @@ public static class Zaloha
         var zdroj = uloziste.Slozka;
         if (Path.GetFullPath(korenCile).StartsWith(Path.GetFullPath(zdroj), StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Zálohu nejde uložit do složky se spisy, vyber jiný disk.");
+        // záloha s fotkami a klíčem nesmí skončit na disku nebo ve složce, kterou se přenáší ProClaude
+        var plny = Path.GetFullPath(korenCile);
+        var korenDisku = Path.GetPathRoot(plny)!;
+        bool proClaude(string adresar) => Directory.Exists(Path.Combine(adresar, Prenos.NazevSlozky));
+        if (plny.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).Any(c => c.Equals(Prenos.NazevSlozky, StringComparison.OrdinalIgnoreCase))
+            || proClaude(plny) || (korenDisku != plny && proClaude(korenDisku)))
+            throw new InvalidOperationException("Na tomto disku je složka ProClaude, kterou se přenáší export na počítač s Claudem. "
+                + "Záloha s fotkami a skutečnými jmény musí být na jiném disku, který zůstává u spisů.");
         var cil = Path.Combine(korenCile, NazevSlozky, DateTime.Now.ToString("yyyy-MM-dd"));
         var soubory = Directory.EnumerateFiles(zdroj, "*", SearchOption.AllDirectories)
             .Where(f => !f.EndsWith(".tmp")).ToList();

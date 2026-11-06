@@ -183,6 +183,10 @@ Při exportu může advokátka napsat, co má Claude udělat. Text se anonymizuj
 
 Záložka Data (`PrehledDat.cs`) najde data v textu (číselně i s měsícem slovy, roky 1900–2100, neplatná data jako 31. 2. vynechá), seřadí je a k datu dá nápovědu podle tří slov před ním (narození, doručení, právní moc, jednání, splatnost, lhůta, podání, smlouva, ze dne). Lhůty se záměrně nepočítají. Data narození jsou ve výchozím stavu skrytá. Přehled obsahuje skutečné údaje a zůstává v počítači.
 
+## Upravené fotky k tisku
+
+`UpravaProTisk.cs` připraví strany k tisku do PDF A4. **Oříznutí:** na zmenšenině se Otsuovým prahem oddělí světlý papír od stolu, uzavřením se zalepí písmena a největší obrys se aproximuje čtyřúhelníkem (jinak obdélníkem kolem). Když papír zabírá méně než 20 % nebo skoro celý snímek, fotka se neořízne. Pak perspektivní transformace na obdélník. **Černobílá:** odhad pozadí morfologickým uzavřením (jádro větší než písmeno, na čtvrtinové velikosti), vydělení pozadím vyrovná stíny a přechody světla. Pak Sauvolův lokální práh v okně asi dvou písmen (k = 0,2) a mediánový filtr proti tečkám. Matějova dřívější metoda (dva píky histogramu po čtvercích velikosti písmene) je příbuzná Bernsenově a Otsuově metodě. Sauvola s vyrovnaným pozadím je odolnější na slabém textu a ve stínech. Na fotkách z Matějova archivu zmizel zvýrazňovač i stíny a text zůstal čitelný.
+
 ## Záznam o exportech
 
 Každý export a každá kopie na flash disk se zapíše do `zaznam-exportu.json` ve složce spisu (`ZaznamExportu.cs`): čas, uživatel Windows, pořadí dokumentů, počet stran, jestli byly zkontrolované, výsledek závěrečné kontroly a počty nahrazených, vypuštěných a ponechaných údajů podle typu. Skutečné údaje ani názvy dokumentů (můžou obsahovat jména) se nezapisují. Záznam zůstává ve spisu a advokátka si ho uloží jako Word jako doklad o zacházení s osobními údaji.

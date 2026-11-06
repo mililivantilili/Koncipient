@@ -29,6 +29,7 @@ Testy může dělat i agent (Claude Code), postup pro něj je v [agent.md](agent
 | Test 14: úkol pro Clauda | nový |
 | Test 15: přehled dat | nový |
 | Test 16: záloha | nový |
+| Test 17: upravené fotky k tisku | nový |
 
 Hotové testy (✅) přeskoč, jejich postup je sbalený.
 
@@ -52,7 +53,7 @@ Hotové testy (✅) přeskoč, jejich postup je sbalený.
 1. Otevři **řešení**, ne jen složku: Soubor → Otevřít → Projekt/řešení… → `Koncipient.sln`. Bez toho se nabídka Test ani testy neukážou.
 2. Počkej, až se stáhnou balíčky (vlevo dole), a sestav řešení: Sestavení → Sestavit řešení (Ctrl+Shift+B).
 3. Otevři Test → Průzkumník testů (Ctrl+E, T), anglicky *Test Explorer*.
-4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 461, všechny zelené.
+4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 473, všechny zelené.
 
 Když sestavení selže, otevři Zobrazit → Seznam chyb.
 
@@ -192,7 +193,7 @@ Spis se teď skládá z dokumentů (smlouva, rozsudek…). Strany jsou v seznamu
 3. Nafoť mobilem 2–3 stránky, pak jednu fotku se zakrytým objektivem (černou), pak další 2 stránky. Přidej je přes **Přidat fotky…**.
    - [ ] Po importu se otevřelo okno **Oddělovače dokumentů** s náhledem černé fotky. Nech ji nezaškrtnutou a dej **Hotovo**: fotky se rozdělily do dvou dokumentů.
    - [ ] Zkus i tři fotky z Pixelu (skoro černá, červená, šedá rozmazaná): všechny tři má okno ukázat jako oddělovače, fotky dokumentů ani prázdný papír ne.
-   - [ ] Tlačítko **Oddělovače…**, zaškrtni **Je to stránka, vrátit**: fotka se objeví mezi stranami na svém místě a oba dokumenty se spojí.
+   - [ ] Nabídka **Spis → Oddělovače dokumentů…**, zaškrtni **Je to stránka, vrátit**: fotka se objeví mezi stranami na svém místě a oba dokumenty se spojí.
    - [ ] Po **Spustit přepis** dostaly oba dokumenty název navržený z prvního textu (třeba „Kupní smlouva“). Když ne, napiš, co na první stránce bylo.
 4. Pravé tlačítko na straně v seznamu:
    - [ ] **Posunout stranu nahoru/dolů** mění pořadí, na hranici přejde strana do sousedního dokumentu.
@@ -246,13 +247,13 @@ Na spisu s několika dokumenty a hotovým přepisem:
 1. **Ctrl+F**, napiš začátek slova, které ve spisu je (třeba „smlouv“), Enter.
    - [ ] Nálezy ukazují stranu a okolí, Enter nebo dvojklik otevře stranu a slovo je označené.
    - [ ] Najde to i bez diakritiky a frázi přes konec řádku.
-2. **PDF pro archiv…**, nech vybrané všechny dokumenty a ulož.
+2. **Tisk a archiv → PDF pro archiv (s textem)…**, nech vybrané všechny dokumenty a ulož.
    - [ ] PDF otevřené v prohlížeči (Edge) vypadá jako fotky, Ctrl+F v něm najde slovo a označí ho zhruba na správném místě.
    - [ ] Vlevo jsou záložky s názvy dokumentů.
 3. **Exportovat pro Clauda…**
    - [ ] Okno nabídne dokumenty se stavem „nový“ nebo „exportováno“.
    - [ ] Vyber jeden dokument: v `ProClaude\S-…\dokumenty` je jen on, se stejným číslem jako v pořadí spisu, a `manifest.json` má `"cely_spis": false`.
-   - [ ] Přidej do spisu další fotky, přepiš je a v exportu klikni **Jen nové**: vybere se jen nový dokument.
+   - [ ] Přidej do spisu další fotky, přepiš je a v exportu klikni **Jen nové**: vybere se jen nový dokument a v `ProClaude\\S-…\\dokumenty` zůstanou i ty dřívější.
 
 **Poslat:** co nesedělo, hlavně jestli označení v PDF sedí na slova.
 
@@ -260,7 +261,7 @@ Na spisu s několika dokumenty a hotovým přepisem:
 
 1. Exportuj spis. [ ] Hláška po exportu nabídne zkopírování na flash disk. Bez zasunutého disku napíše, ať ho zasuneš.
 2. Zasuň flash disk a dej **Ano**. [ ] Na disku je `ProClaude` se stejným obsahem jako v `Dokumenty\Koncipient\ProClaude`, bez souborů `.docx`.
-3. Zkus podvrh: do `Dokumenty\Koncipient\ProClaude\S-…` zkopíruj libovolnou fotku a dej **Na flash disk**. [ ] Program odmítne a vypíše tu fotku. Fotku pak smaž.
+3. Zkus podvrh: do `Dokumenty\Koncipient\ProClaude\S-…` zkopíruj libovolnou fotku a dej **Claude → Zkopírovat export na flash disk**. [ ] Program odmítne a vypíše tu fotku. Fotku pak smaž.
 4. Na disk do `ProClaude\S-…\vystup` ulož textový soubor `navrh.md` s vymyšleným jménem z exportu (třeba „Bohdan Jasaník podal žalobu.“) a klikni na **Načíst od Clauda z flash disku**.
    - [ ] Otevře se okno vrácení jmen s tímto souborem a jméno je vrácené.
    - [ ] Podruhé program napíše, že nové výstupy nejsou.
@@ -271,7 +272,7 @@ Na spisu s několika dokumenty a hotovým přepisem:
 
 1. Nafoť mobilem 4 stránky: jednu normálně, jednu rozmazaně (pohyb), jednu potmě a jednu s uříznutým okrajem textu. Přidej je do nového spisu a spusť přepis.
    - [ ] Po přepisu se program zeptá na stránky k přefocení. Normální stránka v seznamu není, ostatní ano se srozumitelným důvodem.
-   - [ ] **Nahradit novou fotkou…** vymění fotku, náhled se změní. Po dalším přepisu strana zmizí ze seznamu **K přefocení…**.
+   - [ ] **Nahradit novou fotkou…** vymění fotku, náhled se změní. Po dalším přepisu strana zmizí ze seznamu **Spis → Stránky k přefocení…**.
    - [ ] Prázdná stránka (papír na stole) v seznamu není.
 2. Rychlá kontrola na tomto spisu:
    - [ ] Po vyřízení míst strany se objeví „celá strana k potvrzení“ s celým textem pro Clauda a fotkou vpravo. Strana je zkontrolovaná až po Enteru na ní.
@@ -281,7 +282,7 @@ Na spisu s několika dokumenty a hotovým přepisem:
 ## Test 13: záznam o exportech (5 minut)
 
 1. Na spisu, který už byl exportovaný, exportuj ještě jednou jen jeden dokument a zkopíruj na flash disk.
-2. **Záznam o exportech…**
+2. **Claude → Záznam o exportech…**
    - [ ] Jsou tam oba exporty (celý spis a jeden dokument) a kopie na flash disk, s časem a jménem uživatele Windows.
    - [ ] U exportu jsou počty nahrazených údajů podle typu a jestli byly strany zkontrolované.
    - [ ] V záznamu není žádné skutečné jméno, adresa ani název dokumentu.
@@ -308,8 +309,19 @@ Na přepsaném spisu z archivu otevři záložku **Data**.
 ## Test 16: záloha (5 minut)
 
 1. Spusť Koncipient. [ ] Když záloha ještě neproběhla, program ji po spuštění nabídne.
-2. **Zálohovat…** a vyber flash disk nebo externí disk. [ ] Na disku vznikne `Koncipient-zaloha\RRRR-MM-DD` se všemi spisy a hláška potvrdí ověření.
+2. **Spis → Zálohovat spisy…** a vyber externí disk, **který se nepoužívá k přenosu pro Clauda**. [ ] Na disk s přenosem (se složkou ProClaude) program zálohu odmítne. [ ] Na disku vznikne `Koncipient-zaloha\RRRR-MM-DD` se všemi spisy a hláška potvrdí ověření.
 3. Zavři a spusť znovu. [ ] Připomenutí už nepřijde (vrátí se po týdnu).
+
+## Test 17: upravené fotky k tisku (10 minut)
+
+1. Nafoť mobilem 3 stránky: list položený šikmo na tmavém stole, list ve stínu (třeba u okna) a list se zvýrazňovačem. Přidej je do spisu.
+2. **Tisk a archiv → Upravené fotky k tisku…**, nech obě volby zaškrtnuté a ulož PDF.
+   - [ ] Stůl zmizel a list je narovnaný (ne šikmý lichoběžník).
+   - [ ] Papír je bílý i ve stínu, text je černý a čitelný, zvýrazňovač nevadí.
+   - [ ] PDF jde vytisknout na A4 (Ano v hlášce PDF otevře).
+3. Zkus fotku, na které je vedle listu další papír. [ ] Program ji neořízne špatně (raději nechá celou).
+
+**Poslat:** PDF nebo popis, co nesedělo (oříznutí, slabý text, černé skvrny).
 
 ## Kde jsou data
 

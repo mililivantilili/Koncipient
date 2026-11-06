@@ -78,6 +78,18 @@ public class HledaniArchivTesty
         Assert.NotNull(Spis.Nacti(spis.Slozka).Dokumenty[1].Exportovano);
         Assert.Null(Spis.Nacti(spis.Slozka).Dokumenty[0].Exportovano);
 
+        // další export jen jednoho (jiného) dokumentu přidává, dřívější dokument zůstane
+        spis.Strany[0].Zkontrolovano = true;
+        spis.Uloz();
+        var druhy = Export.Proved(spis, klic, Path.Combine(d.Cesta, "ProClaude"), new[] { spis.Dokumenty[0].Id });
+        Assert.True(druhy.Uspech);
+        Assert.Equal(new[] { "01-smlouva.md", "02-dopis.md" },
+            Directory.GetFiles(Path.Combine(druhy.Slozka, "dokumenty")).Select(Path.GetFileName).OrderBy(x => x));
+        var manifest = File.ReadAllText(Path.Combine(druhy.Slozka, "manifest.json"));
+        Assert.Contains("\"cely_spis\": true", manifest);
+        spis.Strany[0].Zkontrolovano = false;
+        spis.Uloz();
+
         // celý spis neprojde, dokud není zkontrolovaná i první strana
         Assert.False(Export.Proved(spis, klic, Path.Combine(d.Cesta, "ProClaude")).Uspech);
     }

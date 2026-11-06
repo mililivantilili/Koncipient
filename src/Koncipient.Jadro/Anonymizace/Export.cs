@@ -87,6 +87,28 @@ public static class Export
             File.WriteAllText(Path.Combine(docasna, d.Soubor), sb.ToString(), new UTF8Encoding(false));
         }
 
+        // Export jen vybraných dokumentů přidává: dokumenty z dřívějšího exportu, které teď vybrané
+        // nebyly, zůstanou (Claude má mít celý dosud poslaný spis). Nové verze mají přednost.
+        var manifestDokumenty = dokumenty
+            .Select(d => (d.Poradi, Zaznam: (object)new { poradi = d.Poradi, nazev = d.Nazev, soubor = d.Soubor, strany = d.Strany.Select(s => s.Strana) }))
+            .ToList();
+        if (vybrane is not null && File.Exists(Path.Combine(cil, "manifest.json")))
+        {
+            using var stary = JsonDocument.Parse(File.ReadAllText(Path.Combine(cil, "manifest.json")));
+            if (stary.RootElement.TryGetProperty("dokumenty", out var stare))
+                foreach (var d in stare.EnumerateArray())
+                {
+                    if (!d.TryGetProperty("poradi", out var p) || !d.TryGetProperty("soubor", out var sb)) continue;
+                    int poradi = p.GetInt32();
+                    var soubor = sb.GetString()!;
+                    if (poradi > spis.Dokumenty.Count || manifestDokumenty.Any(x => x.Poradi == poradi)
+                        || !File.Exists(Path.Combine(cil, soubor))) continue;
+                    File.Copy(Path.Combine(cil, soubor), Path.Combine(docasna, soubor), overwrite: true);
+                    manifestDokumenty.Add((poradi, JsonSerializer.Deserialize<JsonElement>(d.GetRawText())));
+                }
+        }
+        manifestDokumenty.Sort((a, b) => a.Poradi.CompareTo(b.Poradi));
+
         // jen náhrady a role, nikdy skutečné hodnoty (kromě údajů, které advokátka ponechala)
         var entity = klic.Entity.Where(e => e.Akce != Akce.Odstranit)
             .Select(e => new
@@ -110,10 +132,12 @@ public static class Export
                 spis = spis.Id,
                 exportovano = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
                 // jen část spisu: Claude má vědět, že ostatní dokumenty nedostal
-                cely_spis = vybrane is null || dokumenty.Count == spis.Dokumenty.Count,
+                cely_spis = vybrane is null || manifestDokumenty.Count == spis.Dokumenty.Count,
+                // dokumenty přidané tímto exportem (při doplnění spisu ty nové)
+                naposledy_pridane = dokumenty.Select(d => d.Poradi),
                 ukol = ukolProClauda is null ? null : "UKOL.md",
                 dokumentu_ve_spisu = spis.Dokumenty.Count,
-                dokumenty = dokumenty.Select(d => new { poradi = d.Poradi, nazev = d.Nazev, soubor = d.Soubor, strany = d.Strany.Select(s => s.Strana) }),
+                dokumenty = manifestDokumenty.Select(x => x.Zaznam),
             }, Json), new UTF8Encoding(false));
 
         // celý spis se vymění najednou, aby v ProClaude nezůstaly staré strany
@@ -219,8 +243,9 @@ public static class Export
           nečitelné nebo nejasné, napiš to, nedomýšlej si ho. Názvy dokumentů jsou navržené
           programem nebo advokátkou a jsou také anonymizované.
         - `manifest.json` vyjmenovává dokumenty a jejich strany. Když má `cely_spis: false`,
-          advokátka poslala jen vybrané dokumenty (třeba nově doplněné). Čísla dokumentů a stran
-          platí v celém spisu, chybějící dokumenty si nedomýšlej a případně o ně požádej.
+          nemáš všechny dokumenty spisu. Čísla dokumentů a stran platí v celém spisu, chybějící
+          dokumenty si nedomýšlej a případně o ně požádej. `naposledy_pridane` jsou dokumenty
+          z posledního exportu, třeba nově doplněné do spisu.
         - `entity.json` vyjmenovává náhrady použité ve spisu, jejich typ, rod a roli ve věci
           (žalobce, svědek…) a ke komu patří adresy a další údaje.
         - `UKOL.md` (když ve spisu je) je zadání od advokátky k tomuto spisu. Když řekne „udělej

@@ -74,6 +74,10 @@ public static class ZaznamyExportu
     {
         var poradi = spis.StranyPoDokumentech().Select((x, i) => (x.Dokument, x.Strany, Poradi: i + 1)).ToList();
         var vybrane = poradi.Where(x => jenDokumenty is null || jenDokumenty.Contains(x.Dokument.Id)).ToList();
+        // počítají se jen údaje, které se v exportovaných stranách opravdu vyskytují
+        var vyskyt = vybrane.SelectMany(x => x.Strany).Select(s => Motory.ProZobrazeni(spis, s)).OfType<Koncipient.Ocr.VysledekOcr>()
+            .SelectMany(v => Anonymizator.Vyskyty(Anonymizator.Slova(v), klic)).Select(v => v.Entita).ToHashSet();
+        var entity = klic.Entity.Where(vyskyt.Contains).ToList();
         return new ZaznamExportu
         {
             Kdy = DateTime.Now,
@@ -84,9 +88,9 @@ public static class ZaznamyExportu
             Stran = vybrane.Sum(x => x.Strany.Count),
             StranyZkontrolovane = vybrane.All(x => x.Strany.All(s => s.Zkontrolovano)),
             KontrolaProsla = true, // export se zapíše, jen když kontrola prošla
-            Nahrazeno = klic.Entity.Where(e => e.Akce == Anonymizace.Akce.Pseudonym)
+            Nahrazeno = entity.Where(e => e.Akce == Anonymizace.Akce.Pseudonym)
                 .GroupBy(e => Nazvy.Typ(e.Typ)).ToDictionary(g => g.Key, g => g.Count()),
-            Odstraneno = klic.Entity.Count(e => e.Akce == Anonymizace.Akce.Odstranit),
+            Odstraneno = entity.Count(e => e.Akce == Anonymizace.Akce.Odstranit),
             Ponechano = klic.Entity.Count(e => e.Akce == Anonymizace.Akce.Ponechat),
             Cil = cil,
         };
@@ -99,7 +103,8 @@ public static class ZaznamyExportu
         sb.AppendLine($"Záznam o předání anonymizovaných dat, spis {spis.Id}");
         sb.AppendLine();
         sb.AppendLine("Program Koncipient předává Claudovi (AI asistent) jen anonymizovaný text spisu. Skutečná jména, adresy, čísla "
-            + "a fotky zůstávají v počítači se spisy. Tento záznam neobsahuje žádné osobní údaje.");
+            + "a fotky zůstávají v počítači se spisy. Tento záznam neobsahuje žádné údaje ze spisu, jen počty, "
+            + "jméno uživatele Windows, který export schválil, a cestu, kam export šel.");
         var zaznamy = Nacti(spis);
         if (zaznamy.Count == 0) { sb.AppendLine(); sb.AppendLine("Ze spisu zatím nic neodešlo."); return sb.ToString(); }
         foreach (var z in zaznamy)

@@ -33,4 +33,16 @@ public class PrehledDatTesty
         Assert.Equal(2, spis.Poradi(jednani.Strana));
         Assert.Contains("15. 3. 2024", PrehledDat.Text(spis, data));
     }
+
+    [Fact]
+    public void TerminJednaniDalOdData()
+    {
+        using var d = new DocasnaSlozka();
+        var spis = new Uloziste(Path.Combine(d.Cesta, "Spisy")).Zaloz("vzor");
+        var cesta = Path.Combine(d.Cesta, "1.png");
+        using (var m = new Mat(100, 100, MatType.CV_8UC3, Scalar.White)) Cv2.ImWrite(cesta, m);
+        var s = spis.PridejFotky(new[] { cesta })[0];
+        spis.UlozOcr(s, new VysledekOcr { Motor = Motory.Paddle, Radky = Vzor.Ocr("Soud nařídil jednání, které se bude konat dne 10.9.2026 v 9 hodin.").Radky });
+        Assert.Equal("jednání", Assert.Single(PrehledDat.Najdi(spis)).Druh);
+    }
 }

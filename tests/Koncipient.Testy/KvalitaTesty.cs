@@ -45,6 +45,27 @@ public class KvalitaTesty
     }
 
     [Fact]
+    public void NecitelnaStranaBezSlovSeNabidne()
+    {
+        // kontrola 2026-11-06: úplně rozmazaná strana nemá slovo a tvářila se jako prázdná
+        using var d = new DocasnaSlozka();
+        var z = Path.Combine(d.Cesta, "z");
+        var spis = new Uloziste(Path.Combine(d.Cesta, "Spisy")).Zaloz("vzor");
+        var cesta = Stranka(z, "1.jpg");
+        using (var m = Cv2.ImRead(cesta))
+        {
+            using var mala = new Mat();
+            Cv2.Resize(m, mala, new Size(m.Width / 8, m.Height / 8));
+            Cv2.Resize(mala, m, m.Size());
+            Cv2.GaussianBlur(m, m, new Size(15, 15), 0);
+            Cv2.ImWrite(cesta, m);
+        }
+        var strana = spis.PridejFotky(new[] { cesta })[0];
+        spis.UlozOcr(strana, new VysledekOcr { Motor = Motory.Paddle });
+        Assert.Contains(KvalitaFotek.Posud(spis, strana), x => x.StartsWith("fotka je nečitelná"));
+    }
+
+    [Fact]
     public void UriznutyTextANejistyPrepis()
     {
         using var d = new DocasnaSlozka();

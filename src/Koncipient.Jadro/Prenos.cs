@@ -24,24 +24,77 @@ public static class Prenos
     public static List<DriveInfo> FlashDisky() =>
         DriveInfo.GetDrives().Where(d => d.DriveType == DriveType.Removable && d.IsReady).ToList();
 
-    /// <summary>Co v exportu nemá co dělat. Prázdný seznam = export je čistý.</summary>
-    public static List<string> Zkontroluj(string slozkaProClaude)
+    /// <summary>
+    /// Co v exportu nemá co dělat. Prázdný seznam = export je čistý. Na disk smí jen soubory,
+    /// které vytvořil export (podle manifest.json), pravidla pro Clauda a výstupy od Clauda.
+    /// Textové soubory, které mohl upravit člověk (CLAUDE.md, výstupy), projdou závěrečnou
+    /// kontrolou proti klíči spisu, aby na disk neodešel třeba ručně uložený přepis se jmény.
+    /// </summary>
+    public static List<string> Zkontroluj(string slozkaProClaude, IEnumerable<Spis>? spisy = null)
     {
         var problemy = new List<string>();
+        var klice = (spisy ?? Enumerable.Empty<Spis>()).ToDictionary(s => s.Id, Anonymizator.NactiKlic, StringComparer.OrdinalIgnoreCase);
+        void ZkontrolujText(string soubor, string rel, IEnumerable<Klic> proti)
+        {
+            var text = File.ReadAllText(soubor);
+            foreach (var klic in proti)
+                problemy.AddRange(Export.Kontrola(text, klic).Take(3).Select(p => $"{rel}: {p}"));
+        }
+
         foreach (var soubor in Directory.EnumerateFiles(slozkaProClaude, "*", SearchOption.AllDirectories))
         {
             var rel = Path.GetRelativePath(slozkaProClaude, soubor);
             var casti = rel.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            // výstup od Clauda jako Word může vzniknout zpětným dosazením, i ten má zůstat tady
-            bool veVystupu = casti.Length >= 3 && casti[1].Equals("vystup", StringComparison.OrdinalIgnoreCase);
-            if (ZakazaneNazvy.Contains(Path.GetFileName(soubor))) problemy.Add($"{rel}: soubor ze spisu (klíč nebo data spisu)");
-            else if (ZakazanePripony.Contains(Path.GetExtension(soubor)) && !(veVystupu && Path.GetExtension(soubor).Equals(".docx", StringComparison.OrdinalIgnoreCase)))
-                problemy.Add($"{rel}: fotka, PDF nebo dokument, do exportu nepatří");
-            else if (casti.Any(c => c.Equals("fotky", StringComparison.OrdinalIgnoreCase) || c.Equals("ocr", StringComparison.OrdinalIgnoreCase)))
-                problemy.Add($"{rel}: složka ze spisu");
+            var nazev = Path.GetFileName(soubor);
+            var pripona = Path.GetExtension(soubor);
+            if (casti.Length == 1)
+            {
+                if (nazev.Equals("PRAVIDLA-KONCIPIENT.md", StringComparison.OrdinalIgnoreCase)) continue;
+                if (nazev.Equals("CLAUDE.md", StringComparison.OrdinalIgnoreCase)) { ZkontrolujText(soubor, rel, klice.Values); continue; }
+                problemy.Add($"{rel}: soubor, který nevytvořil export");
+                continue;
+            }
+            var spis = casti[0];
+            klice.TryGetValue(spis, out var klicSpisu);
+            if (casti.Length == 2 && (nazev is "manifest.json" or "entity.json" or "UKOL.md")) continue;
+            if (casti.Length == 3 && casti[1].Equals("dokumenty", StringComparison.OrdinalIgnoreCase)
+                && SouboryZManifestu(Path.Combine(slozkaProClaude, spis)).Contains($"dokumenty/{nazev}")) continue;
+            if (casti.Length >= 3 && casti[1].Equals("vystup", StringComparison.OrdinalIgnoreCase))
+            {
+                // Word se skutečnými jmény (zpětné dosazení) se na disk nekopíruje, smí tu zůstat
+                if (pripona.Equals(".docx", StringComparison.OrdinalIgnoreCase)) continue;
+                if (pripona.Equals(".md", StringComparison.OrdinalIgnoreCase) || pripona.Equals(".txt", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (klicSpisu is not null) ZkontrolujText(soubor, rel, new[] { klicSpisu });
+                    continue;
+                }
+            }
+            problemy.Add(ZakazaneNazvy.Contains(nazev) ? $"{rel}: soubor ze spisu (klíč nebo data spisu)"
+                : ZakazanePripony.Contains(pripona) ? $"{rel}: fotka, PDF nebo dokument, do exportu nepatří"
+                : $"{rel}: soubor, který nevytvořil export (třeba ručně uložený přepis)");
         }
         return problemy;
     }
+
+    /// <summary>Soubory dokumentů, které podle manifest.json vytvořil export.</summary>
+    private static HashSet<string> SouboryZManifestu(string slozkaSpisu)
+    {
+        var vysledek = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var manifest = Path.Combine(slozkaSpisu, "manifest.json");
+        if (!File.Exists(manifest)) return vysledek;
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(manifest));
+            if (doc.RootElement.TryGetProperty("dokumenty", out var dokumenty))
+                foreach (var d in dokumenty.EnumerateArray())
+                    if (d.TryGetProperty("soubor", out var soubor) && soubor.GetString() is { } cesta) vysledek.Add(cesta.Replace('\\', '/'));
+        }
+        catch (System.Text.Json.JsonException) { }
+        return vysledek;
+    }
+
+    /// <summary>Disk se zálohou spisů (fotky, klíč) nesmí sloužit k přenosu na počítač s Claudem.</summary>
+    public static bool JeZalohovaciDisk(string koren) => Directory.Exists(Path.Combine(koren, Zaloha.NazevSlozky));
 
     /// <summary>
     /// Zkopíruje ProClaude na disk (do složky ProClaude v jeho kořeni). Soubory exportu se
@@ -52,7 +105,10 @@ public static class Prenos
     {
         if (!Directory.Exists(slozkaProClaude))
             throw new InvalidOperationException("Zatím není nic exportované. Nejdřív exportuj spis pro Clauda.");
-        var problemy = Zkontroluj(slozkaProClaude);
+        if (JeZalohovaciDisk(korenDisku))
+            throw new InvalidOperationException("Na tomto disku je záloha spisů (fotky a skutečná jména). Ten patří ke spisům a nikdy se nesmí "
+                + "zasunout do počítače s Claudem. Pro přenos použij jiný flash disk.");
+        var problemy = Zkontroluj(slozkaProClaude, spisy);
         if (problemy.Count > 0)
             throw new InvalidOperationException("Ve složce ProClaude je něco, co nepatří Claudovi, nic jsem nezkopíroval:\n"
                 + string.Join("\n", problemy.Take(10)));

@@ -376,3 +376,18 @@ Opravy z minula fungují a většina nových funkcí taky. **Nové jsou 3 chyby,
 ### Co neověřeno
 
 Skutečný flash disk, otevření záznamu a dat ve Wordu, Ctrl+F v PDF v Edge, jestli Claude najde UKOL.md, stránky k přefocení vyfocené mobilem (testoval jsem upravené obrázky). Okno vrácení jmen dál zbývá vidět člověkem.
+
+### Stav oprav po kontrole z 6. 11.
+
+Opraveno 2026-11-06 (testy v `PrenosTesty`, `KvalitaTesty`, `PrehledDatTesty`, `HledaniArchivTesty`, celkem 473):
+
+1. **Záloha a přenos:** záloha odmítne disk nebo složku se složkou ProClaude, přenos na flash disk odmítne disk se zálohou. Návod říká, že zálohovací disk patří ke spisům a nikdy se nezasouvá do počítače s Claudem.
+2. **Kontrola flash disku:** na disk smí jen soubory, které vytvořil export (dokumenty podle manifest.json, entity, manifest, UKOL.md), pravidla a výstupy od Clauda. CLAUDE.md a výstupy projdou závěrečnou kontrolou proti klíči spisu. Ručně uložený `poznamky.md` export zastaví.
+3. **Nečitelná strana:** strana bez slov s ostrostí pod 20 se nabídne k přefocení („nečitelná, program z ní nepřečetl nic“). Prázdný papír na stole má ostrost aspoň 51 a nehlásí se.
+4. **N u adresy osoby** (údaj patří k osobě) se ptá jako u osoby.
+5. **Export „Jen nové“ přidává:** dokumenty z dřívějšího exportu zůstanou, manifest má všechny a `naposledy_pridane`.
+6. **Lišta:** méně častá tlačítka jsou v nabídkách Spis, Claude a Tisk a archiv.
+7. **Záznam o exportech** počítá jen údaje z exportovaných stran a uvádí, že obsahuje jméno uživatele Windows a cestu.
+8. **Nápověda u data:** termín jednání dál od data („jednání, které se bude konat dne …“) dostane nápovědu „jednání“.
+9. **PDF pro archiv:** slova jednoho řádku leží na společném účaří, kopírovaný text by měl mít správné pořadí. Ověřit v Edge.
+

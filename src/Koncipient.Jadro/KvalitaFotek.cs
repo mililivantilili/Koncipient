@@ -39,7 +39,10 @@ public static class KvalitaFotek
             Cv2.MeanStdDev(lap, out _, out var lapOdchylka);
             // prázdný papír na stole je „neostrý“, i když je fotka v pořádku: strana bez textu se nehlásí
             bool bezTextu = v is not null && v.Slova.Count() < 5;
-            if (!bezTextu && lapOdchylka.Val0 * lapOdchylka.Val0 < MinOstrost) duvody.Add("fotka je rozmazaná");
+            double ostrost = lapOdchylka.Val0 * lapOdchylka.Val0;
+            if (!bezTextu && ostrost < MinOstrost) duvody.Add("fotka je rozmazaná");
+            // úplně rozmazaná fotka nemá ani slovo a tvářila by se jako prázdná; prázdný papír má ostrost aspoň 51
+            else if (bezTextu && ostrost < MinOstrost / 3) duvody.Add("fotka je nečitelná (rozmazaná), program z ní nepřečetl nic");
         }
         if (v is null) return duvody; // bez přepisu jde posoudit jen fotku
 

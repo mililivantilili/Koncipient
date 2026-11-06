@@ -39,6 +39,7 @@ Nebo přímo `src\Koncipient.Cli\bin\Release\net10.0-windows10.0.19041.0\koncipi
 | 13 záznam | `zaznam <spis>` nebo `zaznam <spis> --text` po `export` a `na-disk` |
 | 14 úkol | `export <spis> --ukol "Shrň tvrzení Petra Pokusného"`, pak přečíst `ProClaude\S-…\UKOL.md` (nesmí obsahovat skutečné jméno) |
 | 15 data | `data <spis>` (jen s testovacími daty) |
+| 17 tisk | `tisk <spis> <soubor.pdf>` (volby `--barevne`, `--neorezavat`, `--dokumenty`) |
 | 3 otočení | `otoc <spis> <strana> 90`, pak `otoc … 270` a `strany`: `prepis` se nemá ztratit |
 | 4 anonymizace a export | `udaje`, `text <spis> <strana> --slova`, `oznac`, `necitlive`, `udaj … --akce/--role/--nahrada`, `styl`, `zkontroluj … vse`, `export --cil <složka>` |
 | 5 vrácení jmen | napiš `.md` s vymyšlenými jmény z exportu, `vrat-jmena <spis> <soubor> --docx <výstup>` |

@@ -63,8 +63,16 @@ public static class ArchivPdf
                 {
                     stranka.SetTextRenderingMode(TextRenderingMode.Neither);
                     double kv = v.Sirka > 0 ? Sirka / v.Sirka : k;
-                    foreach (var slovo in v.Slova)
-                        VlozSlovo(stranka, font, slovo, kv, vyska);
+                    // všechna slova řádku na společném účaří a se stejnou výškou, jinak je prohlížeč PDF
+                    // bere jako různé řádky a kopírovaný text vyjde přeházený
+                    foreach (var radek in v.Radky.Where(r => r.Slova.Count > 0))
+                    {
+                        var spodky = radek.Slova.Select(s => s.Ramecek.Y + s.Ramecek.Vyska).OrderBy(x => x).ToList();
+                        var vysky = radek.Slova.Select(s => s.Ramecek.Vyska).OrderBy(x => x).ToList();
+                        int spodek = spodky[spodky.Count / 2], vyskaRadku = Math.Max(1, vysky[vysky.Count / 2]);
+                        foreach (var slovo in radek.Slova.OrderBy(s => s.Ramecek.X))
+                            VlozSlovo(stranka, font, slovo, kv, vyska, spodek, vyskaRadku);
+                    }
                 }
                 if (prvni)
                 {
@@ -82,13 +90,14 @@ public static class ArchivPdf
     }
 
     /// <summary>Neviditelné slovo přes jeho místo na fotce, velikost písma podle šířky rámečku.</summary>
-    private static void VlozSlovo(PdfPageBuilder stranka, PdfDocumentBuilder.AddedFont font, SlovoOcr slovo, double k, double vyska)
+    private static void VlozSlovo(PdfPageBuilder stranka, PdfDocumentBuilder.AddedFont font, SlovoOcr slovo, double k, double vyska,
+        int spodekRadku, int vyskaRadku)
     {
         var text = slovo.Platny.Trim();
         if (text.Length == 0) return;
         var r = slovo.Ramecek;
-        double vyskaSlova = Math.Max(1, r.Vyska * k);
-        var zaklad = new PdfPoint(r.X * k, vyska - (r.Y + r.Vyska) * k + vyskaSlova * 0.2);
+        double vyskaSlova = Math.Max(1, vyskaRadku * k);
+        var zaklad = new PdfPoint(r.X * k, vyska - spodekRadku * k + vyskaSlova * 0.2);
         try
         {
             // velikost tak, aby text zabral šířku slova na fotce (označení v prohlížeči PDF sedí)

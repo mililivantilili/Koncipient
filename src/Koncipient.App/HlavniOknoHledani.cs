@@ -179,3 +179,70 @@ public partial class HlavniOkno
         Stav.Text = "Přehled dat uložen: " + dialog.FileName;
     }
 }
+
+/// <summary>Upravené fotky k tisku (oříznutí, narovnání, černobílá).</summary>
+public partial class HlavniOkno
+{
+    private async void TiskFotek_Click(object sender, RoutedEventArgs e)
+    {
+        if (_spis is null) return;
+        var spis = _spis;
+        IReadOnlyCollection<string>? dokumenty = null;
+        if (spis.Dokumenty.Count > 1)
+        {
+            dokumenty = DokumentyDialog.Vyber(this, spis, "Upravené fotky k tisku",
+                "Vyber dokumenty, které chceš vytisknout. Fotky se oříznou na papír, narovnají a převedou na černobílé.",
+                "Pokračovat", out bool zruseno);
+            if (zruseno) return;
+        }
+        var orezat = new CheckBox { Content = "Oříznout na papír a narovnat (stůl a okolí zmizí)", IsChecked = true, Margin = new Thickness(0, 4, 0, 4) };
+        var cernobile = new CheckBox { Content = "Převést na černobílé (bílý papír, černý text, bez stínů)", IsChecked = true, Margin = new Thickness(0, 4, 0, 4) };
+        var ok = new Button { Content = "Uložit PDF k tisku…", IsDefault = true, Padding = new Thickness(10, 3, 10, 3), Margin = new Thickness(0, 0, 8, 0) };
+        var zrusit = new Button { Content = "Zrušit", IsCancel = true, Padding = new Thickness(10, 3, 10, 3) };
+        var dole = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 10, 0, 0) };
+        dole.Children.Add(ok);
+        dole.Children.Add(zrusit);
+        var obsah = new StackPanel { Margin = new Thickness(14) };
+        obsah.Children.Add(new TextBlock
+        {
+            Text = "Vznikne PDF ve formátu A4, které jde vytisknout. Obsahuje skutečné údaje, je jen pro tisk v kanceláři. "
+                 + "Když program papír na fotce nenajde jistě, nechá fotku celou.",
+            TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 8),
+        });
+        obsah.Children.Add(orezat);
+        obsah.Children.Add(cernobile);
+        obsah.Children.Add(dole);
+        var okno = new Window
+        {
+            Title = "Upravené fotky k tisku", Content = obsah, Owner = this, Width = 480, SizeToContent = SizeToContent.Height,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner, ResizeMode = ResizeMode.NoResize, ShowInTaskbar = false,
+        };
+        ok.Click += (_, _) => okno.DialogResult = true;
+        if (okno.ShowDialog() != true) return;
+
+        var dialog = new SaveFileDialog
+        {
+            Title = "Uložit PDF k tisku", Filter = "PDF|*.pdf",
+            FileName = $"{(string.IsNullOrWhiteSpace(spis.Nazev) ? spis.Id : spis.Nazev)} k tisku.pdf",
+            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+        };
+        if (dialog.ShowDialog(this) != true) return;
+        bool o = orezat.IsChecked == true, c = cernobile.IsChecked == true;
+        Stav.Text = "Upravuji fotky k tisku…";
+        IsEnabled = false;
+        try
+        {
+            int stran = await Task.Run(() => UpravaProTisk.UlozPdf(spis, dialog.FileName, dokumenty, o, c));
+            Stav.Text = $"PDF k tisku má {stran} stran: {dialog.FileName}";
+            if (MessageBox.Show(this, $"PDF k tisku je uložené ({stran} stran). Otevřít ho a vytisknout?", "Tisk",
+                    MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(dialog.FileName) { UseShellExecute = true });
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or System.IO.IOException)
+        {
+            MessageBox.Show(this, "PDF se nepodařilo uložit: " + ex.Message, "Tisk", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stav.Text = "";
+        }
+        finally { IsEnabled = true; }
+    }
+}
