@@ -18,8 +18,19 @@ public static class KvalitaFotek
     /// </summary>
     public const double MinOstrost = 60;
 
-    public static List<StranaKPrefoceni> Najdi(Spis spis) =>
-        spis.Strany.Select(s => new StranaKPrefoceni(s, Posud(spis, s))).Where(x => x.Duvody.Count > 0).ToList();
+    /// <summary>Posoudí všechny strany a výsledek si strany zapamatují (barva v seznamu stran, průvodce).</summary>
+    public static List<StranaKPrefoceni> Najdi(Spis spis)
+    {
+        var vysledek = new List<StranaKPrefoceni>();
+        foreach (var s in spis.Strany)
+        {
+            var duvody = Posud(spis, s);
+            s.DuvodyPrefoceni = duvody.Count > 0 ? duvody : null;
+            if (duvody.Count > 0) vysledek.Add(new StranaKPrefoceni(s, duvody));
+        }
+        spis.Uloz();
+        return vysledek;
+    }
 
     public static List<string> Posud(Spis spis, Strana strana)
     {
@@ -40,7 +51,9 @@ public static class KvalitaFotek
             // prázdný papír na stole je „neostrý“, i když je fotka v pořádku: strana bez textu se nehlásí
             bool bezTextu = v is not null && v.Slova.Count() < 5;
             double ostrost = lapOdchylka.Val0 * lapOdchylka.Val0;
-            if (!bezTextu && ostrost < MinOstrost) duvody.Add("fotka je rozmazaná");
+            // když motory text přečetly dobře (hodně slov, málo sporných), mírná neostrost nevadí
+            bool dobrePrecteno = v is not null && v.Slova.Count() >= 30 && v.Slova.Count(s => s.Sporne) < 0.2 * v.Slova.Count();
+            if (!bezTextu && !dobrePrecteno && ostrost < MinOstrost) duvody.Add("fotka je rozmazaná");
             // úplně rozmazaná fotka nemá ani slovo a tvářila by se jako prázdná; prázdný papír má ostrost aspoň 51
             else if (bezTextu && ostrost < MinOstrost / 3) duvody.Add("fotka je nečitelná (rozmazaná), program z ní nepřečetl nic");
         }

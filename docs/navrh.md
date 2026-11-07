@@ -185,7 +185,7 @@ Záložka Data (`PrehledDat.cs`) najde data v textu (číselně i s měsícem sl
 
 ## Vzhled okna
 
-Místo lišty a nabídek je nahoře pás karet podle Wordu (vlastní styl na `TabControl`, bez další knihovny): karty Domů, Kontrola, Claude a Tisk a archiv jdou v pořadí práce a mají skupiny velkých tlačítek s ikonou z písma Segoe Fluent Icons nebo Segoe MDL2 Assets, které má každý Windows 10 a 11. Názvy a AutomationId tlačítek zůstaly, takže klávesové zkratky i ovládání agentem fungují dál.
+Místo lišty a nabídek je nahoře pás karet podle Wordu (vlastní styl na `TabControl`, bez další knihovny): karty Domů, Kontrola, Claude a Tisk a archiv jdou v pořadí práce a mají skupiny velkých tlačítek s ikonou z písma Segoe Fluent Icons nebo Segoe MDL2 Assets, které má každý Windows 10 a 11. Názvy a AutomationId tlačítek zůstaly, takže klávesové zkratky i ovládání agentem fungují dál. Pod pásem je průvodce spisem (`PrehledSpisu.cs`): kroky Nafoceno, Přepsáno, Zkontrolováno a Pro Clauda s počty a tlačítko „Co dál“ s doporučeným krokem (přidat fotky, přepis, přefocení, kontrola, export, flash disk). Strany vlevo mají barevnou tečku podle stavu; výsledek kontroly kvality si strana pamatuje (`DuvodyPrefoceni`), aby se fotky nemusely analyzovat při každém překreslení.
 
 ## Upravené fotky k tisku
 

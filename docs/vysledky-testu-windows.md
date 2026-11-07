@@ -408,7 +408,7 @@ Všechny tři závažné chyby i čtyři z pěti středních jsou opravené a no
 | Nápověda u termínu jednání | Opraveno: `[jednání]` |
 | Pořadí slov v PDF pro archiv | Opraveno: text jde po řádcích (`PLNÁ MOC Já, níže podepsaný…`) |
 
-Zbývá drobnost: uříznutá strana má v seznamu k přefocení i důvod „fotka je rozmazaná“, který neplatí.
+Zbývá drobnost: uříznutá strana má v seznamu k přefocení i důvod „fotka je rozmazaná“, který neplatí. (Opraveno 2026-11-07: když motory text přečetly dobře, rozmazání se nehlásí.)
 
 ### Test 17: upravené fotky k tisku
 

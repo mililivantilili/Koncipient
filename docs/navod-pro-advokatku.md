@@ -22,7 +22,9 @@ Nahoře je pás karet jako ve Wordu. Karty jdou v pořadí práce:
 - **Claude:** export, přenos na flash disk a zpět, vrácení jmen, záznam o exportech.
 - **Tisk a archiv:** upravené fotky k tisku, PDF s textem pro archiv, záloha.
 
-Vlevo je seznam stran po dokumentech, uprostřed text (a záložky Osoby a údaje, Rychlá kontrola, Hledání, Data), vpravo fotka.
+Pod pásem karet je **průvodce spisem**: ukazuje, kde spis je (Nafoceno › Přepsáno › Zkontrolováno › Pro Clauda), kolik stran zbývá, a tlačítkem **Co dál** nabídne doporučený další krok.
+
+Vlevo je seznam stran po dokumentech. Barevná tečka ukazuje stav strany: šedá = ještě nepřepsaná, oranžová = čeká na kontrolu, zelená = zkontrolovaná, červená = přefotit (důvod se ukáže po najetí myší). U dokumentu je, kolik stran je zkontrolovaných. Uprostřed je text (a záložky Osoby a údaje, Rychlá kontrola, Hledání, Data), vpravo fotka.
 
 ## 1. Nafocení spisu
 

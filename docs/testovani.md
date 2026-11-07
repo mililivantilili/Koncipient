@@ -55,7 +55,7 @@ Hotové testy (✅) přeskoč, jejich postup je sbalený.
 1. Otevři **řešení**, ne jen složku: Soubor → Otevřít → Projekt/řešení… → `Koncipient.sln`. Bez toho se nabídka Test ani testy neukážou.
 2. Počkej, až se stáhnou balíčky (vlevo dole), a sestav řešení: Sestavení → Sestavit řešení (Ctrl+Shift+B).
 3. Otevři Test → Průzkumník testů (Ctrl+E, T), anglicky *Test Explorer*.
-4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 473, všechny zelené.
+4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 474, všechny zelené.
 
 Když sestavení selže, otevři Zobrazit → Seznam chyb.
 
@@ -332,6 +332,10 @@ Nahoře v okně je místo lišty pás karet Domů, Kontrola, Claude, Tisk a arch
 - [ ] Neaktivní tlačítka (bez otevřeného spisu) jsou zašedlá, po otevření spisu ožijí.
 - [ ] Náhled pro Clauda a Strana zkontrolována zůstanou po kliknutí zvýrazněné.
 - [ ] Klávesové zkratky dál fungují (Ctrl+N, Ctrl+O, F5, Ctrl+E, Ctrl+F, Ctrl+K).
+
+- [ ] Pod pásem je průvodce: Nafoceno › Přepsáno › Zkontrolováno › Pro Clauda s počty, aktuální krok je zvýrazněný a tlačítko **Co dál** udělá nabízený krok (přidat fotky, spustit přepis, přefotit, rychlá kontrola, export, flash disk).
+- [ ] Strany vlevo mají barevnou tečku (šedá, oranžová, zelená, červená) a po najetí myší popis stavu. U dokumentu je „3/5 zkontrolováno“.
+- [ ] Po označení strany jako zkontrolované zezelená a průvodce přepočítá počty.
 
 **Poslat:** snímek obrazovky a co by šlo uspořádat lépe.
 

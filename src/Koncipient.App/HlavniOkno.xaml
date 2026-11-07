@@ -220,6 +220,15 @@
                 </StackPanel>
             </TabItem>
         </TabControl>
+        <!-- Průvodce spisem: kde spis je a co dál -->
+        <Border x:Name="Pruvodce" AutomationProperties.AutomationId="Pruvodce" DockPanel.Dock="Top" Background="White" BorderBrush="#D6DCE5" BorderThickness="0,0,0,1"
+                Padding="10,6" Visibility="Collapsed">
+            <DockPanel>
+                <Button x:Name="PruvodceDalsi" AutomationProperties.AutomationId="PruvodceDalsi" DockPanel.Dock="Right" Click="PruvodceDalsi_Click" Cursor="Hand"
+                        Padding="14,5" Background="#2B579A" Foreground="White" BorderThickness="0" FontWeight="SemiBold" ToolTip="Doporučený další krok" />
+                <StackPanel x:Name="PruvodceKroky" Orientation="Horizontal" VerticalAlignment="Center" />
+            </DockPanel>
+        </Border>
 
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBarItem>
@@ -256,8 +265,22 @@
                 </Grid.RowDefinitions>
                 <TextBlock Text="Spisy" FontWeight="SemiBold" Margin="6,6,6,2" />
                 <ListBox x:Name="SeznamSpisu" AutomationProperties.AutomationId="SeznamSpisu" Grid.Row="1" SelectionChanged="SeznamSpisu_SelectionChanged" />
-                <TextBlock Grid.Row="2" Text="Dokumenty a strany   (✓ přepsáno, ✎ opraveno, ☑ zkontrolováno, pravé tlačítko = přesuny)" FontWeight="SemiBold" Margin="6,8,6,2" TextWrapping="Wrap" />
+                <StackPanel Grid.Row="2" Margin="6,8,6,2">
+                    <TextBlock Text="Dokumenty a strany" FontWeight="SemiBold" />
+                    <TextBlock FontSize="11" Foreground="#555" TextWrapping="Wrap">
+                        <Run Text="●" Foreground="#A0A7B1" /> nepřepsaná  <Run Text="●" Foreground="#E8912D" /> ke kontrole
+                        <Run Text="●" Foreground="#2E9E4F" /> zkontrolovaná  <Run Text="●" Foreground="#D13438" /> přefotit · pravé tlačítko = přesuny
+                    </TextBlock>
+                </StackPanel>
                 <ListBox x:Name="SeznamStran" AutomationProperties.AutomationId="SeznamStran" Grid.Row="3" SelectionChanged="SeznamStran_SelectionChanged">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" ToolTip="{Binding StavText}">
+                                <Ellipse Width="9" Height="9" Fill="{Binding Barva}" Margin="0,0,7,0" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding Popis}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
                     <ListBox.GroupStyle>
                         <GroupStyle>
                             <GroupStyle.HeaderTemplate>

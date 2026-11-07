@@ -92,15 +92,33 @@ public partial class HlavniOkno : Window
             string.IsNullOrWhiteSpace(Spis.Nazev) ? Spis.Id : $"{Spis.Id}  {Spis.Nazev}";
     }
 
-    private sealed record PolozkaStrany(Spis Spis, Strana Strana, string Skupina)
+    public sealed record PolozkaStrany(Spis Spis, Strana Strana, string Skupina)
     {
-        public override string ToString()
+        public StavStrany Stav { get; } = PrehledSpisu.Stav(Spis, Strana);
+
+        public Brush Barva => Stav switch
         {
-            var znacka = Spis.MaOcr(Strana, Spis.Opraveno) ? "✎"
-                : Motory.PoradiZobrazeni.Any(m => Spis.MaOcr(Strana, m)) ? "✓" : "…";
-            var kontrola = Strana.Zkontrolovano ? " ☑" : "";
-            return $"{znacka}{kontrola}  Strana {Spis.Poradi(Strana)}   {Strana.PuvodniNazev}";
-        }
+            StavStrany.Zkontrolovana => Zelena,
+            StavStrany.Prepsana => Oranzova,
+            StavStrany.KPrefoceni => Cervena,
+            _ => Seda,
+        };
+
+        public string StavText => Stav switch
+        {
+            StavStrany.Zkontrolovana => "Zkontrolovaná",
+            StavStrany.Prepsana => "Přepsaná, čeká na kontrolu",
+            StavStrany.KPrefoceni => "Přefotit: " + string.Join(", ", Strana.DuvodyPrefoceni ?? new()),
+            _ => "Ještě nepřepsaná",
+        } + (Spis.MaOcr(Strana, Spis.Opraveno) ? " (ručně opravená)" : "");
+
+        public string Popis => $"Strana {Spis.Poradi(Strana)}{(Spis.MaOcr(Strana, Spis.Opraveno) ? " ✎" : "")}   {Strana.PuvodniNazev}";
+
+        // text pro čtečky obrazovky a ovládání agentem (UI Automation)
+        public override string ToString() => $"{Popis}  ({StavText})";
+
+        private static readonly Brush Zelena = Zmraz("#2E9E4F"), Oranzova = Zmraz("#E8912D"), Cervena = Zmraz("#D13438"), Seda = Zmraz("#A0A7B1");
+        private static Brush Zmraz(string barva) { var b = (Brush)new BrushConverter().ConvertFromString(barva)!; b.Freeze(); return b; }
     }
 
     private void NactiSpisy(string? vybratId = null)
@@ -113,16 +131,18 @@ public partial class HlavniOkno : Window
     private void NactiStrany()
     {
         var cislo = _strana?.Cislo;
-        if (_spis is null) { SeznamStran.ItemsSource = null; return; }
+        if (_spis is null) { SeznamStran.ItemsSource = null; AktualizujPruvodce(); return; }
         // strany seskupené pod nadpisy dokumentů
         var polozky = _spis.StranyPoDokumentech()
-            .SelectMany((x, k) => x.Strany.Select(s => new PolozkaStrany(_spis, s, $"{k + 1}. {x.Dokument.Nazev}  ({x.Strany.Count} str.)")))
+            .SelectMany((x, k) => x.Strany.Select(s => new PolozkaStrany(_spis, s,
+                $"{k + 1}. {x.Dokument.Nazev}  ({x.Strany.Count(y => y.Zkontrolovano)}/{x.Strany.Count} zkontrolováno)")))
             .ToList();
         var pohled = new System.Windows.Data.ListCollectionView(polozky);
         pohled.GroupDescriptions.Add(new System.Windows.Data.PropertyGroupDescription(nameof(PolozkaStrany.Skupina)));
         SeznamStran.ItemsSource = pohled;
         SeznamStran.SelectedItem = SeznamStran.Items.Cast<PolozkaStrany>().FirstOrDefault(p => p.Strana.Cislo == cislo)
             ?? SeznamStran.Items.Cast<PolozkaStrany>().FirstOrDefault();
+        AktualizujPruvodce();
     }
 
     /// <summary>Řádek tabulky Osoby a údaje. Úpravy se rovnou propisují do klíče.</summary>

@@ -33,6 +33,9 @@ public sealed class Strana
 
     /// <summary>Natočení, ve kterých byla strana zkontrolovaná (kontrola se vrátí s přepisem).</summary>
     public List<int> ZkontrolovanoNatoceni { get; set; } = new();
+
+    /// <summary>Proč stranu přefotit (poslední kontrola kvality), null = nekontrolováno nebo v pořádku.</summary>
+    public List<string>? DuvodyPrefoceni { get; set; }
 }
 
 /// <summary>
@@ -261,6 +264,7 @@ public sealed partial class Spis
         s.Narovnano = false;
         s.Zkontrolovano = false;
         s.ZkontrolovanoNatoceni.Clear();
+        s.DuvodyPrefoceni = null;
         Uloz();
     }
 

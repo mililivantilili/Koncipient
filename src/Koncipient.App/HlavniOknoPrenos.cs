@@ -111,6 +111,7 @@ public partial class HlavniOkno
     {
         if (_spis is null) return;
         var strany = KvalitaFotek.Najdi(_spis);
+        NactiStrany(); // červené značky u stran k přefocení
         if (strany.Count == 0) return;
         if (MessageBox.Show(this,
                 $"{strany.Count} stran ve spisu vyšlo špatně (rozmazané, tmavé, uříznuté nebo s nejistým přepisem). "

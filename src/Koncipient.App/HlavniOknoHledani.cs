@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using Koncipient.Jadro;
 using Koncipient.Jadro.Anonymizace;
 using Microsoft.Win32;
@@ -254,4 +255,66 @@ public partial class HlavniOkno
     private void PasRychlaKontrola_Click(object sender, RoutedEventArgs e) => Zalozky.SelectedIndex = 2;
     private void PasHledat_Click(object sender, RoutedEventArgs e) { if (_spis is not null) HledatOtevrit(); }
     private void PasData_Click(object sender, RoutedEventArgs e) => Zalozky.SelectedIndex = 4;
+}
+
+/// <summary>Průvodce spisem: kroky Nafoceno → Přepsáno → Zkontrolováno → Pro Clauda a tlačítko „co dál“.</summary>
+public partial class HlavniOkno
+{
+    private PrehledSpisu? _prehled;
+
+    private void AktualizujPruvodce()
+    {
+        if (_spis is null) { Pruvodce.Visibility = Visibility.Collapsed; return; }
+        var p = _prehled = PrehledSpisu.Spocitej(_spis);
+        Pruvodce.Visibility = Visibility.Visible;
+        int aktualni = p.Dalsi switch
+        {
+            DalsiKrok.PridatFotky when p.Stran == 0 => 0,
+            DalsiKrok.PridatFotky => 4, // vše hotovo
+            DalsiKrok.SpustitPrepis => 1,
+            DalsiKrok.Prefotit or DalsiKrok.Zkontrolovat => 2,
+            _ => 3,
+        };
+        var kroky = new[]
+        {
+            ("Nafoceno", p.Stran == 0 ? "zatím nic" : $"{p.Stran} stran"),
+            ("Přepsáno", $"{p.Prepsanych} z {p.Stran}"),
+            ("Zkontrolováno", $"{p.Zkontrolovanych} z {p.Stran}" + (p.KPrefoceni > 0 ? $", {p.KPrefoceni} přefotit" : "")),
+            ("Pro Clauda", p.PosledniExport is { } kdy
+                ? $"exportováno {kdy:d. M.}" + (p.NeexportovanychDokumentu > 0 ? $", {p.NeexportovanychDokumentu} nové" : "")
+                : "zatím neodešlo"),
+        };
+        PruvodceKroky.Children.Clear();
+        for (int i = 0; i < kroky.Length; i++)
+        {
+            if (i > 0) PruvodceKroky.Children.Add(new TextBlock { Text = "›", Margin = new Thickness(8, 0, 8, 0), Foreground = Brushes.Gray, FontSize = 16, VerticalAlignment = VerticalAlignment.Center });
+            bool hotovo = i < aktualni, ted = i == aktualni;
+            var (nazev, detail) = kroky[i];
+            var text = new TextBlock { VerticalAlignment = VerticalAlignment.Center };
+            text.Inlines.Add(new System.Windows.Documents.Run((hotovo ? "✓ " : $"{i + 1}  ") + nazev) { FontWeight = ted ? FontWeights.SemiBold : FontWeights.Normal });
+            text.Inlines.Add(new System.Windows.Documents.Run("  " + detail) { Foreground = Brushes.DimGray, FontSize = 12 });
+            PruvodceKroky.Children.Add(new Border
+            {
+                CornerRadius = new CornerRadius(12), Padding = new Thickness(10, 3, 10, 3), Child = text,
+                Background = (Brush)new BrushConverter().ConvertFromString(hotovo ? "#E6F4EA" : ted ? "#E3ECF8" : "#F1F3F5")!,
+                BorderBrush = (Brush)new BrushConverter().ConvertFromString(ted ? "#2B579A" : "Transparent")!,
+                BorderThickness = new Thickness(ted ? 1 : 0),
+            });
+        }
+        PruvodceDalsi.Content = "Co dál: " + p.TextDalsiho;
+    }
+
+    private void PruvodceDalsi_Click(object sender, RoutedEventArgs e)
+    {
+        switch (_prehled?.Dalsi)
+        {
+            case DalsiKrok.PridatFotky: PridatFotky_Click(sender, e); break;
+            case DalsiKrok.SpustitPrepis: SpustitPrepis_Click(sender, e); break;
+            case DalsiKrok.Prefotit: KPrefoceni_Click(sender, e); break;
+            case DalsiKrok.Zkontrolovat: Pas.SelectedIndex = 1; Zalozky.SelectedIndex = 2; break;
+            case DalsiKrok.Exportovat: Exportovat_Click(sender, e); break;
+            case DalsiKrok.PrenestNaDisk: NaFlashDisk_Click(sender, e); break;
+        }
+        AktualizujPruvodce();
+    }
 }
