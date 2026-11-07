@@ -36,6 +36,9 @@ public sealed class Strana
 
     /// <summary>Proč stranu přefotit (poslední kontrola kvality), null = nekontrolováno nebo v pořádku.</summary>
     public List<string>? DuvodyPrefoceni { get; set; }
+
+    /// <summary>Stranu nejde přefotit (spis už není k dispozici), advokátka ji ponechala, jak je.</summary>
+    public bool PrefotitNelze { get; set; }
 }
 
 /// <summary>
@@ -264,6 +267,15 @@ public sealed partial class Spis
         s.Narovnano = false;
         s.Zkontrolovano = false;
         s.ZkontrolovanoNatoceni.Clear();
+        s.DuvodyPrefoceni = null;
+        s.PrefotitNelze = false;
+        Uloz();
+    }
+
+    /// <summary>Stranu nejde přefotit: ponechá se, jak je, a program ji přestane nabízet k přefocení.</summary>
+    public void PonechatBezPrefoceni(Strana s)
+    {
+        s.PrefotitNelze = true;
         s.DuvodyPrefoceni = null;
         Uloz();
     }

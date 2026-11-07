@@ -49,6 +49,8 @@ Když je hotovo, uvidíte v titulku okna „přepis dokončen“ a čas. Pokud s
 
 **Stránky k přefocení:** po přepisu program nabídne strany, které vyšly špatně (rozmazané, tmavé, uříznuté u okraje nebo s nejistým přepisem), i s náhledem. Přefoťte je, dokud máte spis v ruce, a tlačítkem **Nahradit novou fotkou…** je vyměňte. Nová fotka se přepíše při dalším spuštění přepisu. Seznam ukáže kdykoli i tlačítko **K přefocení** na kartě **Kontrola**.
 
+**Když stranu přefotit nejde** (spis už nemáte), klikněte u ní na **Nejde přefotit, ponechat**. Strana zůstane, jak je: fotka bude v PDF pro archiv i k tisku, program ji přestane nabízet k přefocení a Claude u ní dostane poznámku, že je nečitelná nebo špatně čitelná, aby si obsah nedomýšlel. Stranu pak normálně potvrďte v rychlé kontrole.
+
 ## 4. Kontrola: hlavní práce
 
 Automatika nikdy nenajde všechno, proto nic neodejde bez vaší kontroly.

@@ -349,6 +349,15 @@ try
             return Vypis(StavStrany(spis, strana));
         }
 
+        case "ponechat-fotku":
+        {
+            // stranu nejde přefotit: ponechat a přestat ji nabízet
+            var spis = NajdiSpis(argumenty[0]);
+            var strana = NajdiStranu(spis, argumenty[1]);
+            spis.PonechatBezPrefoceni(strana);
+            return Vypis(StavStrany(spis, strana));
+        }
+
         case "na-disk":
         {
             // kopie ProClaude na flash disk (nebo do zadané složky) s kontrolou, že tam nejsou fotky ani klíč
@@ -463,6 +472,7 @@ static int Napoveda()
           zaznam <spis> [--text]                  záznam o exportech pro GDPR (jen počty, žádné údaje)
           kvalita <spis>                          strany k přefocení (rozmazané, tmavé, uříznuté, nejistý přepis)
           nahrad-fotku <spis> <strana> <soubor>   přefocená strana: nová fotka, přepis se zahodí
+          ponechat-fotku <spis> <strana>          stranu nejde přefotit: ponechat, Claude dostane poznámku
           na-disk <kořen disku> [--proclaude <složka>]  ProClaude na flash disk (ověří, že tam nejsou fotky ani klíč)
           z-disku <kořen disku> [--proclaude <složka>]  nové výstupy od Clauda z disku
           hledej <spis> <slovo nebo fráze>        *  hledání ve všech stranách

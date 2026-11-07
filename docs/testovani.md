@@ -55,7 +55,7 @@ Hotové testy (✅) přeskoč, jejich postup je sbalený.
 1. Otevři **řešení**, ne jen složku: Soubor → Otevřít → Projekt/řešení… → `Koncipient.sln`. Bez toho se nabídka Test ani testy neukážou.
 2. Počkej, až se stáhnou balíčky (vlevo dole), a sestav řešení: Sestavení → Sestavit řešení (Ctrl+Shift+B).
 3. Otevři Test → Průzkumník testů (Ctrl+E, T), anglicky *Test Explorer*.
-4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 474, všechny zelené.
+4. Klikni na **Spustit všechny testy** (dvojitá zelená šipka, Ctrl+R, A). Má jich být 475, všechny zelené.
 
 Když sestavení selže, otevři Zobrazit → Seznam chyb.
 
@@ -276,6 +276,7 @@ Na spisu s několika dokumenty a hotovým přepisem:
    - [ ] Po přepisu se program zeptá na stránky k přefocení. Normální stránka v seznamu není, ostatní ano se srozumitelným důvodem.
    - [ ] **Nahradit novou fotkou…** vymění fotku, náhled se změní. Po dalším přepisu strana zmizí ze seznamu **K přefocení** (karta Kontrola).
    - [ ] Prázdná stránka (papír na stole) v seznamu není.
+   - [ ] **Nejde přefotit, ponechat** u rozmazané strany: zmizí z nabídky, tečka přestane být červená a průvodce už nechce přefotit. V exportu má strana poznámku „Strana je nečitelná“ (nebo „špatně čitelná“).
 2. Rychlá kontrola na tomto spisu:
    - [ ] Po vyřízení míst strany se objeví „celá strana k potvrzení“ s celým textem pro Clauda a fotkou vpravo. Strana je zkontrolovaná až po Enteru na ní.
 

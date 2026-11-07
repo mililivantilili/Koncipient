@@ -172,7 +172,7 @@ Fotky se řadí přirozeně (IMG_2 před IMG_10). Strany se číslují v pořad�
 
 ## Stránky k přefocení a přenos přes flash disk
 
-- **Přefocení** (`KvalitaFotek.cs`): po přepisu program nabídne strany, které vyšly špatně. Rozmazaná je fotka s ostrostí (rozptyl Laplaceova operátoru na šířce 1000 px) pod 60; fotky z mobilu v Matějově archivu mají 445 až 1583, rozmazané pod 20. Strana bez textu (prázdný papír) se na ostrost nehodnotí. Dál tmavá fotka (jas pod 80), text u okraje (aspoň 3 slova do 0,6 % od okraje) a nejistý přepis (přes 35 % sporných slov). Nová fotka nahradí starou na stejném místě, přepis i kontrola strany se zahodí.
+- **Přefocení** (`KvalitaFotek.cs`): po přepisu program nabídne strany, které vyšly špatně. Rozmazaná je fotka s ostrostí (rozptyl Laplaceova operátoru na šířce 1000 px) pod 60; fotky z mobilu v Matějově archivu mají 445 až 1583, rozmazané pod 20. Strana bez textu (prázdný papír) se na ostrost nehodnotí. Dál tmavá fotka (jas pod 80), text u okraje (aspoň 3 slova do 0,6 % od okraje) a nejistý přepis (přes 35 % sporných slov). Nová fotka nahradí starou na stejném místě, přepis i kontrola strany se zahodí. Když přefotit nejde, advokátka stranu ponechá („Nejde přefotit“): přestane se nabízet, fotka zůstává v PDF pro archiv i k tisku a export pro Clauda u ní uvede, že je nečitelná nebo špatně čitelná.
 - **Flash disk** (`Prenos.cs`): na disk jde jen obsah `ProClaude` po kontrole, že v něm nejsou fotky, PDF, Word, klíč ani data spisu. Výstupy od Clauda na disku zůstanou. Zpátky se načtou jen nové `.md` a `.txt` ze složek `vystup` a rovnou se otevřou k vrácení jmen.
 
 ## Úkol pro Clauda

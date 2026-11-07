@@ -56,8 +56,20 @@ public static class PrefoceniDialog
                 }
             };
             otevritTl.Click += (_, _) => { otevrit = strana; okno!.DialogResult = true; };
+            var ponechat = new Button
+            {
+                Content = "Nejde přefotit, ponechat", Padding = new Thickness(8, 2, 8, 2), Margin = new Thickness(6, 0, 0, 0),
+                ToolTip = "Strana zůstane, jak je. Program ji přestane nabízet k přefocení a Claude dostane poznámku, že je špatně čitelná.",
+            };
+            ponechat.Click += (_, _) =>
+            {
+                spis.PonechatBezPrefoceni(strana);
+                stav.Text = "Ponecháno. Fotka zůstane v PDF pro archiv i k tisku, Claude dostane poznámku o špatné čitelnosti.";
+                ponechat.IsEnabled = nahradit.IsEnabled = false;
+            };
             tlacitka.Children.Add(nahradit);
             tlacitka.Children.Add(otevritTl);
+            tlacitka.Children.Add(ponechat);
             vpravo.Children.Add(tlacitka);
             vpravo.Children.Add(stav);
             radek.Children.Add(vpravo);

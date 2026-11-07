@@ -66,6 +66,38 @@ public class KvalitaTesty
     }
 
     [Fact]
+    public void NecitelnouStranuJdePonechatAClaudeDostanePoznamku()
+    {
+        using var d = new DocasnaSlozka();
+        var z = Path.Combine(d.Cesta, "z");
+        var spis = new Uloziste(Path.Combine(d.Cesta, "Spisy")).Zaloz("vzor");
+        var cesta = Stranka(z, "1.jpg");
+        using (var m = Cv2.ImRead(cesta))
+        {
+            using var mala = new Mat();
+            Cv2.Resize(m, mala, new Size(m.Width / 8, m.Height / 8));
+            Cv2.Resize(mala, m, m.Size());
+            Cv2.GaussianBlur(m, m, new Size(15, 15), 0);
+            Cv2.ImWrite(cesta, m);
+        }
+        var strana = spis.PridejFotky(new[] { cesta }, "Dopis")[0];
+        spis.UlozOcr(strana, new VysledekOcr { Motor = Motory.Paddle });
+        Assert.Single(KvalitaFotek.Najdi(spis));
+        Assert.Equal(DalsiKrok.Prefotit, PrehledSpisu.Spocitej(spis).Dalsi);
+
+        spis.PonechatBezPrefoceni(strana);
+        Assert.Empty(KvalitaFotek.Najdi(spis)); // už se nenabízí
+        Assert.Equal(DalsiKrok.Zkontrolovat, PrehledSpisu.Spocitej(spis).Dalsi);
+
+        strana.Zkontrolovano = true;
+        spis.Uloz();
+        var v = Koncipient.Jadro.Anonymizace.Export.Proved(spis, Koncipient.Jadro.Anonymizace.Anonymizator.NactiKlic(spis), Path.Combine(d.Cesta, "PC"));
+        Assert.True(v.Uspech, string.Join("; ", v.Problemy));
+        var dokument = File.ReadAllText(Directory.GetFiles(Path.Combine(v.Slozka, "dokumenty")).Single());
+        Assert.Contains("Strana je nečitelná", dokument);
+    }
+
+    [Fact]
     public void UriznutyTextANejistyPrepis()
     {
         using var d = new DocasnaSlozka();

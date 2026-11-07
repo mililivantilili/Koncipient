@@ -24,7 +24,7 @@ public static class KvalitaFotek
         var vysledek = new List<StranaKPrefoceni>();
         foreach (var s in spis.Strany)
         {
-            var duvody = Posud(spis, s);
+            var duvody = s.PrefotitNelze ? new List<string>() : Posud(spis, s);
             s.DuvodyPrefoceni = duvody.Count > 0 ? duvody : null;
             if (duvody.Count > 0) vysledek.Add(new StranaKPrefoceni(s, duvody));
         }

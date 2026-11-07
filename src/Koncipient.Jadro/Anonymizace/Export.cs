@@ -61,6 +61,11 @@ public static class Export
                 if (v is null) { problemy.Add($"Strana {poradi} nemá přepis."); continue; }
                 if (!strana.Zkontrolovano) problemy.Add($"Strana {poradi} není označená jako zkontrolovaná.");
                 var text = Anonymizator.AnonymizovanyText(v, klic);
+                // nečitelnou stranu (nejde přefotit) Claude dostane s poznámkou, ať si nemyslí, že je prázdná
+                if (string.IsNullOrWhiteSpace(text) && (strana.PrefotitNelze || strana.DuvodyPrefoceni is { Count: > 0 }))
+                    text = "_[Strana je nečitelná, program z fotky nepřečetl text. Obsah zná jen advokátka z papírového spisu.]_";
+                else if (strana.PrefotitNelze)
+                    text = "_[Strana je špatně čitelná, přepis může být neúplný nebo s chybami.]_\n\n" + text;
                 problemy.AddRange(Kontrola(text, klic).Select(p => $"Strana {poradi}: {p}"));
                 obsah.Add((poradi, text));
             }
@@ -240,7 +245,8 @@ public static class Export
         - `dokumenty/01-nazev.md` je jeden dokument spisu (smlouva, rozsudek…), strany jsou
           oddíly „## Strana N“ číslované v rámci celého spisu. Text je přepsaný z fotek
           automaticky (OCR), může obsahovat překlepy a chybějící diakritiku. Když je místo
-          nečitelné nebo nejasné, napiš to, nedomýšlej si ho. Názvy dokumentů jsou navržené
+          nečitelné nebo nejasné, napiš to, nedomýšlej si ho. Strana s poznámkou „Strana je
+          nečitelná“ text nemá: o jejím obsahu nic nevíš, případně se advokátky zeptej. Názvy dokumentů jsou navržené
           programem nebo advokátkou a jsou také anonymizované.
         - `manifest.json` vyjmenovává dokumenty a jejich strany. Když má `cely_spis: false`,
           nemáš všechny dokumenty spisu. Čísla dokumentů a stran platí v celém spisu, chybějící

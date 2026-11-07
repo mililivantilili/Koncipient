@@ -35,7 +35,7 @@ Nebo přímo `src\Koncipient.Cli\bin\Release\net10.0-windows10.0.19041.0\koncipi
 | 9 rychlá kontrola, PDF | `pridej-fotky <spis> soubor.pdf`, `prepis`, `kontrola <spis>` (jen s testovacími daty), `zkontroluj` |
 | 10 hledání, PDF, výběr dokumentů | `hledej <spis> <slovo>` (jen s testovacími daty), `pdf <spis> <soubor.pdf>`, `export <spis> --dokumenty 2` nebo `--dokumenty nove` |
 | 11 flash disk | `na-disk <složka jako disk>`, `z-disku <složka jako disk>` (místo disku jde použít libovolnou složku) |
-| 12 přefocení | `kvalita <spis>`, `nahrad-fotku <spis> <strana> <soubor>`, pak `prepis` |
+| 12 přefocení | `kvalita <spis>`, `nahrad-fotku <spis> <strana> <soubor>`, pak `prepis`; `ponechat-fotku <spis> <strana>` |
 | 13 záznam | `zaznam <spis>` nebo `zaznam <spis> --text` po `export` a `na-disk` |
 | 14 úkol | `export <spis> --ukol "Shrň tvrzení Petra Pokusného"`, pak přečíst `ProClaude\S-…\UKOL.md` (nesmí obsahovat skutečné jméno) |
 | 15 data | `data <spis>` (jen s testovacími daty) |
